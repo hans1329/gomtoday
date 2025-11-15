@@ -17,9 +17,9 @@ export default defineConfig(({ mode }) => ({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico'],
       manifest: {
-        name: '사진 일기장',
-        short_name: '사진일기',
-        description: '사진으로 기록하는 나만의 이야기',
+        name: 'BreadShot',
+        short_name: 'BreadShot',
+        description: '누군가가 써주는 나의 일기',
         theme_color: '#F97316',
         background_color: '#FEF7F0',
         display: 'standalone',
