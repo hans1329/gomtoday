@@ -160,9 +160,9 @@ export default function Home() {
   return (
     <div className="min-h-screen gradient-soft pb-20">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+      <div className="sticky top-0 z-10 bg-white border-b">
         <div className="max-w-2xl mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold gradient-warm bg-clip-text text-transparent flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
             <img src="/breadshot-logo.png" alt="BreadShot" className="w-8 h-8" />
             BreadShot
           </h1>
