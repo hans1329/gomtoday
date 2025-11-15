@@ -76,7 +76,7 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center gradient-soft p-4">
+    <div className="min-h-screen flex items-center justify-center gradient-soft px-6 py-8">
       <Card className="w-full max-w-md shadow-medium">
         <CardHeader className="space-y-2 text-center">
           <CardTitle className="text-3xl font-bold gradient-warm bg-clip-text text-transparent">
