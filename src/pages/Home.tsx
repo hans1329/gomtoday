@@ -187,6 +187,7 @@ export default function Home() {
                 variant="ghost"
                 size="icon"
                 onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
+                className="rounded-full"
               >
                 <ChevronLeft className="w-5 h-5" />
               </Button>
@@ -197,6 +198,7 @@ export default function Home() {
                 variant="ghost"
                 size="icon"
                 onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
+                className="rounded-full"
               >
                 <ChevronRight className="w-5 h-5" />
               </Button>
