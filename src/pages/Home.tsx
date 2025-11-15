@@ -179,7 +179,7 @@ export default function Home() {
 
       {/* Calendar */}
       <div className="max-w-2xl mx-auto px-4 py-6">
-        <Card className="shadow-soft">
+        <Card className="shadow-soft bg-white">
           <CardContent className="p-6">
             {/* Month Navigation */}
             <div className="flex items-center justify-between mb-6">
@@ -224,7 +224,7 @@ export default function Home() {
             {diaries.slice(0, 3).map((diary) => (
               <Card 
                 key={diary.id} 
-                className="shadow-soft hover:shadow-medium transition-all cursor-pointer hover:scale-[1.02]"
+                className="shadow-soft hover:shadow-medium transition-all cursor-pointer hover:scale-[1.02] bg-white"
                 onClick={() => navigate(`/diary/${diary.id}`)}
               >
                 <CardContent className="p-4 flex gap-4">
