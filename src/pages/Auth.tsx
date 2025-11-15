@@ -78,12 +78,15 @@ export default function Auth() {
   return (
     <div className="min-h-screen flex items-center justify-center gradient-soft px-6 py-8">
       <Card className="w-full max-w-md shadow-medium">
-        <CardHeader className="space-y-2 text-center">
+        <CardHeader className="space-y-3 text-center">
+          <div className="flex justify-center mb-2">
+            <img src="/breadshot-logo.png" alt="BreadShot" className="w-20 h-20" />
+          </div>
           <CardTitle className="text-3xl font-bold gradient-warm bg-clip-text text-transparent">
-            사진 일기장
+            BreadShot
           </CardTitle>
-          <CardDescription>
-            사진으로 기록하는 나만의 이야기
+          <CardDescription className="text-base">
+            누군가가 써주는 나의 일기
           </CardDescription>
         </CardHeader>
         <CardContent>
