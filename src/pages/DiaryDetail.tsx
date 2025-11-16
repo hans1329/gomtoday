@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import LoadingBar from "@/components/LoadingBar";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
@@ -268,11 +269,7 @@ export default function DiaryDetail() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center gradient-soft">
-        <p>로딩 중...</p>
-      </div>
-    );
+    return <LoadingBar />;
   }
 
   if (!diary) {

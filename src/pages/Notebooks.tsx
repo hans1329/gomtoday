@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { BookOpen, Plus, Trash2, Users } from "lucide-react";
+import LoadingBar from "@/components/LoadingBar";
 
 export default function Notebooks() {
   const [notebooks, setNotebooks] = useState<any[]>([]);
@@ -144,11 +145,7 @@ export default function Notebooks() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>로딩 중...</p>
-      </div>
-    );
+    return <LoadingBar />;
   }
 
   return (

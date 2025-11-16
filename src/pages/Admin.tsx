@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Upload, Users, Shield, UserCircle } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import LoadingBar from "@/components/LoadingBar";
 import {
   Select,
   SelectContent,
@@ -242,11 +242,7 @@ export default function Admin() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>로딩 중...</p>
-      </div>
-    );
+    return <LoadingBar />;
   }
 
   if (!isAdmin) {
@@ -307,7 +303,11 @@ export default function Admin() {
           </CardHeader>
           <CardContent>
             {loadingUsers ? (
-              <p className="text-center py-8 text-muted-foreground">로딩 중...</p>
+              <div className="flex justify-center py-8">
+                <div className="w-32 h-1.5 bg-muted rounded-full overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-primary via-primary/60 to-primary animate-shimmer bg-[length:200%_100%]" />
+                </div>
+              </div>
             ) : (
               <div className="rounded-md border">
                 <Table>
