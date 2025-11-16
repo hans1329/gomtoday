@@ -162,7 +162,7 @@ export default function Home() {
   return (
     <div className="min-h-screen gradient-soft pb-20">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-white border-b">
+      <div className="sticky top-0 z-10 bg-white/90 backdrop-blur-sm border-b">
         <div className="max-w-2xl mx-auto px-4 py-4 flex justify-between items-center">
           <h1 className="text-lg font-bold text-foreground flex items-center gap-1.5">
             <img src="/3rdme-logo.png" alt="3rdMe" className="w-6 h-6" />
