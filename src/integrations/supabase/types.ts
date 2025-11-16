@@ -346,6 +346,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_diary_public: { Args: { _diary_id: string }; Returns: boolean }
       is_notebook_owner: {
         Args: { _notebook_id: string; _user_id: string }
         Returns: boolean
