@@ -97,26 +97,30 @@ export default function Auth() {
             </TabsList>
             
             <TabsContent value="signin">
-              <form onSubmit={handleSignIn} className="space-y-4 mt-4">
+              <form onSubmit={handleSignIn} className="space-y-4 mt-4" autoComplete="on">
                 <div className="space-y-2">
-                  <Label htmlFor="email">이메일</Label>
+                  <Label htmlFor="signin-email">이메일</Label>
                   <Input
-                    id="email"
+                    id="signin-email"
+                    name="email"
                     type="email"
                     placeholder="your@email.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    autoComplete="email"
                     required
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="password">비밀번호</Label>
+                  <Label htmlFor="signin-password">비밀번호</Label>
                   <Input
-                    id="password"
+                    id="signin-password"
+                    name="password"
                     type="password"
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    autoComplete="current-password"
                     required
                   />
                 </div>
@@ -131,15 +135,17 @@ export default function Auth() {
             </TabsContent>
             
             <TabsContent value="signup">
-              <form onSubmit={handleSignUp} className="space-y-4 mt-4">
+              <form onSubmit={handleSignUp} className="space-y-4 mt-4" autoComplete="on">
                 <div className="space-y-2">
                   <Label htmlFor="signup-name">이름</Label>
                   <Input
                     id="signup-name"
+                    name="name"
                     type="text"
                     placeholder="홍길동"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
+                    autoComplete="name"
                     required
                   />
                 </div>
@@ -147,10 +153,12 @@ export default function Auth() {
                   <Label htmlFor="signup-email">이메일</Label>
                   <Input
                     id="signup-email"
+                    name="email"
                     type="email"
                     placeholder="your@email.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    autoComplete="email"
                     required
                   />
                 </div>
@@ -158,10 +166,12 @@ export default function Auth() {
                   <Label htmlFor="signup-password">비밀번호</Label>
                   <Input
                     id="signup-password"
+                    name="password"
                     type="password"
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    autoComplete="new-password"
                     required
                     minLength={6}
                   />
