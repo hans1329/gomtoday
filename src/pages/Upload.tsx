@@ -269,7 +269,7 @@ export default function Upload() {
                             className="absolute bottom-0.5 left-0.5 h-7 w-7 text-destructive hover:text-destructive"
                             onClick={() => removePhoto(index)}
                           >
-                            <Trash2 className="h-3.5 w-3.5" />
+                            <Trash2 className="h-3.5 w-3.5 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]" />
                           </Button>
                         </div>
                         <div className="flex-1 min-w-0">
