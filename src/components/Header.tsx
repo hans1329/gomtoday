@@ -197,8 +197,7 @@ export default function Header() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 bg-background">
               <DropdownMenuLabel className="font-normal">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm font-medium leading-none">{userName || "사용자"}</p>
+                <div className="flex items-center justify-end mb-2">
                   <Button
                     variant="ghost"
                     size="icon"
@@ -217,11 +216,12 @@ export default function Header() {
                 </div>
                 <button
                   onClick={() => navigate("/profile")}
-                  className="flex items-center justify-between w-full hover:opacity-70 transition-opacity"
+                  className="flex items-center justify-between w-full hover:opacity-70 transition-opacity mb-1"
                 >
-                  <p className="text-sm text-muted-foreground">{userEmail}</p>
-                  <Settings className="h-4 w-4 text-muted-foreground" />
+                  <p className="text-sm font-medium leading-none">{userName || "사용자"}</p>
+                  <Settings className="h-4 w-4 text-muted-foreground -mr-2" />
                 </button>
+                <p className="text-xs leading-none text-muted-foreground">{userEmail}</p>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => navigate("/")} className="py-3">
