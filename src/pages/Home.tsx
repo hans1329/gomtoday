@@ -164,9 +164,9 @@ export default function Home() {
       {/* Header */}
       <div className="sticky top-0 z-10 bg-white border-b">
         <div className="max-w-2xl mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-lg font-bold text-foreground flex items-center gap-2">
-            <img src="/breadshot-logo.png" alt="BreadShot" className="w-6 h-6" />
-            BreadShot
+          <h1 className="text-lg font-bold text-foreground flex items-center gap-1.5">
+            <img src="/3rdme-logo.png" alt="3rdMe" className="w-6 h-6" />
+            3rdMe
           </h1>
           <Button
             variant="ghost"
