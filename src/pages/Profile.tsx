@@ -188,9 +188,9 @@ export default function Profile() {
           </div>
 
           {/* 프로필 정보 */}
-          <div className="space-y-4 px-4 sm:px-6">
+          <div className="space-y-4 px-2">
             <div className="space-y-2">
-              <Label htmlFor="bio">나에 대한 한마디</Label>
+              <Label htmlFor="bio" className="pl-2">나에 대한 한마디</Label>
               <Textarea
                 id="bio"
                 value={bio}
@@ -210,7 +210,7 @@ export default function Profile() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="mbti">MBTI</Label>
+                <Label htmlFor="mbti" className="pl-2">MBTI</Label>
                 <Select value={mbti} onValueChange={setMbti}>
                   <SelectTrigger id="mbti">
                     <SelectValue placeholder="선택하세요" />
@@ -237,7 +237,7 @@ export default function Profile() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="bloodType">혈액형</Label>
+                <Label htmlFor="bloodType" className="pl-2">혈액형</Label>
                 <Select value={bloodType} onValueChange={setBloodType}>
                   <SelectTrigger id="bloodType">
                     <SelectValue placeholder="선택하세요" />
@@ -254,7 +254,7 @@ export default function Profile() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="birthday">생일</Label>
+                <Label htmlFor="birthday" className="pl-2">생일</Label>
                 <Input
                   id="birthday"
                   type="date"
@@ -264,7 +264,7 @@ export default function Profile() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="gender">성별</Label>
+                <Label htmlFor="gender" className="pl-2">성별</Label>
                 <Select value={gender} onValueChange={setGender}>
                   <SelectTrigger id="gender">
                     <SelectValue placeholder="선택하세요" />
@@ -279,7 +279,7 @@ export default function Profile() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="location">위치</Label>
+              <Label htmlFor="location" className="pl-2">위치</Label>
               <Input
                 id="location"
                 type="text"
