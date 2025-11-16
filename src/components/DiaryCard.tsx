@@ -2,6 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface DiaryCardProps {
   diary: {
@@ -28,6 +29,8 @@ export default function DiaryCard({
   imageSize = "md",
   currentUserId
 }: DiaryCardProps) {
+  const isMobile = useIsMobile();
+  
   const sizeClasses = imageSize === "md" 
     ? "w-20 h-20 md:w-32 md:h-32" 
     : "w-20 h-20";
@@ -44,9 +47,9 @@ export default function DiaryCard({
       onClick={onClick}
     >
       <CardContent className="p-4">
-        <div className="flex gap-4">
+        <div className={`flex gap-4 ${isMobile ? 'flex-col' : ''}`}>
           {/* 썸네일 또는 이모티콘 */}
-          <div className={`flex-shrink-0 ${sizeClasses} rounded-lg overflow-hidden bg-muted relative flex items-center justify-center`}>
+          <div className={`flex-shrink-0 ${isMobile ? 'w-full h-48' : sizeClasses} rounded-lg overflow-hidden bg-muted relative flex items-center justify-center`}>
             {photoUrl ? (
               <>
                 <img
@@ -70,7 +73,7 @@ export default function DiaryCard({
           </div>
 
           {/* 내용 */}
-          <div className="flex-1 min-w-0 space-y-2">
+          <div className={`flex-1 min-w-0 space-y-2 ${isMobile ? 'w-full' : ''}`}>
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1 min-w-0">
                 {diary.title && (
