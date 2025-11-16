@@ -22,8 +22,7 @@ export default function Home() {
   const [currentUserId, setCurrentUserId] = useState<string>("");
   const [viewMode, setViewMode] = useState<"my" | "public">("my");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
-  const [sortBy, setSortBy] = useState<"latest" | "oldest" | "likes" | "comments" | "emoji">("latest");
-  const [filterFriends, setFilterFriends] = useState(false);
+  const [sortBy, setSortBy] = useState<"latest" | "oldest" | "likes" | "comments" | "emoji" | "friends">("latest");
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -36,7 +35,7 @@ export default function Home() {
     if (currentUserId) {
       fetchDiaries();
     }
-  }, [currentUserId, viewMode, selectedDate, sortBy, filterFriends, searchQuery]);
+  }, [currentUserId, viewMode, selectedDate, sortBy, searchQuery]);
 
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -117,38 +116,21 @@ export default function Home() {
 
       let diaryIds = diaryNotebooks.map(dn => dn.diary_id);
       
-      // 친구 필터링
-      if (filterFriends) {
-        const { data: friendships } = await supabase
-          .from("friend_requests")
-          .select("from_user_id, to_user_id")
-          .eq("status", "accepted")
-          .or(`from_user_id.eq.${user.id},to_user_id.eq.${user.id}`);
-        
-        const friendIds = new Set<string>();
-        friendships?.forEach(f => {
-          if (f.from_user_id === user.id) {
-            friendIds.add(f.to_user_id);
-          } else {
-            friendIds.add(f.from_user_id);
-          }
-        });
-
-        // 친구가 작성한 일기만 필터링
-        const { data: friendDiaries } = await supabase
-          .from("diaries")
-          .select("id")
-          .in("id", diaryIds)
-          .in("user_id", Array.from(friendIds));
-        
-        diaryIds = friendDiaries?.map(d => d.id) || [];
-        
-        if (diaryIds.length === 0) {
-          setDiaries([]);
-          setLoading(false);
-          return;
+      // 친구 정보 가져오기 (정렬용)
+      const { data: friendships } = await supabase
+        .from("friend_requests")
+        .select("from_user_id, to_user_id")
+        .eq("status", "accepted")
+        .or(`from_user_id.eq.${user.id},to_user_id.eq.${user.id}`);
+      
+      const friendIds = new Set<string>();
+      friendships?.forEach(f => {
+        if (f.from_user_id === user.id) {
+          friendIds.add(f.to_user_id);
+        } else {
+          friendIds.add(f.from_user_id);
         }
-      }
+      });
       
       let query = supabase
         .from("diaries")
@@ -235,7 +217,8 @@ export default function Home() {
             author_name: profile?.name,
             author_photo: profile?.photo,
             likes_count: likesCount.get(diary.id) || 0,
-            comments_count: commentsCount.get(diary.id) || 0
+            comments_count: commentsCount.get(diary.id) || 0,
+            is_friend: friendIds.has(diary.user_id)
           };
         });
         
@@ -250,6 +233,12 @@ export default function Home() {
             if (!a.emoji) return 1;
             if (!b.emoji) return -1;
             return a.emoji.localeCompare(b.emoji);
+          });
+        } else if (sortBy === "friends") {
+          diariesWithSortedPhotos.sort((a, b) => {
+            if (a.is_friend && !b.is_friend) return -1;
+            if (!a.is_friend && b.is_friend) return 1;
+            return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
           });
         }
         
@@ -568,23 +557,14 @@ export default function Home() {
                         감정순
                       </div>
                     </SelectItem>
+                    <SelectItem value="friends">
+                      <div className="flex items-center gap-2">
+                        <Users className="h-4 w-4" />
+                        친구 우선
+                      </div>
+                    </SelectItem>
                   </SelectContent>
                 </Select>
-                
-                <Button
-                  variant={filterFriends ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => {
-                    setFilterFriends(!filterFriends);
-                    toast({
-                      title: filterFriends ? "전체 일기 보기" : "친구 일기만 보기",
-                    });
-                  }}
-                  className="rounded-full"
-                >
-                  <Users className="h-4 w-4 mr-2" />
-                  친구 일기
-                </Button>
               </div>
             </div>
             
