@@ -7,12 +7,13 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { Camera } from "lucide-react";
+import { Camera, Upload } from "lucide-react";
 
 export default function Profile() {
   const [profile, setProfile] = useState<any>(null);
   const [name, setName] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [uploadingBrand, setUploadingBrand] = useState(false);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -92,6 +93,44 @@ export default function Profile() {
       fetchProfile();
       // Header에 프로필 업데이트 알림
       window.dispatchEvent(new Event('profile-updated'));
+    }
+  };
+
+  const handleBrandAssetUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingBrand(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      toast({
+        title: "로그인이 필요합니다",
+        variant: "destructive",
+      });
+      setUploadingBrand(false);
+      return;
+    }
+
+    const fileName = "3rdme-logo.png";
+
+    const { error: uploadError } = await supabase.storage
+      .from("brand-assets")
+      .upload(fileName, file, { upsert: true });
+
+    setUploadingBrand(false);
+
+    if (uploadError) {
+      toast({
+        title: "업로드 실패",
+        description: uploadError.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "로고 업로드 완료!",
+        description: "Auth 페이지에서 로고를 확인하세요.",
+      });
     }
   };
 
@@ -179,6 +218,38 @@ export default function Profile() {
             <Button onClick={handleUpdateName} className="w-full">
               저장
             </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-medium">
+          <CardHeader>
+            <CardTitle>브랜드 자산 관리</CardTitle>
+            <CardDescription>
+              앱 로고를 업로드하세요 (3rdme-logo.png)
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col items-center gap-4">
+              <label
+                htmlFor="brand-upload"
+                className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-full cursor-pointer hover:bg-primary/90 transition-colors shadow-soft"
+              >
+                <Upload className="w-5 h-5" />
+                <span>로고 업로드</span>
+                <input
+                  id="brand-upload"
+                  type="file"
+                  accept="image/png,image/jpeg,image/jpg"
+                  className="hidden"
+                  onChange={handleBrandAssetUpload}
+                  disabled={uploadingBrand}
+                />
+              </label>
+              {uploadingBrand && <p className="text-sm text-muted-foreground">업로드 중...</p>}
+              <p className="text-xs text-muted-foreground text-center">
+                업로드된 로고는 Auth 페이지에서 사용됩니다
+              </p>
+            </div>
           </CardContent>
         </Card>
       </div>
