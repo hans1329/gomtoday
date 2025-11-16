@@ -188,7 +188,7 @@ export default function Profile() {
           </div>
 
           {/* 프로필 정보 */}
-          <div className="space-y-4 px-2">
+          <div className="space-y-4 px-4 sm:px-6">
             <div className="space-y-2">
               <Label htmlFor="bio">나에 대한 한마디</Label>
               <Textarea
