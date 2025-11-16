@@ -13,6 +13,7 @@ export default function Home() {
   const [diaries, setDiaries] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [currentUserId, setCurrentUserId] = useState<string>("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -24,6 +25,8 @@ export default function Home() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       navigate("/auth");
+    } else {
+      setCurrentUserId(user.id);
     }
   };
 
@@ -35,6 +38,9 @@ export default function Home() {
       .from("diaries")
       .select(`
         *,
+        profiles!diaries_user_id_fkey (
+          name
+        ),
         photos!photos_diary_id_fkey (
           photo_url,
           display_order
@@ -52,7 +58,7 @@ export default function Home() {
     
     if (data) {
       // 각 일기의 사진들을 display_order로 정렬하고, photo_id 방식도 포함
-      const diariesWithSortedPhotos = data.map(diary => {
+      const diariesWithSortedPhotos = data.map((diary: any) => {
         let allPhotos = [];
         
         // 새 방식: diary_id로 연결된 사진들
@@ -66,7 +72,8 @@ export default function Home() {
         
         return {
           ...diary,
-          photos: allPhotos
+          photos: allPhotos,
+          author_name: diary.profiles?.name
         };
       });
       setDiaries(diariesWithSortedPhotos);
@@ -257,6 +264,7 @@ export default function Home() {
                   onClick={() => navigate(`/diary/${diary.id}`)}
                   showTime={false}
                   imageSize="sm"
+                  currentUserId={currentUserId}
                 />
               ))}
             </div>
