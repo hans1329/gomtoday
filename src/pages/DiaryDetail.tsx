@@ -293,7 +293,7 @@ export default function DiaryDetail() {
             {/* Photos Carousel */}
             {sortedPhotos.length > 0 && (
               <div className="aspect-[4/3] bg-muted relative">
-                <Carousel className="w-full h-full">
+                <Carousel className="w-full h-full" opts={{ loop: true }}>
                   <CarouselContent>
                     {sortedPhotos.map((photo: any, index: number) => (
                       <CarouselItem key={photo.id}>
