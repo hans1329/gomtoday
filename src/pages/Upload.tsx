@@ -431,12 +431,12 @@ export default function Upload() {
                   </div>
                   <div className="flex gap-2">
                     <label className="flex-1">
-                      <Button variant="secondary" size="sm" className="w-full" asChild>
+                      <Button variant="default" size="default" className="w-full" asChild>
                         <span>사진 추가</span>
                       </Button>
                       <input type="file" accept="image/*" multiple onChange={handleFileSelect} className="hidden" />
                     </label>
-                    <Button variant="outline" size="sm" className="flex-1" onClick={() => {
+                    <Button variant="outline" size="sm" onClick={() => {
                       setSelectedFiles([]);
                       setPreviewUrls([]);
                     }}>
