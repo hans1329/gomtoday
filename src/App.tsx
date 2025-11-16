@@ -8,6 +8,7 @@ import ScrollToTop from "./components/ScrollToTop";
 import Home from "./pages/Home";
 import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
+import UserProfile from "./pages/UserProfile";
 import Upload from "./pages/Upload";
 import DiaryDetail from "./pages/DiaryDetail";
 import DiaryReview from "./pages/DiaryReview";
@@ -30,6 +31,7 @@ function AppContent() {
         <Route path="/" element={<Home />} />
         <Route path="/auth" element={<Auth />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/user/:userId" element={<UserProfile />} />
         <Route path="/upload" element={<Upload />} />
         <Route path="/upload/:id" element={<Upload />} />
         <Route path="/diaries" element={<Diaries />} />

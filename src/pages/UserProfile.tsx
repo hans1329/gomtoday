@@ -69,13 +69,13 @@ export default function UserProfile() {
 
     // 친구 요청 상태 확인 (양방향)
     const { data } = await supabase
-      .from("friend_requests")
+      .from("friend_requests" as any)
       .select("*")
       .or(`and(from_user_id.eq.${currentUserId},to_user_id.eq.${userId}),and(from_user_id.eq.${userId},to_user_id.eq.${currentUserId})`)
       .maybeSingle();
 
     if (data) {
-      setFriendRequestStatus(data.status);
+      setFriendRequestStatus((data as any).status);
     }
   };
 
@@ -85,12 +85,12 @@ export default function UserProfile() {
     setRequesting(true);
     
     const { error } = await supabase
-      .from("friend_requests")
+      .from("friend_requests" as any)
       .insert({
         from_user_id: currentUserId,
         to_user_id: userId,
         status: "pending"
-      });
+      } as any);
 
     if (error) {
       console.error("Error sending friend request:", error);
