@@ -139,6 +139,10 @@ export default function Profile() {
       fetchProfile();
       // Header에 프로필 업데이트 알림
       window.dispatchEvent(new Event('profile-updated'));
+      // 일기 페이지로 이동
+      setTimeout(() => {
+        navigate("/diaries");
+      }, 500);
     }
   };
 
