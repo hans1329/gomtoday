@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Upload as UploadIcon, Loader2, ArrowLeft, X, ChevronUp, ChevronDown } from "lucide-react";
+import { Upload as UploadIcon, Loader2, ArrowLeft, X, ChevronLeft, ChevronRight } from "lucide-react";
 export default function Upload() {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
@@ -97,10 +97,10 @@ export default function Upload() {
     setPreviewUrls(newFiles.map(file => URL.createObjectURL(file)));
   };
 
-  const movePhoto = (index: number, direction: 'up' | 'down') => {
+  const movePhoto = (index: number, direction: 'left' | 'right') => {
     const newFiles = [...selectedFiles];
     const newUrls = [...previewUrls];
-    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    const targetIndex = direction === 'left' ? index - 1 : index + 1;
     
     if (targetIndex < 0 || targetIndex >= newFiles.length) return;
     
@@ -256,29 +256,29 @@ export default function Upload() {
             <div className="space-y-2">
               <Label>사진 선택 (3~6장)</Label>
               {previewUrls.length > 0 ? <div className="space-y-3">
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    {previewUrls.map((url, index) => <div key={index} className="relative aspect-square rounded-lg overflow-hidden border-2 border-border group">
+                  <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-thin">
+                    {previewUrls.map((url, index) => <div key={index} className="relative flex-shrink-0 w-40 aspect-[3/4] rounded-lg overflow-hidden border-2 border-border snap-center">
                         <img src={url} alt={`Preview ${index + 1}`} className="w-full h-full object-cover" />
                         <div className="absolute top-2 left-2 bg-primary text-primary-foreground rounded-full w-7 h-7 flex items-center justify-center text-sm font-bold shadow-lg">
                           {index + 1}
                         </div>
-                        <div className="absolute top-2 right-2 flex flex-col gap-1">
-                          <Button
-                            size="icon"
-                            variant="secondary"
-                            className="h-7 w-7 opacity-90 hover:opacity-100"
-                            onClick={() => removePhoto(index)}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
+                        <Button
+                          size="icon"
+                          variant="secondary"
+                          className="absolute top-2 right-2 h-7 w-7 opacity-90 hover:opacity-100"
+                          onClick={() => removePhoto(index)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
                           {index > 0 && (
                             <Button
                               size="icon"
                               variant="secondary"
                               className="h-7 w-7 opacity-90 hover:opacity-100"
-                              onClick={() => movePhoto(index, 'up')}
+                              onClick={() => movePhoto(index, 'left')}
                             >
-                              <ChevronUp className="h-4 w-4" />
+                              <ChevronLeft className="h-4 w-4" />
                             </Button>
                           )}
                           {index < previewUrls.length - 1 && (
@@ -286,9 +286,9 @@ export default function Upload() {
                               size="icon"
                               variant="secondary"
                               className="h-7 w-7 opacity-90 hover:opacity-100"
-                              onClick={() => movePhoto(index, 'down')}
+                              onClick={() => movePhoto(index, 'right')}
                             >
-                              <ChevronDown className="h-4 w-4" />
+                              <ChevronRight className="h-4 w-4" />
                             </Button>
                           )}
                         </div>
