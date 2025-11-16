@@ -197,11 +197,12 @@ export default function Header() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 bg-background">
               <DropdownMenuLabel className="font-normal">
-                <div className="flex items-center justify-end mb-2">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-sm font-medium leading-none">{userName || "사용자"}</p>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 relative"
+                    className="h-8 w-8 relative -mr-2"
                     onClick={(e) => {
                       e.stopPropagation();
                       setNotificationsOpen(true);
@@ -218,7 +219,7 @@ export default function Header() {
                   onClick={() => navigate("/profile")}
                   className="flex items-center justify-between w-full hover:opacity-70 transition-opacity"
                 >
-                  <p className="text-sm font-medium leading-none">{userName || "사용자"}</p>
+                  <p className="text-sm text-muted-foreground">{userEmail}</p>
                   <Settings className="h-4 w-4 text-muted-foreground" />
                 </button>
               </DropdownMenuLabel>
