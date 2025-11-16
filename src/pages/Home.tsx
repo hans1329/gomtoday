@@ -35,13 +35,17 @@ export default function Home() {
       .from("diaries")
       .select(`
         *,
-        photos (
+        photos!photos_diary_id_fkey (
           photo_url
         )
       `)
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });
 
+    if (error) {
+      console.error("Error fetching diaries:", error);
+    }
+    
     if (data) {
       setDiaries(data);
     }
