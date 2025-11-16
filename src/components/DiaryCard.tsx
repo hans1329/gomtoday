@@ -9,17 +9,21 @@ interface DiaryCardProps {
     created_at: string;
     emoji?: string | null;
     photos?: { photo_url: string }[];
+    user_id?: string;
+    author_name?: string | null;
   };
   onClick: () => void;
   showTime?: boolean;
   imageSize?: "sm" | "md";
+  currentUserId?: string;
 }
 
 export default function DiaryCard({ 
   diary, 
   onClick, 
   showTime = true,
-  imageSize = "md" 
+  imageSize = "md",
+  currentUserId
 }: DiaryCardProps) {
   const sizeClasses = imageSize === "md" 
     ? "w-20 h-20 md:w-32 md:h-32" 
@@ -72,6 +76,14 @@ export default function DiaryCard({
                     : format(new Date(diary.created_at), "yyyy년 M월 d일 (E)", { locale: ko })
                   }
                 </p>
+                {currentUserId && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {diary.user_id === currentUserId 
+                      ? "by me" 
+                      : `by ${diary.author_name || "Unknown"}`
+                    }
+                  </p>
+                )}
               </div>
             </div>
             <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
