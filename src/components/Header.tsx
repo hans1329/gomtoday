@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { User, PenLine, Settings, LogOut, ArrowLeft, BookOpen, Shield } from "lucide-react";
+import { User, PenLine, Settings, LogOut, ArrowLeft, BookOpen, Shield, List } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   DropdownMenu,
@@ -115,6 +115,15 @@ export default function Header() {
         </div>
 
         <div className="flex flex-1 items-center justify-end space-x-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate("/diaries")}
+            title="전체 일기"
+          >
+            <List className="h-5 w-5" />
+          </Button>
+
           {currentPath !== "/upload" && (
             <Button
               variant="ghost"
