@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import Header from "./components/Header";
+import ScrollToTop from "./components/ScrollToTop";
 import Home from "./pages/Home";
 import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
@@ -20,6 +21,7 @@ function AppContent() {
 
   return (
     <div className="min-h-screen flex flex-col w-full">
+      <ScrollToTop />
       {!hideHeader && <Header />}
       <Routes>
         <Route path="/" element={<Home />} />
