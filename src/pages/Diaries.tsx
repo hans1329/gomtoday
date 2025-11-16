@@ -59,7 +59,8 @@ export default function Diaries() {
       .select(`
         *,
         photos!photos_diary_id_fkey (
-          photo_url
+          photo_url,
+          display_order
         )
       `)
       .eq("user_id", user.id)
@@ -68,7 +69,12 @@ export default function Diaries() {
     if (error) {
       console.error("Error fetching diaries:", error);
     } else if (data) {
-      setDiaries(data);
+      // 각 일기의 사진들을 display_order로 정렬
+      const diariesWithSortedPhotos = data.map(diary => ({
+        ...diary,
+        photos: diary.photos?.sort((a: any, b: any) => a.display_order - b.display_order) || []
+      }));
+      setDiaries(diariesWithSortedPhotos);
     }
     setLoading(false);
   };
@@ -312,37 +318,32 @@ export default function Diaries() {
                       </div>
                     )}
 
-                    {/* 내용 */}
+                     {/* 내용 */}
                     <div className="flex-1 min-w-0 space-y-2">
                       <div className="flex items-start justify-between gap-2">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
                           {diary.emoji && (
-                            <span className="text-2xl">{diary.emoji}</span>
+                            <span className="text-2xl flex-shrink-0">{diary.emoji}</span>
                           )}
-                          <div>
+                          <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium">
                               {format(new Date(diary.created_at), "yyyy년 M월 d일 (E)", { locale: ko })}
                             </p>
-                            <div className="flex gap-2 mt-1">
-                              <span className="text-xs px-2 py-0.5 bg-secondary rounded">
-                                {getEmotionLabel(diary.tone)}
-                              </span>
-                              <span className="text-xs px-2 py-0.5 bg-secondary rounded">
-                                {getLengthLabel(diary.length)}
-                              </span>
-                            </div>
+                            <span className="text-xs px-2 py-0.5 bg-secondary rounded inline-block mt-1">
+                              {getEmotionLabel(diary.tone)}
+                            </span>
                           </div>
                         </div>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"
+                          className="opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive flex-shrink-0"
                           onClick={(e) => handleDeleteClick(e, diary.id)}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
-                      <p className="text-sm text-muted-foreground line-clamp-2">
+                      <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
                         {diary.content}
                       </p>
                     </div>
