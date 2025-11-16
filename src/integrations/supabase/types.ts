@@ -88,6 +88,13 @@ export type Database = {
             referencedRelation: "diaries"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "diary_comments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       diary_likes: {

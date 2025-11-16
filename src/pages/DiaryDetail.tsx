@@ -86,7 +86,7 @@ export default function DiaryDetail() {
       .from("diary_comments")
       .select(`
         *,
-        profiles!diary_comments_user_id_fkey (
+        profiles:user_id (
           name,
           profile_photo_url
         )
