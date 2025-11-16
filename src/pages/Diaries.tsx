@@ -319,7 +319,7 @@ export default function Diaries() {
                     )}
 
                      {/* 내용 */}
-                    <div className="flex-1 min-w-0 space-y-2">
+                     <div className="flex-1 min-w-0 space-y-2">
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex items-center gap-2 flex-1 min-w-0">
                           {diary.emoji && (
@@ -329,9 +329,6 @@ export default function Diaries() {
                             <p className="text-sm font-medium">
                               {format(new Date(diary.created_at), "yyyy년 M월 d일 (E)", { locale: ko })}
                             </p>
-                            <span className="text-xs px-2 py-0.5 bg-muted rounded inline-block mt-1">
-                              {getEmotionLabel(diary.tone)}
-                            </span>
                           </div>
                         </div>
                         <Button
