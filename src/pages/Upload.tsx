@@ -253,7 +253,7 @@ export default function Upload() {
 
   return (
     <div className="min-h-screen gradient-soft p-4">
-      <div className="max-w-2xl mx-auto pt-20 space-y-4">
+      <div className="max-w-2xl mx-auto pt-6 space-y-4">
         <div className="space-y-2">
           <h1 className="text-2xl font-bold">일기 작성</h1>
           <p className="text-muted-foreground">
