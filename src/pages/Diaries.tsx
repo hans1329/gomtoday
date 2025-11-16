@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Calendar, Heart, FileText } from "lucide-react";
+import { Search, Calendar, Heart, FileText, ArrowUpDown } from "lucide-react";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 
@@ -15,7 +15,6 @@ type Diary = {
   content: string;
   created_at: string;
   tone: string;
-  length: string;
   emoji: string;
   photos: { photo_url: string }[];
 };
@@ -26,7 +25,6 @@ export default function Diaries() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [emotionFilter, setEmotionFilter] = useState("all");
-  const [lengthFilter, setLengthFilter] = useState("all");
   const [sortBy, setSortBy] = useState("latest");
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -38,7 +36,7 @@ export default function Diaries() {
 
   useEffect(() => {
     applyFilters();
-  }, [diaries, searchQuery, emotionFilter, lengthFilter, sortBy]);
+  }, [diaries, searchQuery, emotionFilter, sortBy]);
 
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -89,11 +87,6 @@ export default function Diaries() {
     // 감정 필터
     if (emotionFilter !== "all") {
       filtered = filtered.filter(diary => diary.tone === emotionFilter);
-    }
-
-    // 길이 필터
-    if (lengthFilter !== "all") {
-      filtered = filtered.filter(diary => diary.length === lengthFilter);
     }
 
     // 정렬
@@ -151,74 +144,46 @@ export default function Diaries() {
 
         {/* 검색 및 필터 */}
         <Card className="shadow-medium">
-          <CardContent className="p-4 space-y-3">
-            {/* 검색 */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="일기 내용 검색..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9"
-              />
-            </div>
-
-            {/* 필터 탭 */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className="space-y-1">
-                <label className="text-xs text-muted-foreground flex items-center gap-1">
-                  <Heart className="h-3 w-3" />
-                  감정
-                </label>
-                <Select value={emotionFilter} onValueChange={setEmotionFilter}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">전체</SelectItem>
-                    <SelectItem value="happy">기쁨 😊</SelectItem>
-                    <SelectItem value="sad">슬픔 😢</SelectItem>
-                    <SelectItem value="angry">화남 😠</SelectItem>
-                    <SelectItem value="calm">평온 😌</SelectItem>
-                    <SelectItem value="excited">신남 🤩</SelectItem>
-                    <SelectItem value="anxious">불안 😰</SelectItem>
-                  </SelectContent>
-                </Select>
+          <CardContent className="p-4">
+            {/* 한 줄에 검색 / 감정 / 정렬 */}
+            <div className="flex gap-2">
+              {/* 검색 - 가장 넓게 */}
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="일기 내용 검색..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9"
+                />
               </div>
 
-              <div className="space-y-1">
-                <label className="text-xs text-muted-foreground flex items-center gap-1">
-                  <FileText className="h-3 w-3" />
-                  길이
-                </label>
-                <Select value={lengthFilter} onValueChange={setLengthFilter}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">전체</SelectItem>
-                    <SelectItem value="short">짧게</SelectItem>
-                    <SelectItem value="medium">중간</SelectItem>
-                    <SelectItem value="long">길게</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              {/* 감정 필터 - 컴팩트 */}
+              <Select value={emotionFilter} onValueChange={setEmotionFilter}>
+                <SelectTrigger className="w-[110px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">전체 감정</SelectItem>
+                  <SelectItem value="happy">😊 기쁨</SelectItem>
+                  <SelectItem value="sad">😢 슬픔</SelectItem>
+                  <SelectItem value="angry">😠 화남</SelectItem>
+                  <SelectItem value="calm">😌 평온</SelectItem>
+                  <SelectItem value="excited">🤩 신남</SelectItem>
+                  <SelectItem value="anxious">😰 불안</SelectItem>
+                </SelectContent>
+              </Select>
 
-              <div className="space-y-1">
-                <label className="text-xs text-muted-foreground flex items-center gap-1">
-                  <Calendar className="h-3 w-3" />
-                  정렬
-                </label>
-                <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="latest">최신순</SelectItem>
-                    <SelectItem value="oldest">오래된순</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              {/* 정렬 - 아이콘 버튼 */}
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setSortBy(sortBy === "latest" ? "oldest" : "latest")}
+                title={sortBy === "latest" ? "최신순" : "오래된순"}
+                className="shrink-0"
+              >
+                <ArrowUpDown className="h-4 w-4" />
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -229,7 +194,7 @@ export default function Diaries() {
             <Card className="shadow-medium">
               <CardContent className="p-8 text-center">
                 <p className="text-muted-foreground">
-                  {searchQuery || emotionFilter !== "all" || lengthFilter !== "all"
+                  {searchQuery || emotionFilter !== "all"
                     ? "검색 조건에 맞는 일기가 없습니다."
                     : "아직 작성된 일기가 없습니다."}
                 </p>
