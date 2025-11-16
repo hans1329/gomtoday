@@ -23,7 +23,7 @@ export default function Header() {
 
   useEffect(() => {
     fetchProfile();
-  }, []);
+  }, [location.pathname]);
 
   const fetchProfile = async () => {
     const { data: { user } } = await supabase.auth.getUser();
