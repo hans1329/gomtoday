@@ -80,7 +80,7 @@ export default function Auth() {
       <Card className="w-full max-w-md shadow-medium bg-white">
         <CardHeader className="space-y-3 text-center">
           <div className="flex justify-center mb-2">
-            <img src="/breadshot-logo.png" alt="BreadShot" className="w-20 h-20" />
+            <img src="/3rdme-logo.png" alt="3rdMe" className="w-20 h-20" />
           </div>
           <CardTitle className="text-3xl font-bold">
             3rdMe
