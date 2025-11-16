@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import LoadingBar from "@/components/LoadingBar";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -68,6 +69,13 @@ export default function DiaryDetail() {
     }
 
     if (data) {
+      // 작성자 프로필 정보 가져오기
+      const { data: authorProfile } = await supabase
+        .from("profiles")
+        .select("user_id, name, profile_photo_url")
+        .eq("user_id", data.user_id)
+        .single();
+
       // 오래된 방식과 새 방식 모두 처리
       let allPhotos = [];
       
@@ -79,7 +87,9 @@ export default function DiaryDetail() {
       
       setDiary({
         ...data,
-        photos: allPhotos
+        photos: allPhotos,
+        author_name: authorProfile?.name,
+        author_photo: authorProfile?.profile_photo_url
       });
       fetchLikes();
       fetchComments();
@@ -319,12 +329,32 @@ export default function DiaryDetail() {
 
             {/* Content */}
             <div className="p-6 space-y-4">
-              <div className="flex items-center gap-2">
-                <div className="text-sm text-muted-foreground">
-                  {format(new Date(diary.created_at), "yyyy년 M월 d일 (EEE) a h:mm", { locale: ko })}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <div className="text-sm text-muted-foreground">
+                    {format(new Date(diary.created_at), "yyyy년 M월 d일 (EEE) a h:mm", { locale: ko })}
+                  </div>
+                  {diary.emoji && (
+                    <span className="text-2xl">{diary.emoji}</span>
+                  )}
                 </div>
-                {diary.emoji && (
-                  <span className="text-2xl">{diary.emoji}</span>
+                
+                {/* 작성자 정보 - 다른 사람의 일기일 경우에만 표시 */}
+                {currentUserId && diary.user_id !== currentUserId && (
+                  <button
+                    onClick={() => navigate(`/user/${diary.user_id}`)}
+                    className="flex items-center gap-2 hover:opacity-70 transition-opacity"
+                  >
+                    <Avatar className="w-6 h-6">
+                      <AvatarImage src={diary.author_photo || undefined} />
+                      <AvatarFallback className="text-xs">
+                        {diary.author_name?.charAt(0) || "?"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <p className="text-sm text-muted-foreground">
+                      by {diary.author_name || "Unknown"}
+                    </p>
+                  </button>
                 )}
               </div>
               
