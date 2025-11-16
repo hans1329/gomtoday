@@ -16,6 +16,7 @@ type Diary = {
   tone: string;
   emoji: string;
   photos: { photo_url: string }[];
+  photo?: { photo_url: string } | null;
 };
 
 export default function Diaries() {
