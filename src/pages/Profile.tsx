@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import LoadingBar from "@/components/LoadingBar";
@@ -148,65 +147,68 @@ export default function Profile() {
   }
 
   return (
-    <div className="min-h-screen gradient-soft p-4">
-      <div className="max-w-2xl mx-auto pt-8 space-y-6">
-        <Card className="shadow-medium">
-          <CardHeader>
-            <CardTitle>프로필 설정</CardTitle>
-            <CardDescription>
-              프로필 사진을 등록하면 AI가 더 개인화된 일기를 작성할 수 있어요
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="flex flex-col items-center gap-4">
-              <div className="relative">
-                <Avatar className="w-32 h-32">
-                  <AvatarImage src={profile?.profile_photo_url} />
-                  <AvatarFallback className="text-2xl gradient-warm text-white">
-                    {name?.[0] || "?"}
-                  </AvatarFallback>
-                </Avatar>
-                <label
-                  htmlFor="photo-upload"
-                  className="absolute bottom-0 right-0 bg-primary text-primary-foreground rounded-full p-2 cursor-pointer hover:bg-primary/90 transition-colors shadow-soft"
-                >
-                  <Camera className="w-5 h-5" />
-                  <input
-                    id="photo-upload"
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handlePhotoUpload}
-                    disabled={uploading}
-                  />
-                </label>
-              </div>
-              {uploading && <p className="text-sm text-muted-foreground">업로드 중...</p>}
+    <div className="min-h-screen gradient-soft p-2 sm:p-4">
+      <div className="max-w-2xl mx-auto pt-4 sm:pt-8">
+        <div className="space-y-6">
+          {/* 프로필 사진과 이름 */}
+          <div className="flex flex-col items-center gap-3">
+            <div className="relative">
+              <Avatar className="w-32 h-32">
+                <AvatarImage src={profile?.profile_photo_url} />
+                <AvatarFallback className="text-2xl gradient-warm text-white">
+                  {name?.[0] || "?"}
+                </AvatarFallback>
+              </Avatar>
+              <label
+                htmlFor="photo-upload"
+                className="absolute bottom-0 right-0 bg-primary text-primary-foreground rounded-full p-2 cursor-pointer hover:bg-primary/90 transition-colors shadow-soft"
+              >
+                <Camera className="w-5 h-5" />
+                <input
+                  id="photo-upload"
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handlePhotoUpload}
+                  disabled={uploading}
+                />
+              </label>
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="name">이름</Label>
+            {uploading && <p className="text-sm text-muted-foreground">업로드 중...</p>}
+            
+            <div className="w-full max-w-sm">
               <Input
-                id="name"
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="이름을 입력하세요"
+                className="text-center text-lg font-semibold"
               />
             </div>
+          </div>
 
+          {/* 프로필 정보 */}
+          <div className="space-y-4 px-2">
             <div className="space-y-2">
               <Label htmlFor="bio">나에 대한 한마디</Label>
               <Textarea
                 id="bio"
                 value={bio}
-                onChange={(e) => setBio(e.target.value)}
+                onChange={(e) => {
+                  if (e.target.value.length <= 200) {
+                    setBio(e.target.value);
+                  }
+                }}
                 placeholder="나를 표현하는 한마디를 입력하세요"
                 rows={3}
+                maxLength={200}
               />
+              <p className="text-xs text-muted-foreground text-right">
+                {bio.length}/200
+              </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="mbti">MBTI</Label>
                 <Input
@@ -235,7 +237,7 @@ export default function Profile() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="birthday">생일</Label>
                 <Input
@@ -275,8 +277,8 @@ export default function Profile() {
             <Button onClick={handleUpdateProfile} className="w-full">
               저장
             </Button>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>
   );
