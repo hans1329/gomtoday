@@ -55,6 +55,104 @@ export type Database = {
           },
         ]
       }
+      diary_notebooks: {
+        Row: {
+          created_at: string | null
+          diary_id: string
+          id: string
+          notebook_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          diary_id: string
+          id?: string
+          notebook_id: string
+        }
+        Update: {
+          created_at?: string | null
+          diary_id?: string
+          id?: string
+          notebook_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "diary_notebooks_diary_id_fkey"
+            columns: ["diary_id"]
+            isOneToOne: false
+            referencedRelation: "diaries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "diary_notebooks_notebook_id_fkey"
+            columns: ["notebook_id"]
+            isOneToOne: false
+            referencedRelation: "notebooks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notebook_members: {
+        Row: {
+          created_at: string | null
+          id: string
+          notebook_id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          notebook_id: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          notebook_id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notebook_members_notebook_id_fkey"
+            columns: ["notebook_id"]
+            isOneToOne: false
+            referencedRelation: "notebooks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notebooks: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_default: boolean | null
+          name: string
+          updated_at: string | null
+          user_id: string
+          visibility: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_default?: boolean | null
+          name: string
+          updated_at?: string | null
+          user_id: string
+          visibility: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_default?: boolean | null
+          name?: string
+          updated_at?: string | null
+          user_id?: string
+          visibility?: string
+        }
+        Relationships: []
+      }
       photos: {
         Row: {
           diary_id: string | null
