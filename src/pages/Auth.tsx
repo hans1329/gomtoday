@@ -80,7 +80,7 @@ export default function Auth() {
       <Card className="w-full max-w-md shadow-medium bg-white">
         <CardHeader className="space-y-3">
           <div className="flex items-center justify-center gap-1.5 mb-2">
-            <img src="/3rdme-logo.png" alt="3rdMe" className="w-10 h-10" />
+            <img src="https://sqxoqvfcaekaxbpfguod.supabase.co/storage/v1/object/public/brand-assets/3rdme-logo.png" alt="3rdMe" className="w-10 h-10" />
             <CardTitle className="text-3xl font-bold">
               3rdMe
             </CardTitle>
