@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ChevronLeft, ChevronRight, BookOpen, User, Globe, Calendar as CalendarIcon } from "lucide-react";
+import { ChevronLeft, ChevronRight, BookOpen, User, Globe, Calendar as CalendarIcon, ArrowUpDown, Heart, MessageCircle, Clock, Users } from "lucide-react";
 import { format, startOfMonth, endOfMonth, isSameDay, addMonths, subMonths, startOfDay, endOfDay } from "date-fns";
 import { ko } from "date-fns/locale";
 import LoadingBar from "@/components/LoadingBar";
@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function Home() {
   const [diaries, setDiaries] = useState<any[]>([]);
@@ -20,6 +21,8 @@ export default function Home() {
   const [currentUserId, setCurrentUserId] = useState<string>("");
   const [viewMode, setViewMode] = useState<"my" | "public">("my");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [sortBy, setSortBy] = useState<"latest" | "oldest" | "likes" | "comments">("latest");
+  const [filterFriends, setFilterFriends] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -31,7 +34,7 @@ export default function Home() {
     if (currentUserId) {
       fetchDiaries();
     }
-  }, [currentUserId, viewMode, selectedDate]);
+  }, [currentUserId, viewMode, selectedDate, sortBy, filterFriends]);
 
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -110,7 +113,40 @@ export default function Home() {
         return;
       }
 
-      const diaryIds = diaryNotebooks.map(dn => dn.diary_id);
+      let diaryIds = diaryNotebooks.map(dn => dn.diary_id);
+      
+      // 친구 필터링
+      if (filterFriends) {
+        const { data: friendships } = await supabase
+          .from("friend_requests")
+          .select("from_user_id, to_user_id")
+          .eq("status", "accepted")
+          .or(`from_user_id.eq.${user.id},to_user_id.eq.${user.id}`);
+        
+        const friendIds = new Set<string>();
+        friendships?.forEach(f => {
+          if (f.from_user_id === user.id) {
+            friendIds.add(f.to_user_id);
+          } else {
+            friendIds.add(f.from_user_id);
+          }
+        });
+
+        // 친구가 작성한 일기만 필터링
+        const { data: friendDiaries } = await supabase
+          .from("diaries")
+          .select("id")
+          .in("id", diaryIds)
+          .in("user_id", Array.from(friendIds));
+        
+        diaryIds = friendDiaries?.map(d => d.id) || [];
+        
+        if (diaryIds.length === 0) {
+          setDiaries([]);
+          setLoading(false);
+          return;
+        }
+      }
       
       let query = supabase
         .from("diaries")
@@ -133,7 +169,14 @@ export default function Home() {
         query = query.gte("created_at", dayStart).lte("created_at", dayEnd);
       }
       
-      const { data, error } = await query.order("created_at", { ascending: false });
+      // 정렬 기준에 따라 기본 쿼리 정렬
+      if (sortBy === "latest") {
+        query = query.order("created_at", { ascending: false });
+      } else if (sortBy === "oldest") {
+        query = query.order("created_at", { ascending: true });
+      }
+      
+      const { data, error } = await query;
 
       if (error) {
         console.error("Error fetching public diaries:", error);
@@ -150,7 +193,30 @@ export default function Home() {
 
         const profileMap = new Map(profiles?.map(p => [p.user_id, { name: p.name, photo: p.profile_photo_url }]) || []);
 
-        const diariesWithSortedPhotos = data.map((diary: any) => {
+        // 좋아요 수와 댓글 수 가져오기
+        const diaryIdsForCounts = data.map(d => d.id);
+        
+        const { data: likesData } = await supabase
+          .from("diary_likes")
+          .select("diary_id")
+          .in("diary_id", diaryIdsForCounts);
+        
+        const { data: commentsData } = await supabase
+          .from("diary_comments")
+          .select("diary_id")
+          .in("diary_id", diaryIdsForCounts);
+        
+        const likesCount = new Map<string, number>();
+        likesData?.forEach(l => {
+          likesCount.set(l.diary_id, (likesCount.get(l.diary_id) || 0) + 1);
+        });
+        
+        const commentsCount = new Map<string, number>();
+        commentsData?.forEach(c => {
+          commentsCount.set(c.diary_id, (commentsCount.get(c.diary_id) || 0) + 1);
+        });
+
+        let diariesWithSortedPhotos = data.map((diary: any) => {
           let allPhotos = [];
           
           if (diary.photos && diary.photos.length > 0) {
@@ -165,9 +231,18 @@ export default function Home() {
             ...diary,
             photos: allPhotos,
             author_name: profile?.name,
-            author_photo: profile?.photo
+            author_photo: profile?.photo,
+            likes_count: likesCount.get(diary.id) || 0,
+            comments_count: commentsCount.get(diary.id) || 0
           };
         });
+        
+        // 정렬 적용
+        if (sortBy === "likes") {
+          diariesWithSortedPhotos.sort((a, b) => b.likes_count - a.likes_count);
+        } else if (sortBy === "comments") {
+          diariesWithSortedPhotos.sort((a, b) => b.comments_count - a.comments_count);
+        }
         
         setDiaries(diariesWithSortedPhotos);
       }
@@ -374,56 +449,108 @@ export default function Home() {
           </Card>
         ) : (
           <div className="space-y-3 px-2 sm:px-0">
-            <div className="flex items-center gap-3 pl-4">
-              <h2 className="text-xl font-bold">전체 공개 일기</h2>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className={cn(
-                      "rounded-full",
-                      selectedDate && "border-primary"
-                    )}
-                  >
-                    <CalendarIcon className="h-4 w-4" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={(date) => {
-                      setSelectedDate(date);
-                      if (date) {
-                        toast({
-                          title: format(date, "yyyy년 M월 d일 (E)", { locale: ko }) + " 일기",
-                        });
-                      }
-                    }}
-                    initialFocus
-                    className={cn("p-3 pointer-events-auto")}
-                  />
-                  {selectedDate && (
-                    <div className="p-3 border-t">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full rounded-full"
-                        onClick={() => {
-                          setSelectedDate(undefined);
+            <div className="space-y-3 pl-4">
+              <div className="flex items-center gap-3">
+                <h2 className="text-xl font-bold">전체 공개 일기</h2>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className={cn(
+                        "rounded-full",
+                        selectedDate && "border-primary"
+                      )}
+                    >
+                      <CalendarIcon className="h-4 w-4" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={(date) => {
+                        setSelectedDate(date);
+                        if (date) {
                           toast({
-                            title: "날짜 필터 해제",
+                            title: format(date, "yyyy년 M월 d일 (E)", { locale: ko }) + " 일기",
                           });
-                        }}
-                      >
-                        필터 해제
-                      </Button>
-                    </div>
-                  )}
-                </PopoverContent>
-              </Popover>
+                        }
+                      }}
+                      initialFocus
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                    {selectedDate && (
+                      <div className="p-3 border-t">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full rounded-full"
+                          onClick={() => {
+                            setSelectedDate(undefined);
+                            toast({
+                              title: "날짜 필터 해제",
+                            });
+                          }}
+                        >
+                          필터 해제
+                        </Button>
+                      </div>
+                    )}
+                  </PopoverContent>
+                </Popover>
+              </div>
+              
+              <div className="flex items-center gap-2 flex-wrap">
+                <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
+                  <SelectTrigger className="w-[140px] rounded-full h-9">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="latest">
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4" />
+                        최신순
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="oldest">
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4" />
+                        오래된순
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="likes">
+                      <div className="flex items-center gap-2">
+                        <Heart className="h-4 w-4" />
+                        좋아요순
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="comments">
+                      <div className="flex items-center gap-2">
+                        <MessageCircle className="h-4 w-4" />
+                        댓글순
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                <Button
+                  variant={filterFriends ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => {
+                    setFilterFriends(!filterFriends);
+                    toast({
+                      title: filterFriends ? "전체 일기 보기" : "친구 일기만 보기",
+                    });
+                  }}
+                  className="rounded-full"
+                >
+                  <Users className="h-4 w-4 mr-2" />
+                  친구 일기
+                </Button>
+              </div>
             </div>
+            
             {diaries.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
                 공개된 일기가 없습니다.
