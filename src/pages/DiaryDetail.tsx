@@ -322,12 +322,16 @@ export default function DiaryDetail() {
                     className={`gap-2 ${isLiked ? "text-red-500" : ""}`}
                   >
                     <Heart className={`h-5 w-5 ${isLiked ? "fill-current" : ""}`} />
-                    <span className="text-base">{likes.length}</span>
+                    <span>{likes.length}</span>
                   </Button>
-                  <div className="flex items-center gap-2 text-muted-foreground">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="gap-2 text-muted-foreground cursor-default hover:bg-transparent"
+                  >
                     <MessageCircle className="h-5 w-5" />
-                    <span className="text-base">{comments.length}</span>
-                  </div>
+                    <span>{comments.length}</span>
+                  </Button>
                 </div>
 
                 {/* Comments Section */}
