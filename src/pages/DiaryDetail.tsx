@@ -314,7 +314,7 @@ export default function DiaryDetail() {
 
               {/* Likes and Comments */}
               <div className="space-y-4 pt-4 border-t">
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
                   <Button
                     variant="ghost"
                     size="sm"
