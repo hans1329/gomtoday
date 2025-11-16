@@ -7,7 +7,6 @@ import { Plus, User, ChevronLeft, ChevronRight } from "lucide-react";
 import { format, startOfMonth, endOfMonth, isSameMonth, isSameDay, addMonths, subMonths } from "date-fns";
 import { ko } from "date-fns/locale";
 
-const breadCharacters = ["🍞", "🥐", "🥖", "🥯", "🧈", "🫓", "🥨"];
 
 export default function Home() {
   const [diaries, setDiaries] = useState<any[]>([]);
@@ -55,12 +54,9 @@ export default function Home() {
     );
   };
 
-  const getBreadCharacter = (date: Date) => {
+  const getEmojiForDate = (date: Date) => {
     const diary = getDiaryForDate(date);
-    if (!diary) return null;
-    
-    const seed = date.getDate() + date.getMonth() * 31;
-    return breadCharacters[seed % breadCharacters.length];
+    return diary?.emoji || null;
   };
 
   const handleDateClick = (date: Date) => {
@@ -96,7 +92,7 @@ export default function Home() {
         if (day > endDate) break;
         
         const currentDay = day;
-        const breadChar = getBreadCharacter(currentDay);
+        const emoji = getEmojiForDate(currentDay);
         const isToday = isSameDay(currentDay, new Date());
         
         days.push(
@@ -116,11 +112,7 @@ export default function Home() {
               {format(currentDay, dateFormat)}
             </span>
             <span className="text-2xl min-h-[32px] flex items-center justify-center">
-              {breadChar && (
-                <span className="animate-bounce" style={{ animationDuration: "2s" }}>
-                  {breadChar}
-                </span>
-              )}
+              {emoji}
             </span>
           </button>
         );
@@ -217,7 +209,7 @@ export default function Home() {
                 📅 날짜를 클릭해서 일기를 보거나 작성해보세요!
               </p>
               <p className="text-xs text-muted-foreground mt-2">
-                빵 캐릭터가 있는 날은 일기가 있는 날이에요 🥐
+                이모지가 있는 날은 일기가 있는 날이에요
               </p>
             </div>
           </CardContent>

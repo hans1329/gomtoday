@@ -18,6 +18,7 @@ export type Database = {
         Row: {
           content: string
           created_at: string | null
+          emoji: string | null
           id: string
           length: string | null
           photo_id: string
@@ -27,6 +28,7 @@ export type Database = {
         Insert: {
           content: string
           created_at?: string | null
+          emoji?: string | null
           id?: string
           length?: string | null
           photo_id: string
@@ -36,6 +38,7 @@ export type Database = {
         Update: {
           content?: string
           created_at?: string | null
+          emoji?: string | null
           id?: string
           length?: string | null
           photo_id?: string
