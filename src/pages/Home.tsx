@@ -104,12 +104,14 @@ export default function Home() {
             key={currentDay.toString()}
             onClick={() => handleDateClick(currentDay)}
             className={`
-              aspect-square p-2 rounded-full flex flex-col items-center justify-center gap-1
+              aspect-square p-2 rounded-full flex flex-col items-center justify-center gap-1 relative
               transition-all hover:bg-secondary/50 hover:scale-105 active:scale-95
-              ${isToday ? "ring-2 ring-primary" : ""}
               ${!isSameMonth(currentDay, currentMonth) ? "opacity-30" : ""}
             `}
           >
+            {isToday && (
+              <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-primary"></span>
+            )}
             <span className={`text-sm ${isToday ? "font-bold text-primary" : "text-foreground"}`}>
               {format(currentDay, dateFormat)}
             </span>
