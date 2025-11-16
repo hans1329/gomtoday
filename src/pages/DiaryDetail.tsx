@@ -24,6 +24,7 @@ export default function DiaryDetail() {
   const [likes, setLikes] = useState<any[]>([]);
   const [comments, setComments] = useState<any[]>([]);
   const [isLiked, setIsLiked] = useState(false);
+  const [liking, setLiking] = useState(false);
   const [newComment, setNewComment] = useState("");
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -103,6 +104,8 @@ export default function DiaryDetail() {
   };
 
   const handleLike = async () => {
+    if (liking) return;
+    
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       toast({
@@ -112,22 +115,27 @@ export default function DiaryDetail() {
       return;
     }
 
-    if (isLiked) {
-      await supabase
-        .from("diary_likes")
-        .delete()
-        .eq("diary_id", id)
-        .eq("user_id", user.id);
-    } else {
-      await supabase
-        .from("diary_likes")
-        .insert({
-          diary_id: id,
-          user_id: user.id,
-        });
+    setLiking(true);
+    try {
+      if (isLiked) {
+        await supabase
+          .from("diary_likes")
+          .delete()
+          .eq("diary_id", id)
+          .eq("user_id", user.id);
+      } else {
+        await supabase
+          .from("diary_likes")
+          .insert({
+            diary_id: id,
+            user_id: user.id,
+          });
+      }
+      
+      await fetchLikes();
+    } finally {
+      setLiking(false);
     }
-    
-    fetchLikes();
   };
 
   const handleCommentSubmit = async () => {
@@ -319,6 +327,7 @@ export default function DiaryDetail() {
                     variant="ghost"
                     size="sm"
                     onClick={handleLike}
+                    disabled={liking}
                     className={`gap-2 ${isLiked ? "text-red-500" : ""}`}
                   >
                     <Heart className={`h-5 w-5 ${isLiked ? "fill-current" : ""}`} />
