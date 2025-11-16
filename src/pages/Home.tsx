@@ -42,21 +42,44 @@ export default function Home() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    let query = supabase
-      .from("diaries")
-      .select(`
-        *,
-        photos!photos_diary_id_fkey (
-          photo_url,
-          display_order
-        ),
-        photo:photos!diaries_photo_id_fkey (
-          photo_url
-        )
-      `);
-
     if (viewMode === "my") {
-      query = query.eq("user_id", user.id);
+      // 내 일기 가져오기
+      const { data, error } = await supabase
+        .from("diaries")
+        .select(`
+          *,
+          photos!photos_diary_id_fkey (
+            photo_url,
+            display_order
+          ),
+          photo:photos!diaries_photo_id_fkey (
+            photo_url
+          )
+        `)
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Error fetching diaries:", error);
+      }
+      
+      if (data) {
+        const diariesWithSortedPhotos = data.map((diary: any) => {
+          let allPhotos = [];
+          
+          if (diary.photos && diary.photos.length > 0) {
+            allPhotos = diary.photos.sort((a: any, b: any) => a.display_order - b.display_order);
+          } else if (diary.photo) {
+            allPhotos = [diary.photo];
+          }
+          
+          return {
+            ...diary,
+            photos: allPhotos
+          };
+        });
+        setDiaries(diariesWithSortedPhotos);
+      }
     } else {
       // 전체 공개된 일기 가져오기
       const { data: publicNotebooks } = await supabase
@@ -64,56 +87,75 @@ export default function Home() {
         .select("id")
         .eq("visibility", "public");
 
-      if (publicNotebooks && publicNotebooks.length > 0) {
-        const notebookIds = publicNotebooks.map(nb => nb.id);
-        
-        const { data: diaryNotebooks } = await supabase
-          .from("diary_notebooks")
-          .select("diary_id")
-          .in("notebook_id", notebookIds);
-
-        if (diaryNotebooks && diaryNotebooks.length > 0) {
-          const diaryIds = diaryNotebooks.map(dn => dn.diary_id);
-          query = query.in("id", diaryIds);
-        } else {
-          setDiaries([]);
-          setLoading(false);
-          return;
-        }
-      } else {
+      if (!publicNotebooks || publicNotebooks.length === 0) {
         setDiaries([]);
         setLoading(false);
         return;
       }
-    }
 
-    const { data, error } = await query.order("created_at", { ascending: false });
+      const notebookIds = publicNotebooks.map(nb => nb.id);
+      
+      const { data: diaryNotebooks } = await supabase
+        .from("diary_notebooks")
+        .select("diary_id")
+        .in("notebook_id", notebookIds);
 
-    if (error) {
-      console.error("Error fetching diaries:", error);
+      if (!diaryNotebooks || diaryNotebooks.length === 0) {
+        setDiaries([]);
+        setLoading(false);
+        return;
+      }
+
+      const diaryIds = diaryNotebooks.map(dn => dn.diary_id);
+      
+      const { data, error } = await supabase
+        .from("diaries")
+        .select(`
+          *,
+          photos!photos_diary_id_fkey (
+            photo_url,
+            display_order
+          ),
+          photo:photos!diaries_photo_id_fkey (
+            photo_url
+          )
+        `)
+        .in("id", diaryIds)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Error fetching public diaries:", error);
+      }
+
+      if (data) {
+        // 각 일기의 작성자 정보 가져오기
+        const userIds = [...new Set(data.map(d => d.user_id))];
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("user_id, name")
+          .in("user_id", userIds);
+
+        const profileMap = new Map(profiles?.map(p => [p.user_id, p.name]) || []);
+
+        const diariesWithSortedPhotos = data.map((diary: any) => {
+          let allPhotos = [];
+          
+          if (diary.photos && diary.photos.length > 0) {
+            allPhotos = diary.photos.sort((a: any, b: any) => a.display_order - b.display_order);
+          } else if (diary.photo) {
+            allPhotos = [diary.photo];
+          }
+          
+          return {
+            ...diary,
+            photos: allPhotos,
+            author_name: profileMap.get(diary.user_id)
+          };
+        });
+        setDiaries(diariesWithSortedPhotos);
+      }
     }
     
-    if (data) {
-      // 각 일기의 사진들을 display_order로 정렬하고, photo_id 방식도 포함
-      const diariesWithSortedPhotos = data.map((diary: any) => {
-        let allPhotos = [];
-        
-        // 새 방식: diary_id로 연결된 사진들
-        if (diary.photos && diary.photos.length > 0) {
-          allPhotos = diary.photos.sort((a: any, b: any) => a.display_order - b.display_order);
-        }
-        // 오래된 방식: photo_id로 연결된 사진
-        else if (diary.photo) {
-          allPhotos = [diary.photo];
-        }
-        
-        return {
-          ...diary,
-          photos: allPhotos
-        };
-      });
-      setDiaries(diariesWithSortedPhotos);
-    }
     setLoading(false);
   };
 
@@ -288,29 +330,54 @@ export default function Home() {
 
         <Card className="shadow-medium">
           <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handlePrevMonth}
-                >
-                  <ChevronLeft className="h-5 w-5" />
-                </Button>
-                <h2 className="text-xl font-bold">
-                  {format(currentMonth, "yyyy년 M월", { locale: ko })}
-                </h2>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleNextMonth}
-                >
-                  <ChevronRight className="h-5 w-5" />
-                </Button>
+            {viewMode === "my" ? (
+              <>
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={handlePrevMonth}
+                    >
+                      <ChevronLeft className="h-5 w-5" />
+                    </Button>
+                    <h2 className="text-xl font-bold">
+                      {format(currentMonth, "yyyy년 M월", { locale: ko })}
+                    </h2>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={handleNextMonth}
+                    >
+                      <ChevronRight className="h-5 w-5" />
+                    </Button>
+                  </div>
+                </div>
+                {renderCalendar()}
+              </>
+            ) : (
+              <div className="space-y-4">
+                <h2 className="text-xl font-bold mb-4">전체 공개 일기</h2>
+                {diaries.length === 0 ? (
+                  <div className="text-center py-12 text-muted-foreground">
+                    공개된 일기가 없습니다.
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {diaries.map((diary) => (
+                      <DiaryCard
+                        key={diary.id}
+                        diary={diary}
+                        onClick={() => navigate(`/diary/${diary.id}`)}
+                        showTime={true}
+                        imageSize="md"
+                        currentUserId={currentUserId}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
-            </div>
-
-            {renderCalendar()}
+            )}
           </CardContent>
         </Card>
 
