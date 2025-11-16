@@ -309,27 +309,27 @@ export default function Diaries() {
                   <div className="flex gap-4">
                     {/* 썸네일 */}
                     {diary.photos && diary.photos.length > 0 && (
-                      <div className="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden bg-muted">
+                      <div className="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden bg-muted relative">
                         <img
                           src={diary.photos[0].photo_url}
                           alt="일기 사진"
                           className="w-full h-full object-cover"
                         />
+                        {diary.emoji && (
+                          <div className="absolute bottom-1 right-1 bg-background/90 rounded-full w-6 h-6 flex items-center justify-center text-xs shadow-sm">
+                            {diary.emoji}
+                          </div>
+                        )}
                       </div>
                     )}
 
                      {/* 내용 */}
-                     <div className="flex-1 min-w-0 space-y-2">
+                    <div className="flex-1 min-w-0 space-y-2">
                       <div className="flex items-start justify-between gap-2">
-                        <div className="flex items-center gap-2 flex-1 min-w-0">
-                          {diary.emoji && (
-                            <span className="text-2xl flex-shrink-0">{diary.emoji}</span>
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium">
-                              {format(new Date(diary.created_at), "yyyy년 M월 d일 (E)", { locale: ko })}
-                            </p>
-                          </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium">
+                            {format(new Date(diary.created_at), "yyyy년 M월 d일 (E)", { locale: ko })}
+                          </p>
                         </div>
                         <Button
                           variant="ghost"
