@@ -116,23 +116,44 @@ export default function DiaryDetail() {
     }
 
     setLiking(true);
+    
+    // Optimistic update
+    const wasLiked = isLiked;
+    const previousLikes = [...likes];
+    
+    if (wasLiked) {
+      setIsLiked(false);
+      setLikes(likes.filter(like => like.user_id !== user.id));
+    } else {
+      setIsLiked(true);
+      setLikes([...likes, { user_id: user.id, diary_id: id }]);
+    }
+    
     try {
-      if (isLiked) {
-        await supabase
+      if (wasLiked) {
+        const { error } = await supabase
           .from("diary_likes")
           .delete()
           .eq("diary_id", id)
           .eq("user_id", user.id);
+        if (error) throw error;
       } else {
-        await supabase
+        const { error } = await supabase
           .from("diary_likes")
           .insert({
             diary_id: id,
             user_id: user.id,
           });
+        if (error) throw error;
       }
-      
-      await fetchLikes();
+    } catch (error: any) {
+      // Rollback on error
+      setIsLiked(wasLiked);
+      setLikes(previousLikes);
+      toast({
+        title: "오류가 발생했습니다",
+        variant: "destructive",
+      });
     } finally {
       setLiking(false);
     }
