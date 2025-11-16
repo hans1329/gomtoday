@@ -253,6 +253,39 @@ export default function Home() {
   return (
     <div className="min-h-screen gradient-soft">
       <div className="max-w-4xl mx-auto p-4 space-y-4">
+        <div className="flex items-center justify-end gap-2 mb-2">
+          <Button
+            variant={viewMode === "my" ? "default" : "outline"}
+            size="sm"
+            onClick={() => {
+              setViewMode("my");
+              setLoading(true);
+              toast({
+                title: "내 일기 보기"
+              });
+            }}
+            className="rounded-full"
+          >
+            <User className="h-4 w-4 mr-2" />
+            내 일기
+          </Button>
+          <Button
+            variant={viewMode === "public" ? "default" : "outline"}
+            size="sm"
+            onClick={() => {
+              setViewMode("public");
+              setLoading(true);
+              toast({
+                title: "전체 공개 일기 보기"
+              });
+            }}
+            className="rounded-full"
+          >
+            <Globe className="h-4 w-4 mr-2" />
+            전체 공개
+          </Button>
+        </div>
+
         <Card className="shadow-medium">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-6">
@@ -275,26 +308,6 @@ export default function Home() {
                   <ChevronRight className="h-5 w-5" />
                 </Button>
               </div>
-              
-              <Button
-                variant={viewMode === "my" ? "default" : "outline"}
-                size="icon"
-                onClick={() => {
-                  const newMode = viewMode === "my" ? "public" : "my";
-                  setViewMode(newMode);
-                  setLoading(true);
-                  toast({
-                    title: newMode === "my" ? "내 일기 보기" : "전체 공개 일기 보기"
-                  });
-                }}
-                className="rounded-full"
-              >
-                {viewMode === "my" ? (
-                  <User className="h-5 w-5" />
-                ) : (
-                  <Globe className="h-5 w-5" />
-                )}
-              </Button>
             </div>
 
             {renderCalendar()}
