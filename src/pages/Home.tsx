@@ -85,7 +85,7 @@ export default function Home() {
     const firstDayOfWeek = monthStart.getDay();
     for (let i = 0; i < firstDayOfWeek; i++) {
       days.push(
-        <div key={`empty-${i}`} className="flex flex-col gap-1 p-1">
+        <div key={`empty-${i}`} className="flex flex-col gap-1">
           <div className="h-5" />
           <div className="w-full" style={{ aspectRatio: '1/1' }} />
         </div>
@@ -101,15 +101,7 @@ export default function Home() {
         const isToday = isSameDay(currentDay, new Date());
         
         days.push(
-          <div 
-            key={currentDay.toString()} 
-            onClick={() => handleDateClick(currentDay)}
-            className={`
-              flex flex-col gap-1 p-1 rounded-full border-2 border-transparent
-              transition-all hover:border-primary/50 hover:scale-105 active:scale-95 cursor-pointer
-              ${!isSameMonth(currentDay, currentMonth) ? "opacity-30" : ""}
-            `}
-          >
+          <div key={currentDay.toString()} className="flex flex-col gap-1">
             <div className="text-center h-5 flex items-center justify-center">
               <span className={`text-sm ${isToday ? "font-bold text-primary" : "text-foreground"}`}>
                 {format(currentDay, dateFormat)}
@@ -118,14 +110,19 @@ export default function Home() {
                 <span className="ml-1 w-1.5 h-1.5 rounded-full bg-primary"></span>
               )}
             </div>
-            <div
+            <button
+              onClick={() => handleDateClick(currentDay)}
               style={{ aspectRatio: '1/1' }}
-              className="w-full rounded-full flex items-center justify-center"
+              className={`
+                w-full rounded-lg flex items-center justify-center relative
+                transition-all hover:bg-secondary/50 hover:scale-105 active:scale-95
+                ${!isSameMonth(currentDay, currentMonth) ? "opacity-30" : ""}
+              `}
             >
               <span className="text-2xl">
                 {emoji}
               </span>
-            </div>
+            </button>
           </div>
         );
         
