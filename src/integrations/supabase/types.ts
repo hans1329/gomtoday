@@ -268,6 +268,7 @@ export type Database = {
       profiles: {
         Row: {
           created_at: string | null
+          email: string | null
           id: string
           name: string | null
           profile_photo_url: string | null
@@ -276,6 +277,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          email?: string | null
           id?: string
           name?: string | null
           profile_photo_url?: string | null
@@ -284,6 +286,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          email?: string | null
           id?: string
           name?: string | null
           profile_photo_url?: string | null
@@ -329,6 +332,7 @@ export type Database = {
         Args: { _notebook_id: string; _user_id: string }
         Returns: boolean
       }
+      sync_user_email: { Args: never; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "user"

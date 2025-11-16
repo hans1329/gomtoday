@@ -25,6 +25,7 @@ import {
 interface UserWithRole {
   user_id: string;
   name: string | null;
+  email: string | null;
   profile_photo_url: string | null;
   created_at: string | null;
   role: "admin" | "user" | null;
@@ -86,7 +87,7 @@ export default function Admin() {
     // 모든 프로필 가져오기
     const { data: profiles, error: profilesError } = await supabase
       .from("profiles")
-      .select("user_id, name, profile_photo_url, created_at")
+      .select("user_id, name, email, profile_photo_url, created_at")
       .order("created_at", { ascending: false });
 
     if (profilesError) {
@@ -259,6 +260,7 @@ export default function Admin() {
                     <TableRow>
                       <TableHead>사용자</TableHead>
                       <TableHead>이름</TableHead>
+                      <TableHead>이메일</TableHead>
                       <TableHead>가입일</TableHead>
                       <TableHead className="text-center">역할</TableHead>
                     </TableRow>
@@ -283,6 +285,9 @@ export default function Admin() {
                         </TableCell>
                         <TableCell className="font-medium">
                           {user.name || "이름 없음"}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {user.email || "-"}
                         </TableCell>
                         <TableCell className="text-muted-foreground">
                           {user.created_at 
