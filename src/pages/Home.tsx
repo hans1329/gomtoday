@@ -3,23 +3,31 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ChevronLeft, ChevronRight, BookOpen } from "lucide-react";
+import { ChevronLeft, ChevronRight, BookOpen, User, Globe } from "lucide-react";
 import { format, startOfMonth, endOfMonth, isSameDay, addMonths, subMonths } from "date-fns";
 import { ko } from "date-fns/locale";
 import LoadingBar from "@/components/LoadingBar";
 import DiaryCard from "@/components/DiaryCard";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Home() {
   const [diaries, setDiaries] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [currentUserId, setCurrentUserId] = useState<string>("");
+  const [viewMode, setViewMode] = useState<"my" | "public">("my");
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
     checkAuth();
-    fetchDiaries();
   }, []);
+
+  useEffect(() => {
+    if (currentUserId) {
+      fetchDiaries();
+    }
+  }, [currentUserId, viewMode]);
 
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -34,7 +42,7 @@ export default function Home() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const { data, error } = await supabase
+    let query = supabase
       .from("diaries")
       .select(`
         *,
@@ -45,9 +53,41 @@ export default function Home() {
         photo:photos!diaries_photo_id_fkey (
           photo_url
         )
-      `)
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false });
+      `);
+
+    if (viewMode === "my") {
+      query = query.eq("user_id", user.id);
+    } else {
+      // 전체 공개된 일기 가져오기
+      const { data: publicNotebooks } = await supabase
+        .from("notebooks")
+        .select("id")
+        .eq("visibility", "public");
+
+      if (publicNotebooks && publicNotebooks.length > 0) {
+        const notebookIds = publicNotebooks.map(nb => nb.id);
+        
+        const { data: diaryNotebooks } = await supabase
+          .from("diary_notebooks")
+          .select("diary_id")
+          .in("notebook_id", notebookIds);
+
+        if (diaryNotebooks && diaryNotebooks.length > 0) {
+          const diaryIds = diaryNotebooks.map(dn => dn.diary_id);
+          query = query.in("id", diaryIds);
+        } else {
+          setDiaries([]);
+          setLoading(false);
+          return;
+        }
+      } else {
+        setDiaries([]);
+        setLoading(false);
+        return;
+      }
+    }
+
+    const { data, error } = await query.order("created_at", { ascending: false });
 
     if (error) {
       console.error("Error fetching diaries:", error);
@@ -216,22 +256,44 @@ export default function Home() {
         <Card className="shadow-medium">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handlePrevMonth}
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </Button>
+                <h2 className="text-xl font-bold">
+                  {format(currentMonth, "yyyy년 M월", { locale: ko })}
+                </h2>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleNextMonth}
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </Button>
+              </div>
+              
               <Button
-                variant="ghost"
+                variant={viewMode === "my" ? "default" : "outline"}
                 size="icon"
-                onClick={handlePrevMonth}
+                onClick={() => {
+                  const newMode = viewMode === "my" ? "public" : "my";
+                  setViewMode(newMode);
+                  setLoading(true);
+                  toast({
+                    title: newMode === "my" ? "내 일기 보기" : "전체 공개 일기 보기"
+                  });
+                }}
+                className="rounded-full"
               >
-                <ChevronLeft className="h-5 w-5" />
-              </Button>
-              <h2 className="text-xl font-bold">
-                {format(currentMonth, "yyyy년 M월", { locale: ko })}
-              </h2>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleNextMonth}
-              >
-                <ChevronRight className="h-5 w-5" />
+                {viewMode === "my" ? (
+                  <User className="h-5 w-5" />
+                ) : (
+                  <Globe className="h-5 w-5" />
+                )}
               </Button>
             </div>
 
