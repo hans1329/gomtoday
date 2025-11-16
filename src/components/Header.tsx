@@ -1,6 +1,6 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { User, PenLine, Settings, LogOut, ArrowLeft } from "lucide-react";
+import { User, PenLine, Settings, LogOut, ArrowLeft, BookOpen } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   DropdownMenu,
@@ -84,13 +84,17 @@ export default function Header() {
             <DropdownMenuContent align="end" className="w-56 bg-background">
               <DropdownMenuLabel>내 계정</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate("/profile")}>
-                <Settings className="mr-2 h-4 w-4" />
-                <span>설정</span>
+              <DropdownMenuItem onClick={() => navigate("/diaries")}>
+                <BookOpen className="mr-2 h-4 w-4" />
+                <span>나의 일기</span>
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => navigate("/notebooks")}>
                 <User className="mr-2 h-4 w-4" />
                 <span>일기장 관리</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/profile")}>
+                <Settings className="mr-2 h-4 w-4" />
+                <span>설정</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout}>
