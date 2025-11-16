@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,8 +10,11 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { useToast } from "@/hooks/use-toast";
 import { Upload as UploadIcon, Loader2, ArrowLeft, Trash2, ChevronUp, ChevronDown } from "lucide-react";
 export default function Upload() {
+  const { id } = useParams();
+  const isEditMode = !!id;
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+  const [existingPhotos, setExistingPhotos] = useState<any[]>([]);
   const [emotion, setEmotion] = useState("happy");
   const [length, setLength] = useState("medium");
   const [perspective, setPerspective] = useState("camera");
@@ -20,14 +23,19 @@ export default function Upload() {
   const [uploading, setUploading] = useState(false);
   const [showNotebookDialog, setShowNotebookDialog] = useState(false);
   const [createdDiaryId, setCreatedDiaryId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const {
     toast
   } = useToast();
   useEffect(() => {
-    checkTodayDiary();
+    if (isEditMode) {
+      loadDiaryData();
+    } else {
+      checkTodayDiary();
+    }
     fetchNotebooks();
-  }, []);
+  }, [id]);
   const checkTodayDiary = async () => {
     const {
       data: {
@@ -53,6 +61,55 @@ export default function Upload() {
       });
       navigate(`/diary/${data.id}`);
     }
+  };
+
+  const loadDiaryData = async () => {
+    if (!id) return;
+    
+    setLoading(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      navigate("/auth");
+      return;
+    }
+
+    const { data: diary, error } = await supabase
+      .from("diaries")
+      .select(`
+        *,
+        photos!photos_diary_id_fkey (
+          id,
+          photo_url,
+          display_order
+        ),
+        diary_notebooks (
+          notebook_id
+        )
+      `)
+      .eq("id", id)
+      .eq("user_id", user.id)
+      .single();
+
+    if (error || !diary) {
+      toast({
+        title: "일기를 찾을 수 없습니다",
+        variant: "destructive",
+      });
+      navigate("/");
+      return;
+    }
+
+    // 기존 데이터로 초기화
+    setEmotion(diary.tone || "happy");
+    setLength(diary.length || "medium");
+    setExistingPhotos(diary.photos || []);
+    setPreviewUrls((diary.photos || []).map((p: any) => p.photo_url));
+    
+    // 일기장 선택 상태 초기화
+    const notebookIds = new Set(diary.diary_notebooks.map((dn: any) => dn.notebook_id));
+    setSelectedNotebooks(notebookIds);
+    
+    setLoading(false);
   };
   const fetchNotebooks = async () => {
     const {
@@ -114,9 +171,11 @@ export default function Upload() {
   const removePhoto = (index: number) => {
     const newFiles = selectedFiles.filter((_, i) => i !== index);
     const newUrls = previewUrls.filter((_, i) => i !== index);
+    const newExisting = existingPhotos.filter((_, i) => i !== index);
     
     setSelectedFiles(newFiles);
     setPreviewUrls(newUrls);
+    setExistingPhotos(newExisting);
   };
   const toggleNotebook = (notebookId: string, isPrivate: boolean) => {
     if (isPrivate) return;
@@ -157,7 +216,9 @@ export default function Upload() {
     }
   };
   const handleUpload = async () => {
-    if (selectedFiles.length < 3) {
+    const totalPhotos = (existingPhotos.length || 0) + selectedFiles.length;
+    
+    if (totalPhotos < 3) {
       toast({
         title: "사진이 부족해요",
         description: "최소 3장의 사진을 선택해주세요.",
@@ -165,6 +226,7 @@ export default function Upload() {
       });
       return;
     }
+    
     setUploading(true);
     const {
       data: {
@@ -175,67 +237,119 @@ export default function Upload() {
       navigate("/auth");
       return;
     }
+    
     try {
-      const {
-        data: diaryData,
-        error: diaryError
-      } = await supabase.from("diaries").insert({
-        user_id: user.id,
-        content: "",
-        tone: emotion,
-        length
-      }).select().single();
-      if (diaryError) throw diaryError;
-      const photoUrls: string[] = [];
-      for (let i = 0; i < selectedFiles.length; i++) {
-        const file = selectedFiles[i];
-        const fileExt = file.name.split('.').pop() || 'jpg';
-        const fileName = `${user.id}/${Date.now()}-${i}.${fileExt}`;
-        const {
-          error: uploadError
-        } = await supabase.storage.from("photos").upload(fileName, file);
-        if (uploadError) throw uploadError;
-        const {
-          data: {
-            publicUrl
+      let diaryId = id;
+      
+      if (isEditMode) {
+        // 편집 모드: 일기 업데이트
+        const { error: updateError } = await supabase
+          .from("diaries")
+          .update({
+            tone: emotion,
+            length
+          })
+          .eq("id", id);
+        
+        if (updateError) throw updateError;
+        
+        // 새로운 사진만 업로드
+        if (selectedFiles.length > 0) {
+          for (let i = 0; i < selectedFiles.length; i++) {
+            const file = selectedFiles[i];
+            const fileExt = file.name.split('.').pop() || 'jpg';
+            const fileName = `${user.id}/${Date.now()}-${i}.${fileExt}`;
+            const {
+              error: uploadError
+            } = await supabase.storage.from("photos").upload(fileName, file);
+            if (uploadError) throw uploadError;
+            const {
+              data: {
+                publicUrl
+              }
+            } = supabase.storage.from("photos").getPublicUrl(fileName);
+            const {
+              error: photoError
+            } = await supabase.from("photos").insert({
+              user_id: user.id,
+              photo_url: publicUrl,
+              diary_id: id,
+              display_order: existingPhotos.length + i
+            });
+            if (photoError) throw photoError;
           }
-        } = supabase.storage.from("photos").getPublicUrl(fileName);
-        const {
-          error: photoError
-        } = await supabase.from("photos").insert({
-          user_id: user.id,
-          photo_url: publicUrl,
-          diary_id: diaryData.id,
-          display_order: i
-        });
-        if (photoError) throw photoError;
-        photoUrls.push(publicUrl);
-      }
-      const {
-        data: aiResponse,
-        error: aiError
-      } = await supabase.functions.invoke("analyze-photo", {
-        body: {
-          photoUrls: photoUrls,
-          emotion,
-          length,
-          perspective
         }
-      });
-      if (aiError) throw aiError;
-      const {
-        error: updateError
-      } = await supabase.from("diaries").update({
-        content: aiResponse.content,
-        emoji: aiResponse.emoji
-      }).eq("id", diaryData.id);
-      if (updateError) throw updateError;
-      setCreatedDiaryId(diaryData.id);
-      setShowNotebookDialog(true);
+        
+        toast({
+          title: "일기가 수정되었어요!",
+        });
+        navigate(`/diary/${id}`);
+      } else {
+        // 새로 작성 모드
+        const {
+          data: diaryData,
+          error: diaryError
+        } = await supabase.from("diaries").insert({
+          user_id: user.id,
+          content: "",
+          tone: emotion,
+          length
+        }).select().single();
+        if (diaryError) throw diaryError;
+        
+        diaryId = diaryData.id;
+        
+        const photoUrls: string[] = [];
+        for (let i = 0; i < selectedFiles.length; i++) {
+          const file = selectedFiles[i];
+          const fileExt = file.name.split('.').pop() || 'jpg';
+          const fileName = `${user.id}/${Date.now()}-${i}.${fileExt}`;
+          const {
+            error: uploadError
+          } = await supabase.storage.from("photos").upload(fileName, file);
+          if (uploadError) throw uploadError;
+          const {
+            data: {
+              publicUrl
+            }
+          } = supabase.storage.from("photos").getPublicUrl(fileName);
+          const {
+            error: photoError
+          } = await supabase.from("photos").insert({
+            user_id: user.id,
+            photo_url: publicUrl,
+            diary_id: diaryData.id,
+            display_order: i
+          });
+          if (photoError) throw photoError;
+          photoUrls.push(publicUrl);
+        }
+        const {
+          data: aiResponse,
+          error: aiError
+        } = await supabase.functions.invoke("analyze-photo", {
+          body: {
+            photoUrls: photoUrls,
+            emotion,
+            length,
+            perspective
+          }
+        });
+        if (aiError) throw aiError;
+        const {
+          error: updateError
+        } = await supabase.from("diaries").update({
+          content: aiResponse.content,
+          emoji: aiResponse.emoji
+        }).eq("id", diaryData.id);
+        if (updateError) throw updateError;
+        setCreatedDiaryId(diaryData.id);
+        setShowNotebookDialog(true);
+      }
     } catch (error: any) {
       console.error("Upload error:", error);
       toast({
-        title: "업로드 실패",
+        title: isEditMode ? "수정 실패" : "업로드 실패",
         description: error.message,
         variant: "destructive"
       });
@@ -243,12 +357,27 @@ export default function Upload() {
       setUploading(false);
     }
   };
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen gradient-soft flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">일기를 불러오는 중...</p>
+        </div>
+      </div>
+    );
+  }
+  
   return <div className="min-h-screen gradient-soft p-4">
       <div className="max-w-2xl mx-auto pt-6 space-y-4">
         <div className="space-y-2">
-          <h1 className="text-2xl font-bold">일기 작성</h1>
+          <h1 className="text-2xl font-bold">{isEditMode ? "일기 수정" : "일기 작성"}</h1>
           <p className="text-muted-foreground text-sm">
-            오늘을 대표하는 3장의 사진을 업로드하면 누군가가 자동으로 일기를 작성해드려요
+            {isEditMode 
+              ? "사진과 감정, 길이를 수정할 수 있어요"
+              : "오늘을 대표하는 3장의 사진을 업로드하면 누군가가 자동으로 일기를 작성해드려요"
+            }
           </p>
         </div>
         
@@ -352,28 +481,30 @@ export default function Upload() {
               </Select>
             </div>
 
-            <div className="space-y-2">
-              <Label>시점 선택</Label>
-              <Select value={perspective} onValueChange={setPerspective}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="camera">핸드폰</SelectItem>
-                  <SelectItem value="pet">애완동물</SelectItem>
-                  <SelectItem value="friend">친구</SelectItem>
-                  <SelectItem value="family">가족</SelectItem>
-                  <SelectItem value="stranger">낯선 사람</SelectItem>
-                  <SelectItem value="future">미래의 나</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {!isEditMode && (
+              <div className="space-y-2">
+                <Label>시점 선택</Label>
+                <Select value={perspective} onValueChange={setPerspective}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="camera">핸드폰</SelectItem>
+                    <SelectItem value="pet">애완동물</SelectItem>
+                    <SelectItem value="friend">친구</SelectItem>
+                    <SelectItem value="family">가족</SelectItem>
+                    <SelectItem value="stranger">낯선 사람</SelectItem>
+                    <SelectItem value="future">미래의 나</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
-            <Button onClick={handleUpload} disabled={uploading || selectedFiles.length < 3} className="w-full">
+            <Button onClick={handleUpload} disabled={uploading || (existingPhotos.length + selectedFiles.length) < 3} className="w-full">
               {uploading ? <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  일기 작성 중...
-                </> : "일기 작성하기"}
+                  {isEditMode ? "일기 수정 중..." : "일기 작성 중..."}
+                </> : (isEditMode ? "일기 수정하기" : "일기 작성하기")}
             </Button>
           </CardContent>
         </Card>
