@@ -8,8 +8,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 
-const LOGO_URL = supabase.storage.from('brand-assets').getPublicUrl('logo.png').data.publicUrl;
-
 export default function Auth() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -82,7 +80,7 @@ export default function Auth() {
       <Card className="w-full max-w-md shadow-medium bg-white">
         <CardHeader className="space-y-3">
           <div className="flex items-center justify-center gap-1.5 mb-2">
-            <img src={LOGO_URL} alt="3rdMe" className="w-10 h-10" />
+            <img src="/3rdme-logo.png" alt="3rdMe" className="w-10 h-10" />
             <CardTitle className="text-3xl font-bold">
               3rdMe
             </CardTitle>
