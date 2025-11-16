@@ -12,8 +12,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 
-const LOGO_URL = supabase.storage.from('brand-assets').getPublicUrl('logo.png').data.publicUrl;
-
 export default function Header() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -45,7 +43,7 @@ export default function Header() {
             onClick={() => navigate("/")}
             className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
           >
-            <img src={LOGO_URL} alt="3rdMe" className="w-8 h-8" />
+            <img src="/3rdme-logo.png" alt="3rdMe" className="w-8 h-8" />
             <span className="font-bold text-xl">3rdMe</span>
           </button>
         </div>
