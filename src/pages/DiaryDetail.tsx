@@ -21,12 +21,17 @@ export default function DiaryDetail() {
       .from("diaries")
       .select(`
         *,
-        photos (
-          photo_url
+        photos!photos_diary_id_fkey (
+          photo_url,
+          display_order
         )
       `)
       .eq("id", id)
-      .single();
+      .maybeSingle();
+
+    if (error) {
+      console.error("Error fetching diary:", error);
+    }
 
     if (data) {
       setDiary(data);
@@ -58,11 +63,11 @@ export default function DiaryDetail() {
       <div className="max-w-2xl mx-auto p-4 space-y-4">
         <Card className="shadow-medium overflow-hidden">
           <CardContent className="p-0">
-            {/* Photo */}
+            {/* Photos */}
             <div className="aspect-[4/3] bg-muted relative overflow-hidden">
-              {diary.photos?.photo_url && (
+              {diary.photos && diary.photos.length > 0 && (
                 <img
-                  src={diary.photos.photo_url}
+                  src={diary.photos[0].photo_url}
                   alt="Diary"
                   className="w-full h-full object-cover"
                 />
