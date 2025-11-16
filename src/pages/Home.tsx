@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ChevronLeft, ChevronRight, User, Globe, Calendar as CalendarIcon, Heart, MessageCircle, Clock, Users, Search, Smile } from "lucide-react";
+import { ChevronLeft, ChevronRight, User, Globe, Calendar as CalendarIcon, Heart, MessageCircle, Clock, Users, Search, Smile, ChevronDown, ChevronUp } from "lucide-react";
 import { format, startOfMonth, endOfMonth, isSameDay, addMonths, subMonths } from "date-fns";
 import { ko } from "date-fns/locale";
 import LoadingBar from "@/components/LoadingBar";
@@ -25,6 +25,7 @@ export default function Home() {
   const [sortBy, setSortBy] = useState<"latest" | "oldest" | "likes" | "comments" | "friends">("latest");
   const [selectedEmoji, setSelectedEmoji] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [isCalendarExpanded, setIsCalendarExpanded] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
   
@@ -395,8 +396,20 @@ export default function Home() {
                     <ChevronRight className="h-5 w-5" />
                   </Button>
                 </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setIsCalendarExpanded(!isCalendarExpanded)}
+                  className="rounded-full"
+                >
+                  {isCalendarExpanded ? (
+                    <ChevronUp className="h-5 w-5" />
+                  ) : (
+                    <ChevronDown className="h-5 w-5" />
+                  )}
+                </Button>
               </div>
-              {renderCalendar()}
+              {isCalendarExpanded && renderCalendar()}
             </CardContent>
           </Card>
         )}
