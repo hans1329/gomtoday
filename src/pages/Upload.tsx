@@ -84,6 +84,7 @@ export default function Upload() {
           user_id: user.id,
           photo_id: photoData.id,
           content: aiResponse.content,
+          emoji: aiResponse.emoji,
           tone,
           length,
         })

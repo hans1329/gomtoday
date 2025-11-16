@@ -21,7 +21,7 @@ serve(async (req) => {
     
     console.log('Analyzing photo:', photoUrl);
 
-    // System prompt in Korean
+    // System prompt in Korean for diary
     const systemPrompt = `너는 '사진 기반 개인 일기' 작성 보조자다.
 원칙:
 - 사진에 '확실히 보이는 사실'과 '추정'은 구분한다.
@@ -41,7 +41,7 @@ ${userContext ? `- 사용자 맥락: ${userContext}` : ''}
 
     const userPrompt = '이 사진을 보고 오늘의 일기를 작성해주세요.';
 
-    // Call OpenAI Vision API
+    // Call OpenAI Vision API for diary content
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -83,11 +83,61 @@ ${userContext ? `- 사용자 맥락: ${userContext}` : ''}
     const data = await response.json();
     const diaryContent = data.choices[0].message.content;
 
-    console.log('Generated diary content');
+    // System prompt for emoji selection
+    const emojiPrompt = `너는 일기의 감정과 분위기를 분석해서 가장 어울리는 캐주얼한 이모지 1개를 선택하는 전문가다.
+
+사용 가능한 이모지:
+행복/즐거움: 😊, 😄, 🥰, 😍, 🎉, 🥳
+평온/차분: 😌, 😇, ✨, 🌸, 🌿
+슬픔/아쉬움: 😢, 😭, 😔, 😞
+피곤/휴식: 😴, 🥱, 💤
+맛있음/음식: 😋, 🤤, 🍕, 🍰, ☕
+여행/외출: ✈️, 🌏, 🏖️, 🗺️, 🚗
+운동/활동: 💪, 🏃, ⚽, 🏋️
+공부/업무: 📚, 💻, ✏️, 📝
+사랑/감동: 💕, 💖, 💗, ❤️
+즐거움/취미: 🎵, 🎶, 🎸, 🎮
+자연/풍경: 🌺, 🌻, 🌈, ☀️
+동물: 🐱, 🐶, 🐰, 🐻
+날씨: 🌤️, ⛅, 🌧️, ⛈️
+음식: 🍜, 🍷, 🍺
+
+지침:
+- 일기의 전반적인 감정과 분위기를 파악한다.
+- 가장 어울리는 이모지 1개만 선택한다.
+- 응답은 이모지 1개만 출력한다(설명 없이).`;
+
+    // Call OpenAI to select emoji
+    const emojiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openAIApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: emojiPrompt },
+          { role: 'user', content: `다음 일기에 어울리는 이모지를 선택해주세요:\n\n${diaryContent}` }
+        ],
+        max_tokens: 10,
+        temperature: 0.3,
+      }),
+    });
+
+    if (!emojiResponse.ok) {
+      console.error('Emoji selection error, using default');
+    }
+
+    const emojiData = await emojiResponse.json();
+    const selectedEmoji = emojiData.choices[0].message.content.trim() || '📝';
+
+    console.log('Generated diary content and emoji:', selectedEmoji);
 
     return new Response(
       JSON.stringify({ 
         content: diaryContent,
+        emoji: selectedEmoji,
         tone,
         length 
       }), 
