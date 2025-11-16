@@ -82,31 +82,40 @@ export default function Home() {
       }
     } else {
       // 전체 공개된 일기 가져오기
+      console.log("Fetching public diaries...");
       const { data: publicNotebooks } = await supabase
         .from("notebooks")
         .select("id")
         .eq("visibility", "public");
 
+      console.log("Public notebooks:", publicNotebooks);
+
       if (!publicNotebooks || publicNotebooks.length === 0) {
+        console.log("No public notebooks found");
         setDiaries([]);
         setLoading(false);
         return;
       }
 
       const notebookIds = publicNotebooks.map(nb => nb.id);
+      console.log("Notebook IDs:", notebookIds);
       
       const { data: diaryNotebooks } = await supabase
         .from("diary_notebooks")
         .select("diary_id")
         .in("notebook_id", notebookIds);
 
+      console.log("Diary notebooks:", diaryNotebooks);
+
       if (!diaryNotebooks || diaryNotebooks.length === 0) {
+        console.log("No diaries in public notebooks");
         setDiaries([]);
         setLoading(false);
         return;
       }
 
       const diaryIds = diaryNotebooks.map(dn => dn.diary_id);
+      console.log("Diary IDs:", diaryIds);
       
       const { data, error } = await supabase
         .from("diaries")
@@ -123,6 +132,8 @@ export default function Home() {
         .in("id", diaryIds)
         .order("created_at", { ascending: false });
 
+      console.log("Fetched diaries:", data, "Error:", error);
+
       if (error) {
         console.error("Error fetching public diaries:", error);
       }
@@ -130,10 +141,14 @@ export default function Home() {
       if (data) {
         // 각 일기의 작성자 정보 가져오기
         const userIds = [...new Set(data.map(d => d.user_id))];
+        console.log("User IDs:", userIds);
+        
         const { data: profiles } = await supabase
           .from("profiles")
           .select("user_id, name, profile_photo_url")
           .in("user_id", userIds);
+
+        console.log("Profiles:", profiles);
 
         const profileMap = new Map(profiles?.map(p => [p.user_id, { name: p.name, photo: p.profile_photo_url }]) || []);
 
@@ -155,6 +170,8 @@ export default function Home() {
             author_photo: profile?.photo
           };
         });
+        
+        console.log("Final diaries with photos:", diariesWithSortedPhotos);
         setDiaries(diariesWithSortedPhotos);
       }
     }
