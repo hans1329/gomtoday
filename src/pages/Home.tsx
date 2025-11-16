@@ -100,7 +100,7 @@ export default function Home() {
             key={currentDay.toString()}
             onClick={() => handleDateClick(currentDay)}
             className={`
-              aspect-square p-2 rounded-full flex flex-col items-center justify-center gap-1 relative
+              w-full aspect-square p-1 rounded-lg flex flex-col items-center justify-center gap-0.5 relative
               transition-all hover:bg-secondary/50 hover:scale-105 active:scale-95
               ${!isSameMonth(currentDay, currentMonth) ? "opacity-30" : ""}
             `}
