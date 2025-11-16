@@ -1,6 +1,6 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { User, Plus, Settings, LogOut } from "lucide-react";
+import { User, PenLine, Settings, LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   DropdownMenu,
@@ -37,7 +37,7 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-14 items-center">
+      <div className="flex h-14 items-center px-4">
         <div className="mr-4 flex">
           <button 
             onClick={() => navigate("/")}
@@ -56,7 +56,7 @@ export default function Header() {
               onClick={() => navigate("/upload")}
               title="일기 작성"
             >
-              <Plus className="h-5 w-5" />
+              <PenLine className="h-5 w-5" />
             </Button>
           )}
 
@@ -66,6 +66,7 @@ export default function Header() {
                 variant="ghost"
                 size="icon"
                 title="프로필"
+                className="shadow-md"
               >
                 <User className="h-5 w-5" />
               </Button>
