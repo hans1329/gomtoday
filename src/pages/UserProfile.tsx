@@ -175,44 +175,42 @@ export default function UserProfile() {
 
             {/* 프로필 정보 */}
             <div className="space-y-3 pt-4 border-t">
-              <div className="grid grid-cols-2 gap-3">
-                {profile.mbti && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-muted-foreground">MBTI</span>
-                    <span className="text-sm">{profile.mbti}</span>
-                  </div>
-                )}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between py-2">
+                  <span className="text-sm font-medium text-muted-foreground">MBTI</span>
+                  <span className="text-sm">{profile.mbti || '-'}</span>
+                </div>
                 
-                {profile.blood_type && (
-                  <div className="flex items-center gap-2">
-                    <Droplet className="h-3.5 w-3.5 text-muted-foreground" />
-                    <span className="text-sm font-medium text-muted-foreground">혈액형</span>
-                    <span className="text-sm">{profile.blood_type}형</span>
-                  </div>
-                )}
+                <div className="flex items-center justify-between py-2">
+                  <span className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                    <Droplet className="h-3.5 w-3.5" />
+                    혈액형
+                  </span>
+                  <span className="text-sm">{profile.blood_type ? `${profile.blood_type}형` : '-'}</span>
+                </div>
                 
-                {profile.birthday && (
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
-                    <span className="text-sm font-medium text-muted-foreground">생일</span>
-                    <span className="text-sm">{profile.birthday}</span>
-                  </div>
-                )}
+                <div className="flex items-center justify-between py-2">
+                  <span className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                    <Calendar className="h-3.5 w-3.5" />
+                    생일
+                  </span>
+                  <span className="text-sm">{profile.birthday || '-'}</span>
+                </div>
 
-                {profile.gender && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-muted-foreground">성별</span>
-                    <span className="text-sm">{profile.gender === 'male' ? '남성' : profile.gender === 'female' ? '여성' : profile.gender}</span>
-                  </div>
-                )}
+                <div className="flex items-center justify-between py-2">
+                  <span className="text-sm font-medium text-muted-foreground">성별</span>
+                  <span className="text-sm">
+                    {profile.gender === 'male' ? '남성' : profile.gender === 'female' ? '여성' : profile.gender || '-'}
+                  </span>
+                </div>
                 
-                {profile.location && (
-                  <div className="flex items-center gap-2 col-span-2">
-                    <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
-                    <span className="text-sm font-medium text-muted-foreground">위치</span>
-                    <span className="text-sm">{profile.location}</span>
-                  </div>
-                )}
+                <div className="flex items-center justify-between py-2">
+                  <span className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                    <MapPin className="h-3.5 w-3.5" />
+                    위치
+                  </span>
+                  <span className="text-sm">{profile.location || '-'}</span>
+                </div>
               </div>
             </div>
           </CardContent>
