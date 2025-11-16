@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { Camera, LogOut } from "lucide-react";
+import { Camera } from "lucide-react";
 
 export default function Profile() {
   const [profile, setProfile] = useState<any>(null);
@@ -116,11 +116,6 @@ export default function Profile() {
     }
   };
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    navigate("/auth");
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -132,16 +127,6 @@ export default function Profile() {
   return (
     <div className="min-h-screen gradient-soft p-4">
       <div className="max-w-2xl mx-auto pt-8 space-y-6">
-        <div className="flex justify-between items-center">
-          <Button variant="ghost" onClick={() => navigate("/")}>
-            ← 홈으로
-          </Button>
-          <Button variant="ghost" onClick={handleSignOut}>
-            <LogOut className="w-4 h-4 mr-2" />
-            로그아웃
-          </Button>
-        </div>
-
         <Card className="shadow-medium">
           <CardHeader>
             <CardTitle>프로필 설정</CardTitle>
