@@ -205,7 +205,7 @@ export default function Upload() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="camera">카메라 시점</SelectItem>
+                  <SelectItem value="camera">핸드폰 시점</SelectItem>
                   <SelectItem value="pet">애완동물 시점</SelectItem>
                   <SelectItem value="friend">친구 시점</SelectItem>
                   <SelectItem value="family">가족 시점</SelectItem>

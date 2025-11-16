@@ -24,8 +24,8 @@ serve(async (req) => {
     // System prompt in Korean for diary
     const perspectiveMap: Record<string, { name: string; instruction: string }> = {
       camera: {
-        name: '카메라',
-        instruction: '카메라의 시점에서 렌즈를 통해 바라본 장면을 객관적이고 시각적으로 묘사한다. "렌즈가 포착한", "프레임 안에" 등의 표현을 사용한다.'
+        name: '핸드폰',
+        instruction: '핸드폰의 시점에서 화면과 렌즈를 통해 포착한 순간을 묘사한다. "핸드폰 화면에", "렌즈가 담은" 등의 표현을 사용한다.'
       },
       pet: {
         name: '애완동물',
