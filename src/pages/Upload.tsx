@@ -15,10 +15,9 @@ export default function Upload() {
   const [tone, setTone] = useState("warm");
   const [length, setLength] = useState("medium");
   const [perspective, setPerspective] = useState("camera");
-  const [uploading, setUploading] = useState(false);
   const [notebooks, setNotebooks] = useState<any[]>([]);
-  const [selectedNotebooks, setSelectedNotebooks] = useState<string[]>([]);
-  const [privateNotebookId, setPrivateNotebookId] = useState<string>("");
+  const [selectedNotebooks, setSelectedNotebooks] = useState<Set<string>>(new Set());
+  const [uploading, setUploading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -28,7 +27,10 @@ export default function Upload() {
 
   const fetchNotebooks = async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user) {
+      navigate("/auth");
+      return;
+    }
 
     const { data, error } = await supabase
       .from("notebooks")
@@ -37,11 +39,13 @@ export default function Upload() {
       .order("is_default", { ascending: false })
       .order("created_at");
 
-    if (data && !error) {
+    if (error) {
+      console.error("Error fetching notebooks:", error);
+    } else if (data) {
       setNotebooks(data);
       const privateNotebook = data.find(nb => nb.visibility === "private" && nb.is_default);
       if (privateNotebook) {
-        setPrivateNotebookId(privateNotebook.id);
+        setSelectedNotebooks(new Set([privateNotebook.id]));
       }
     }
   };
@@ -71,6 +75,20 @@ export default function Upload() {
     setPreviewUrls(files.map(file => URL.createObjectURL(file)));
   };
 
+  const toggleNotebook = (notebookId: string, isPrivate: boolean) => {
+    if (isPrivate) return;
+    
+    setSelectedNotebooks(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(notebookId)) {
+        newSet.delete(notebookId);
+      } else {
+        newSet.add(notebookId);
+      }
+      return newSet;
+    });
+  };
+
   const handleUpload = async () => {
     if (selectedFiles.length < 3) {
       toast({
@@ -90,7 +108,6 @@ export default function Upload() {
     }
 
     try {
-      // 먼저 diary 레코드 생성
       const { data: diaryData, error: diaryError } = await supabase
         .from("diaries")
         .insert({
@@ -104,25 +121,6 @@ export default function Upload() {
 
       if (diaryError) throw diaryError;
 
-      // 개인 일기장에 자동 등록
-      await supabase.from("diary_notebooks").insert({
-        diary_id: diaryData.id,
-        notebook_id: privateNotebookId,
-      });
-
-      // 선택한 다른 일기장에도 등록
-      if (selectedNotebooks.length > 0) {
-        await Promise.all(
-          selectedNotebooks.map(notebookId =>
-            supabase.from("diary_notebooks").insert({
-              diary_id: diaryData.id,
-              notebook_id: notebookId,
-            })
-          )
-        );
-      }
-
-      // 모든 사진 업로드 및 저장
       const photoUrls: string[] = [];
       for (let i = 0; i < selectedFiles.length; i++) {
         const file = selectedFiles[i];
@@ -152,7 +150,6 @@ export default function Upload() {
         photoUrls.push(publicUrl);
       }
 
-      // AI로 일기 생성
       const { data: aiResponse, error: aiError } = await supabase.functions.invoke(
         "analyze-photo",
         {
@@ -167,7 +164,6 @@ export default function Upload() {
 
       if (aiError) throw aiError;
 
-      // 일기 내용 업데이트
       const { error: updateError } = await supabase
         .from("diaries")
         .update({
@@ -177,6 +173,17 @@ export default function Upload() {
         .eq("id", diaryData.id);
 
       if (updateError) throw updateError;
+
+      for (const notebookId of selectedNotebooks) {
+        const { error } = await supabase
+          .from("diary_notebooks")
+          .insert({
+            diary_id: diaryData.id,
+            notebook_id: notebookId,
+          });
+        
+        if (error) console.error("Error linking diary to notebook:", error);
+      }
 
       toast({
         title: "일기가 작성되었어요!",
@@ -194,14 +201,6 @@ export default function Upload() {
     } finally {
       setUploading(false);
     }
-  };
-
-  const handleNotebookToggle = (notebookId: string) => {
-    setSelectedNotebooks(prev =>
-      prev.includes(notebookId)
-        ? prev.filter(id => id !== notebookId)
-        : [...prev, notebookId]
-    );
   };
 
   return (
@@ -262,6 +261,36 @@ export default function Upload() {
             </div>
 
             <div className="space-y-2">
+              <Label>일기장 선택</Label>
+              <div className="space-y-2 p-3 rounded-lg border">
+                {notebooks.map((notebook) => {
+                  const isPrivate = notebook.visibility === "private" && notebook.is_default;
+                  const isSelected = selectedNotebooks.has(notebook.id);
+                  
+                  return (
+                    <div key={notebook.id} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={notebook.id}
+                        checked={isSelected}
+                        disabled={isPrivate}
+                        onCheckedChange={() => toggleNotebook(notebook.id, isPrivate)}
+                      />
+                      <Label
+                        htmlFor={notebook.id}
+                        className="flex-1 cursor-pointer"
+                      >
+                        {notebook.name}
+                        {isPrivate && " (기본)"}
+                        {notebook.visibility === "public" && " 🌍"}
+                        {notebook.visibility === "shared" && " 👥"}
+                      </Label>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="space-y-2">
               <Label>톤 선택</Label>
               <Select value={tone} onValueChange={setTone}>
                 <SelectTrigger>
@@ -302,32 +331,6 @@ export default function Upload() {
                   <SelectItem value="subject">사진 속 인물 시점</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-
-            <div className="space-y-3">
-              <Label>일기장 선택</Label>
-              <p className="text-xs text-muted-foreground">
-                * 나만의 일기장에는 자동으로 등록됩니다
-              </p>
-              <div className="space-y-2">
-                {notebooks
-                  .filter(nb => !(nb.visibility === "private" && nb.is_default))
-                  .map(notebook => (
-                    <div key={notebook.id} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={notebook.id}
-                        checked={selectedNotebooks.includes(notebook.id)}
-                        onCheckedChange={() => handleNotebookToggle(notebook.id)}
-                      />
-                      <label
-                        htmlFor={notebook.id}
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      >
-                        {notebook.name} ({notebook.visibility === "public" ? "전체공개" : "공유"})
-                      </label>
-                    </div>
-                  ))}
-              </div>
             </div>
 
             <Button
