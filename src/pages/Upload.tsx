@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -253,23 +253,16 @@ export default function Upload() {
 
   return (
     <div className="min-h-screen gradient-soft p-4">
-      <div className="max-w-2xl mx-auto pt-4 space-y-6">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => navigate("/")}
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
+      <div className="max-w-2xl mx-auto pt-20 space-y-4">
+        <div className="space-y-2">
+          <h1 className="text-2xl font-bold">일기 작성</h1>
+          <p className="text-muted-foreground">
+            오늘을 대표하는 3장의 사진을 업로드하면 누군가가 자동으로 일기를 작성해드려요
+          </p>
+        </div>
         
         <Card className="shadow-medium">
-          <CardHeader>
-            <CardTitle>일기 작성</CardTitle>
-            <CardDescription>
-              오늘을 대표하는 3장의 사진을 업로드하면 누군가가 자동으로 일기를 작성해드려요
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="p-6 space-y-6">
             <div className="space-y-2">
               <Label>사진 선택 (3~6장)</Label>
               {previewUrls.length > 0 ? (
