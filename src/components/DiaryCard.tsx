@@ -9,7 +9,6 @@ interface DiaryCardProps {
     created_at: string;
     emoji?: string | null;
     photos?: { photo_url: string }[];
-    photo?: { photo_url: string } | null;
   };
   onClick: () => void;
   showTime?: boolean;
@@ -30,8 +29,7 @@ export default function DiaryCard({
     ? "text-3xl"
     : "text-2xl";
 
-  const hasPhotos = diary.photos && diary.photos.length > 0;
-  const photoUrl = hasPhotos ? diary.photos[0].photo_url : diary.photo?.photo_url;
+  const photoUrl = diary.photos && diary.photos.length > 0 ? diary.photos[0].photo_url : null;
 
   return (
     <Card
