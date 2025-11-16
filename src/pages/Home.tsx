@@ -84,7 +84,7 @@ export default function Home() {
     
     const firstDayOfWeek = monthStart.getDay();
     for (let i = 0; i < firstDayOfWeek; i++) {
-      days.push(<div key={`empty-${i}`} className="aspect-square" />);
+      days.push(<div key={`empty-${i}`} className="w-full" style={{ aspectRatio: '1/1' }} />);
     }
     
     while (day <= endDate) {
@@ -99,8 +99,9 @@ export default function Home() {
           <button
             key={currentDay.toString()}
             onClick={() => handleDateClick(currentDay)}
+            style={{ aspectRatio: '1/1' }}
             className={`
-              w-full aspect-square p-1 rounded-lg flex flex-col items-center justify-center gap-0.5 relative
+              w-full p-1 rounded-lg flex flex-col items-center justify-center gap-0.5 relative
               transition-all hover:bg-secondary/50 hover:scale-105 active:scale-95
               ${!isSameMonth(currentDay, currentMonth) ? "opacity-30" : ""}
             `}
