@@ -141,7 +141,7 @@ export default function Profile() {
       window.dispatchEvent(new Event('profile-updated'));
       // 일기 페이지로 이동
       setTimeout(() => {
-        navigate("/diaries");
+        navigate("/");
       }, 500);
     }
   };
