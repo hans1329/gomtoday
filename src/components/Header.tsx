@@ -40,7 +40,7 @@ export default function Header() {
     window.addEventListener('profile-updated', handleProfileUpdate);
     
     // 알림 개수 주기적으로 업데이트
-    const interval = setInterval(fetchNotificationCount, 30000); // 30초마다
+    const interval = setInterval(fetchNotificationCount, 30000);
     
     return () => {
       window.removeEventListener('profile-updated', handleProfileUpdate);
@@ -86,14 +86,12 @@ export default function Header() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    // 친구 요청 개수
     const { count: requestCount } = await supabase
       .from("friend_requests" as any)
       .select("*", { count: "exact", head: true })
       .eq("to_user_id", user.id)
       .eq("status", "pending");
 
-    // 내 일기 ID 가져오기
     const { data: myDiaries } = await supabase
       .from("diaries")
       .select("id")
@@ -105,21 +103,19 @@ export default function Header() {
     if (myDiaries && myDiaries.length > 0) {
       const diaryIds = myDiaries.map(d => d.id);
 
-      // 좋아요 개수
       const { count: likes } = await supabase
         .from("diary_likes")
         .select("*", { count: "exact", head: true })
         .in("diary_id", diaryIds)
         .neq("user_id", user.id)
-        .gte("created_at", new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()); // 최근 7일
+        .gte("created_at", new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString());
 
-      // 댓글 개수
       const { count: comments } = await supabase
         .from("diary_comments")
         .select("*", { count: "exact", head: true })
         .in("diary_id", diaryIds)
         .neq("user_id", user.id)
-        .gte("created_at", new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()); // 최근 7일
+        .gte("created_at", new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString());
 
       likeCount = likes || 0;
       commentCount = comments || 0;
@@ -180,22 +176,6 @@ export default function Header() {
             </Button>
           )}
 
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => {
-              setNotificationsOpen(true);
-              fetchNotificationCount();
-            }}
-            title="알림"
-            className="relative"
-          >
-            <Bell className="h-5 w-5" />
-            {notificationCount > 0 && (
-              <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-destructive" />
-            )}
-          </Button>
-
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -214,6 +194,24 @@ export default function Header() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 bg-background">
               <DropdownMenuLabel className="font-normal">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs text-muted-foreground">알림</span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 relative"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setNotificationsOpen(true);
+                      fetchNotificationCount();
+                    }}
+                  >
+                    <Bell className="h-4 w-4" />
+                    {notificationCount > 0 && (
+                      <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-destructive" />
+                    )}
+                  </Button>
+                </div>
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium leading-none">{userName || "사용자"}</p>
                 </div>
