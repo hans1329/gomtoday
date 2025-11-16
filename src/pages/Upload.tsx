@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { Upload as UploadIcon, Loader2 } from "lucide-react";
 
@@ -15,8 +16,35 @@ export default function Upload() {
   const [length, setLength] = useState("medium");
   const [perspective, setPerspective] = useState("camera");
   const [uploading, setUploading] = useState(false);
+  const [notebooks, setNotebooks] = useState<any[]>([]);
+  const [selectedNotebooks, setSelectedNotebooks] = useState<string[]>([]);
+  const [privateNotebookId, setPrivateNotebookId] = useState<string>("");
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  useEffect(() => {
+    fetchNotebooks();
+  }, []);
+
+  const fetchNotebooks = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from("notebooks")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("is_default", { ascending: false })
+      .order("created_at");
+
+    if (data && !error) {
+      setNotebooks(data);
+      const privateNotebook = data.find(nb => nb.visibility === "private" && nb.is_default);
+      if (privateNotebook) {
+        setPrivateNotebookId(privateNotebook.id);
+      }
+    }
+  };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -62,12 +90,12 @@ export default function Upload() {
     }
 
     try {
-      // 먼저 diary 레코드 생성 (photo_id 없이)
+      // 먼저 diary 레코드 생성
       const { data: diaryData, error: diaryError } = await supabase
         .from("diaries")
         .insert({
           user_id: user.id,
-          content: "", // AI 분석 전 임시
+          content: "",
           tone,
           length,
         })
@@ -75,6 +103,24 @@ export default function Upload() {
         .single();
 
       if (diaryError) throw diaryError;
+
+      // 개인 일기장에 자동 등록
+      await supabase.from("diary_notebooks").insert({
+        diary_id: diaryData.id,
+        notebook_id: privateNotebookId,
+      });
+
+      // 선택한 다른 일기장에도 등록
+      if (selectedNotebooks.length > 0) {
+        await Promise.all(
+          selectedNotebooks.map(notebookId =>
+            supabase.from("diary_notebooks").insert({
+              diary_id: diaryData.id,
+              notebook_id: notebookId,
+            })
+          )
+        );
+      }
 
       // 모든 사진 업로드 및 저장
       const photoUrls: string[] = [];
@@ -93,7 +139,6 @@ export default function Upload() {
           .from("photos")
           .getPublicUrl(fileName);
 
-        // Save photo record with diary_id
         const { error: photoError } = await supabase
           .from("photos")
           .insert({
@@ -104,11 +149,10 @@ export default function Upload() {
           });
 
         if (photoError) throw photoError;
-
         photoUrls.push(publicUrl);
       }
 
-      // Call AI to generate diary with all photos
+      // AI로 일기 생성
       const { data: aiResponse, error: aiError } = await supabase.functions.invoke(
         "analyze-photo",
         {
@@ -123,7 +167,7 @@ export default function Upload() {
 
       if (aiError) throw aiError;
 
-      // Update diary with AI content
+      // 일기 내용 업데이트
       const { error: updateError } = await supabase
         .from("diaries")
         .update({
@@ -152,6 +196,14 @@ export default function Upload() {
     }
   };
 
+  const handleNotebookToggle = (notebookId: string) => {
+    setSelectedNotebooks(prev =>
+      prev.includes(notebookId)
+        ? prev.filter(id => id !== notebookId)
+        : [...prev, notebookId]
+    );
+  };
+
   return (
     <div className="min-h-screen gradient-soft p-4">
       <div className="max-w-2xl mx-auto pt-8 space-y-6">
@@ -159,27 +211,35 @@ export default function Upload() {
           <CardHeader>
             <CardTitle>사진 일기 작성</CardTitle>
             <CardDescription>
-              사진을 업로드하면 AI가 자동으로 일기를 작성해드려요
+              3~6장의 사진을 업로드하면 AI가 자동으로 일기를 작성해드려요
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Photo Upload */}
             <div className="space-y-2">
-              <Label>사진 선택</Label>
-              {previewUrl ? (
-                <div className="relative aspect-[4/3] rounded-lg overflow-hidden border-2 border-dashed border-border">
-                  <img
-                    src={previewUrl}
-                    alt="Preview"
-                    className="w-full h-full object-cover"
-                  />
+              <Label>사진 선택 (3~6장)</Label>
+              {previewUrls.length > 0 ? (
+                <div className="space-y-2">
+                  <div className="grid grid-cols-3 gap-2">
+                    {previewUrls.map((url, index) => (
+                      <div key={index} className="relative aspect-square rounded-lg overflow-hidden border-2 border-border">
+                        <img
+                          src={url}
+                          alt={`Preview ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute top-1 right-1 bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
+                          {index + 1}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                   <Button
                     variant="secondary"
                     size="sm"
-                    className="absolute bottom-2 right-2"
+                    className="w-full"
                     onClick={() => {
-                      setSelectedFile(null);
-                      setPreviewUrl("");
+                      setSelectedFiles([]);
+                      setPreviewUrls([]);
                     }}
                   >
                     다시 선택
@@ -188,67 +248,86 @@ export default function Upload() {
               ) : (
                 <label className="flex flex-col items-center justify-center aspect-[4/3] rounded-lg border-2 border-dashed border-border hover:border-primary cursor-pointer transition-colors">
                   <UploadIcon className="w-12 h-12 text-muted-foreground mb-2" />
-                  <span className="text-sm text-muted-foreground">
-                    클릭하여 사진 선택
-                  </span>
+                  <p className="text-sm text-muted-foreground">클릭하여 3~6장의 사진 선택</p>
+                  <p className="text-xs text-muted-foreground mt-1">PNG, JPG, HEIC</p>
                   <input
                     type="file"
                     accept="image/*"
+                    multiple
                     className="hidden"
                     onChange={handleFileSelect}
-                    autoComplete="off"
                   />
                 </label>
               )}
             </div>
 
-            {/* Tone Selection */}
             <div className="space-y-2">
-              <Label>일기 톤</Label>
+              <Label>톤 선택</Label>
               <Select value={tone} onValueChange={setTone}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="warm">따뜻함</SelectItem>
-                  <SelectItem value="calm">차분함</SelectItem>
-                  <SelectItem value="essay">에세이</SelectItem>
-                  <SelectItem value="playful">경쾌함</SelectItem>
+                  <SelectItem value="warm">따뜻하게</SelectItem>
+                  <SelectItem value="funny">재미있게</SelectItem>
+                  <SelectItem value="serious">진지하게</SelectItem>
+                  <SelectItem value="poetic">시적으로</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            {/* Length Selection */}
             <div className="space-y-2">
-              <Label>일기 길이</Label>
+              <Label>길이 선택</Label>
               <Select value={length} onValueChange={setLength}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="short">짧게 (5-7문장)</SelectItem>
-                  <SelectItem value="medium">중간 (8-10문장)</SelectItem>
-                  <SelectItem value="long">길게 (11-15문장)</SelectItem>
+                  <SelectItem value="short">짧게</SelectItem>
+                  <SelectItem value="medium">보통</SelectItem>
+                  <SelectItem value="long">길게</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            {/* Perspective Selection */}
             <div className="space-y-2">
-              <Label>시점</Label>
+              <Label>시점 선택</Label>
               <Select value={perspective} onValueChange={setPerspective}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="camera">핸드폰 시점</SelectItem>
-                  <SelectItem value="pet">애완동물 시점</SelectItem>
-                  <SelectItem value="friend">친구 시점</SelectItem>
-                  <SelectItem value="family">가족 시점</SelectItem>
-                  <SelectItem value="stranger">낯선 사람 시점</SelectItem>
-                  <SelectItem value="future">미래의 나 시점</SelectItem>
+                  <SelectItem value="camera">카메라 시점</SelectItem>
+                  <SelectItem value="photographer">사진 찍는 사람 시점</SelectItem>
+                  <SelectItem value="subject">사진 속 인물 시점</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="space-y-3">
+              <Label>일기장 선택</Label>
+              <p className="text-xs text-muted-foreground">
+                * 나만의 일기장에는 자동으로 등록됩니다
+              </p>
+              <div className="space-y-2">
+                {notebooks
+                  .filter(nb => !(nb.visibility === "private" && nb.is_default))
+                  .map(notebook => (
+                    <div key={notebook.id} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={notebook.id}
+                        checked={selectedNotebooks.includes(notebook.id)}
+                        onCheckedChange={() => handleNotebookToggle(notebook.id)}
+                      />
+                      <label
+                        htmlFor={notebook.id}
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      >
+                        {notebook.name} ({notebook.visibility === "public" ? "전체공개" : "공유"})
+                      </label>
+                    </div>
+                  ))}
+              </div>
             </div>
 
             <Button
@@ -258,11 +337,11 @@ export default function Upload() {
             >
               {uploading ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  AI가 일기를 작성하는 중...
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  일기 작성 중...
                 </>
               ) : (
-                "일기 작성하기"
+                `일기 작성하기 (${selectedFiles.length}/3~6)`
               )}
             </Button>
           </CardContent>
