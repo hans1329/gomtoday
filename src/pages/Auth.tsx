@@ -78,14 +78,14 @@ export default function Auth() {
   return (
     <div className="min-h-screen flex items-center justify-center gradient-soft px-6 py-8">
       <Card className="w-full max-w-md shadow-medium bg-white">
-        <CardHeader className="space-y-3 text-center">
-          <div className="flex justify-center mb-2">
-            <img src="/3rdme-logo.png" alt="3rdMe" className="w-20 h-20" />
+        <CardHeader className="space-y-3">
+          <div className="flex items-center gap-3 mb-2">
+            <img src="/3rdme-logo.png" alt="3rdMe" className="w-12 h-12" />
+            <CardTitle className="text-3xl font-bold">
+              3rdMe
+            </CardTitle>
           </div>
-          <CardTitle className="text-3xl font-bold">
-            3rdMe
-          </CardTitle>
-          <CardDescription className="text-base">
+          <CardDescription className="text-base text-center">
             누군가가 써주는 나의 일기
           </CardDescription>
         </CardHeader>
