@@ -14,6 +14,7 @@ import DiaryReview from "./pages/DiaryReview";
 import Diaries from "./pages/Diaries";
 import Notebooks from "./pages/Notebooks";
 import NotFound from "./pages/NotFound";
+import Admin from "./pages/Admin";
 
 function AppContent() {
   const location = useLocation();
@@ -33,6 +34,7 @@ function AppContent() {
         <Route path="/notebooks" element={<Notebooks />} />
         <Route path="/diary/:id" element={<DiaryDetail />} />
         <Route path="/diary-review/:id" element={<DiaryReview />} />
+        <Route path="/admin" element={<Admin />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </div>
