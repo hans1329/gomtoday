@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { User, PenLine, Settings, LogOut, ArrowLeft, BookOpen, Shield, List, Bell } from "lucide-react";
+import { User, PenLine, Settings, LogOut, ArrowLeft, BookOpen, Shield, List, Bell, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   DropdownMenu,
@@ -230,6 +230,10 @@ export default function Header() {
               <DropdownMenuItem onClick={() => navigate("/notebooks")} className="py-3">
                 <User className="mr-2 h-4 w-4" />
                 <span>일기장 관리</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/friends")} className="py-3">
+                <Users className="mr-2 h-4 w-4" />
+                <span>일기친구</span>
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => navigate("/profile")} className="py-3">
                 <Settings className="mr-2 h-4 w-4" />
