@@ -176,7 +176,7 @@ export default function Profile() {
             </div>
             {uploading && <p className="text-sm text-muted-foreground">업로드 중...</p>}
             
-            <div className="w-full max-w-sm">
+            <div className="w-full max-w-xs">
               <Input
                 type="text"
                 value={name}
