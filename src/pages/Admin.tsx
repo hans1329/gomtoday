@@ -38,6 +38,7 @@ export default function Admin() {
   const [logoUrl, setLogoUrl] = useState<string>("");
   const [users, setUsers] = useState<UserWithRole[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
+  const [stats, setStats] = useState({ totalUsers: 0, totalDiaries: 0, totalNotebooks: 0 });
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -48,6 +49,7 @@ export default function Admin() {
   useEffect(() => {
     if (isAdmin) {
       fetchUsers();
+      fetchStats();
     }
   }, [isAdmin]);
 
@@ -79,6 +81,20 @@ export default function Admin() {
     setIsAdmin(true);
     fetchCurrentLogo();
     setLoading(false);
+  };
+
+  const fetchStats = async () => {
+    const [usersRes, diariesRes, notebooksRes] = await Promise.all([
+      supabase.from("profiles").select("*", { count: "exact", head: true }),
+      supabase.from("diaries").select("*", { count: "exact", head: true }),
+      supabase.from("notebooks").select("*", { count: "exact", head: true })
+    ]);
+
+    setStats({
+      totalUsers: usersRes.count || 0,
+      totalDiaries: diariesRes.count || 0,
+      totalNotebooks: notebooksRes.count || 0
+    });
   };
 
   const fetchUsers = async () => {
@@ -240,6 +256,45 @@ export default function Admin() {
   return (
     <div className="min-h-screen gradient-soft p-4">
       <div className="max-w-6xl mx-auto pt-8 space-y-6">
+        {/* 통계 카드 */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card className="shadow-medium">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Users className="w-5 h-5" />
+                전체 회원수
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold">{stats.totalUsers}</p>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-medium">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Upload className="w-5 h-5" />
+                전체 일기수
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold">{stats.totalDiaries}</p>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-medium">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Shield className="w-5 h-5" />
+                전체 일기장 수
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold">{stats.totalNotebooks}</p>
+            </CardContent>
+          </Card>
+        </div>
+
         <Card className="shadow-medium">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
