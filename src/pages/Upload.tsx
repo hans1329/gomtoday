@@ -4,6 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
@@ -21,6 +24,10 @@ export default function Upload() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadStatus, setUploadStatus] = useState("");
   const [loading, setLoading] = useState(false);
+  const [content, setContent] = useState("");
+  const [title, setTitle] = useState("");
+  const [notebooks, setNotebooks] = useState<any[]>([]);
+  const [selectedNotebooks, setSelectedNotebooks] = useState<Set<string>>(new Set());
   const navigate = useNavigate();
   const {
     toast
@@ -28,6 +35,7 @@ export default function Upload() {
   useEffect(() => {
     if (isEditMode) {
       loadDiaryData();
+      fetchNotebooks();
     } else {
       checkTodayDiary();
     }
@@ -100,8 +108,41 @@ export default function Upload() {
     setLength(diary.length || "medium");
     setExistingPhotos(diary.photos || []);
     setPreviewUrls((diary.photos || []).map((p: any) => p.photo_url));
+    setContent(diary.content || "");
+    setTitle(diary.title || "");
+    
+    // 선택된 일기장 설정
+    const notebookIds = diary.diary_notebooks?.map((dn: any) => dn.notebook_id) || [];
+    setSelectedNotebooks(new Set(notebookIds));
     
     setLoading(false);
+  };
+
+  const fetchNotebooks = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data } = await supabase
+      .from("notebooks")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: true });
+
+    if (data) {
+      setNotebooks(data);
+    }
+  };
+
+  const toggleNotebook = (notebookId: string) => {
+    setSelectedNotebooks(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(notebookId)) {
+        newSet.delete(notebookId);
+      } else {
+        newSet.add(notebookId);
+      }
+      return newSet;
+    });
   };
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -181,23 +222,59 @@ export default function Upload() {
       
       if (isEditMode) {
         // 편집 모드: 일기 업데이트
+        if (!content.trim()) {
+          toast({
+            title: "내용을 입력해주세요",
+            variant: "destructive",
+          });
+          setUploading(false);
+          return;
+        }
+
+        if (selectedNotebooks.size === 0) {
+          toast({
+            title: "일기장을 선택해주세요",
+            variant: "destructive",
+          });
+          setUploading(false);
+          return;
+        }
+
         setUploadStatus("일기 업데이트 중...");
-        setUploadProgress(30);
+        setUploadProgress(20);
         
         const { error: updateError } = await supabase
           .from("diaries")
           .update({
             tone: emotion,
-            length
+            length,
+            content: content.trim(),
+            title: title.trim() || "무제"
           })
           .eq("id", id);
         
         if (updateError) throw updateError;
+
+        // 일기장 연결 업데이트
+        setUploadProgress(40);
+        await supabase
+          .from("diary_notebooks")
+          .delete()
+          .eq("diary_id", id);
+
+        for (const notebookId of selectedNotebooks) {
+          await supabase
+            .from("diary_notebooks")
+            .insert({
+              diary_id: id,
+              notebook_id: notebookId
+            });
+        }
         
         // 새로운 사진만 업로드
         if (selectedFiles.length > 0) {
           setUploadStatus("사진 업로드 중...");
-          setUploadProgress(50);
+          setUploadProgress(60);
           
           for (let i = 0; i < selectedFiles.length; i++) {
             const file = selectedFiles[i];
@@ -221,7 +298,7 @@ export default function Upload() {
               display_order: existingPhotos.length + i
             });
             if (photoError) throw photoError;
-            setUploadProgress(50 + ((i + 1) / selectedFiles.length) * 30);
+            setUploadProgress(60 + ((i + 1) / selectedFiles.length) * 30);
           }
         }
         
@@ -308,9 +385,9 @@ export default function Upload() {
         
         setUploadProgress(100);
         
-        // 작성 완료 후 리뷰 페이지로 이동
+        // 작성 완료 후 편집 모드로 이동
         setTimeout(() => {
-          navigate(`/diary-review/${diaryData.id}`);
+          navigate(`/upload/${diaryData.id}`);
         }, 500);
       }
     } catch (error: any) {
@@ -352,6 +429,55 @@ export default function Upload() {
         
         <Card className="shadow-medium">
           <CardContent className="p-6 space-y-6">
+            {isEditMode && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="title">제목</Label>
+                  <Input
+                    id="title"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="제목을 입력하세요"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="content">일기 내용</Label>
+                  <Textarea
+                    id="content"
+                    value={content}
+                    onChange={(e) => setContent(e.target.value)}
+                    placeholder="일기 내용을 입력하세요"
+                    className="min-h-[200px]"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>일기장 선택</Label>
+                  <div className="space-y-2">
+                    {notebooks.map((notebook) => (
+                      <div key={notebook.id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`notebook-${notebook.id}`}
+                          checked={selectedNotebooks.has(notebook.id)}
+                          onCheckedChange={() => toggleNotebook(notebook.id)}
+                        />
+                        <Label
+                          htmlFor={`notebook-${notebook.id}`}
+                          className="text-sm font-normal cursor-pointer"
+                        >
+                          {notebook.name}
+                          {notebook.is_default && " (기본)"}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="border-t pt-6 mt-6" />
+              </>
+            )}
+
             <div className="space-y-2">
               <Label>사진 선택 (3~6장)</Label>
               {previewUrls.length > 0 ? <div className="space-y-3">
