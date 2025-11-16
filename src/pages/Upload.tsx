@@ -22,8 +22,38 @@ export default function Upload() {
   const { toast } = useToast();
 
   useEffect(() => {
+    checkTodayDiary();
     fetchNotebooks();
   }, []);
+
+  const checkTodayDiary = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      navigate("/auth");
+      return;
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const { data, error } = await supabase
+      .from("diaries")
+      .select("id")
+      .eq("user_id", user.id)
+      .gte("created_at", today.toISOString())
+      .lt("created_at", tomorrow.toISOString())
+      .maybeSingle();
+
+    if (data) {
+      toast({
+        title: "오늘의 일기가 이미 있어요",
+        description: "일기를 수정하거나 사진을 추가할 수 있습니다.",
+      });
+      navigate(`/diary/${data.id}`);
+    }
+  };
 
   const fetchNotebooks = async () => {
     const { data: { user } } = await supabase.auth.getUser();
