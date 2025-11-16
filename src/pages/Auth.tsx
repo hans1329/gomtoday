@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -186,6 +186,25 @@ export default function Auth() {
               </form>
             </TabsContent>
           </Tabs>
+          
+          <div className="mt-8 pt-6 border-t border-border">
+            <div className="flex flex-wrap justify-center gap-4 text-xs text-muted-foreground">
+              <Link to="/terms" className="hover:text-foreground transition-colors">
+                이용약관
+              </Link>
+              <span>•</span>
+              <Link to="/privacy" className="hover:text-foreground transition-colors">
+                개인정보 처리방침
+              </Link>
+              <span>•</span>
+              <a href="mailto:support@3rdme.com" className="hover:text-foreground transition-colors">
+                문의하기
+              </a>
+            </div>
+            <p className="text-center text-xs text-muted-foreground mt-4">
+              © 2024 3rdMe. All rights reserved.
+            </p>
+          </div>
         </CardContent>
       </Card>
     </div>
