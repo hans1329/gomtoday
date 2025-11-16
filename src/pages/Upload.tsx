@@ -537,12 +537,12 @@ export default function Upload() {
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="happy">기쁨 😊</SelectItem>
-                  <SelectItem value="sad">슬픔 😢</SelectItem>
+                <SelectContent className="bg-background">
+                  <SelectItem value="happy">기쁨 😄</SelectItem>
+                  <SelectItem value="sad">슬픔 😭</SelectItem>
                   <SelectItem value="angry">화남 😠</SelectItem>
-                  <SelectItem value="calm">평온 😌</SelectItem>
-                  <SelectItem value="excited">신남 🤩</SelectItem>
+                  <SelectItem value="calm">평온 😇</SelectItem>
+                  <SelectItem value="excited">신남 🎉</SelectItem>
                   <SelectItem value="anxious">불안 😰</SelectItem>
                 </SelectContent>
               </Select>
