@@ -55,6 +55,70 @@ export type Database = {
           },
         ]
       }
+      diary_comments: {
+        Row: {
+          content: string
+          created_at: string
+          diary_id: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          diary_id: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          diary_id?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "diary_comments_diary_id_fkey"
+            columns: ["diary_id"]
+            isOneToOne: false
+            referencedRelation: "diaries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      diary_likes: {
+        Row: {
+          created_at: string
+          diary_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          diary_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          diary_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "diary_likes_diary_id_fkey"
+            columns: ["diary_id"]
+            isOneToOne: false
+            referencedRelation: "diaries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       diary_notebooks: {
         Row: {
           created_at: string | null
