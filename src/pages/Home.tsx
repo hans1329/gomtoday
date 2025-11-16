@@ -22,7 +22,8 @@ export default function Home() {
   const [currentUserId, setCurrentUserId] = useState<string>("");
   const [viewMode, setViewMode] = useState<"my" | "public">("my");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
-  const [sortBy, setSortBy] = useState<"latest" | "oldest" | "likes" | "comments" | "emoji" | "friends">("latest");
+  const [sortBy, setSortBy] = useState<"latest" | "oldest" | "likes" | "comments" | "friends">("latest");
+  const [sortByEmoji, setSortByEmoji] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -35,7 +36,7 @@ export default function Home() {
     if (currentUserId) {
       fetchDiaries();
     }
-  }, [currentUserId, viewMode, selectedDate, sortBy, searchQuery]);
+  }, [currentUserId, viewMode, selectedDate, sortBy, sortByEmoji, searchQuery]);
 
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -223,17 +224,17 @@ export default function Home() {
         });
         
         // 정렬 적용
-        if (sortBy === "likes") {
-          diariesWithSortedPhotos.sort((a, b) => b.likes_count - a.likes_count);
-        } else if (sortBy === "comments") {
-          diariesWithSortedPhotos.sort((a, b) => b.comments_count - a.comments_count);
-        } else if (sortBy === "emoji") {
+        if (sortByEmoji) {
           diariesWithSortedPhotos.sort((a, b) => {
             if (!a.emoji && !b.emoji) return 0;
             if (!a.emoji) return 1;
             if (!b.emoji) return -1;
             return a.emoji.localeCompare(b.emoji);
           });
+        } else if (sortBy === "likes") {
+          diariesWithSortedPhotos.sort((a, b) => b.likes_count - a.likes_count);
+        } else if (sortBy === "comments") {
+          diariesWithSortedPhotos.sort((a, b) => b.comments_count - a.comments_count);
         } else if (sortBy === "friends") {
           diariesWithSortedPhotos.sort((a, b) => {
             if (a.is_friend && !b.is_friend) return -1;
@@ -399,10 +400,10 @@ export default function Home() {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 type="text"
-                placeholder="일기 검색..."
+                placeholder=""
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 rounded-full h-9"
+                className="pl-9 rounded-full h-9 text-sm"
               />
             </div>
           )}
@@ -551,12 +552,6 @@ export default function Home() {
                         댓글순
                       </div>
                     </SelectItem>
-                    <SelectItem value="emoji">
-                      <div className="flex items-center gap-2">
-                        <Smile className="h-4 w-4" />
-                        감정순
-                      </div>
-                    </SelectItem>
                     <SelectItem value="friends">
                       <div className="flex items-center gap-2">
                         <Users className="h-4 w-4" />
@@ -565,6 +560,22 @@ export default function Home() {
                     </SelectItem>
                   </SelectContent>
                 </Select>
+                
+                <Button
+                  variant={sortByEmoji ? "default" : "outline"}
+                  size="icon"
+                  onClick={() => {
+                    setSortByEmoji(!sortByEmoji);
+                    if (!sortByEmoji) {
+                      toast({
+                        title: "감정순 정렬",
+                      });
+                    }
+                  }}
+                  className="rounded-full h-9 w-9"
+                >
+                  <Smile className="h-4 w-4" />
+                </Button>
               </div>
             </div>
             
