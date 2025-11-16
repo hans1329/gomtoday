@@ -216,12 +216,11 @@ export default function Header() {
                 </div>
                 <button
                   onClick={() => navigate("/profile")}
-                  className="flex items-center justify-between w-full hover:opacity-70 transition-opacity mb-1"
+                  className="flex items-center justify-between w-full hover:opacity-70 transition-opacity"
                 >
                   <p className="text-sm font-medium leading-none">{userName || "사용자"}</p>
                   <Settings className="h-4 w-4 text-muted-foreground -mr-2" />
                 </button>
-                <p className="text-xs leading-none text-muted-foreground">{userEmail}</p>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => navigate("/")} className="py-3">
