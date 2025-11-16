@@ -132,10 +132,10 @@ export default function Home() {
         const userIds = [...new Set(data.map(d => d.user_id))];
         const { data: profiles } = await supabase
           .from("profiles")
-          .select("user_id, name")
+          .select("user_id, name, profile_photo_url")
           .in("user_id", userIds);
 
-        const profileMap = new Map(profiles?.map(p => [p.user_id, p.name]) || []);
+        const profileMap = new Map(profiles?.map(p => [p.user_id, { name: p.name, photo: p.profile_photo_url }]) || []);
 
         const diariesWithSortedPhotos = data.map((diary: any) => {
           let allPhotos = [];
@@ -146,10 +146,13 @@ export default function Home() {
             allPhotos = [diary.photo];
           }
           
+          const profile = profileMap.get(diary.user_id);
+          
           return {
             ...diary,
             photos: allPhotos,
-            author_name: profileMap.get(diary.user_id)
+            author_name: profile?.name,
+            author_photo: profile?.photo
           };
         });
         setDiaries(diariesWithSortedPhotos);

@@ -1,4 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 
@@ -11,6 +12,7 @@ interface DiaryCardProps {
     photos?: { photo_url: string }[];
     user_id?: string;
     author_name?: string | null;
+    author_photo?: string | null;
   };
   onClick: () => void;
   showTime?: boolean;
@@ -76,12 +78,22 @@ export default function DiaryCard({
                     : format(new Date(diary.created_at), "yyyy년 M월 d일 (E)", { locale: ko })
                   }
                 </p>
-                {currentUserId && (
+                {currentUserId && diary.user_id !== currentUserId && (
+                  <div className="flex items-center gap-2 mt-1">
+                    <Avatar className="w-5 h-5">
+                      <AvatarImage src={diary.author_photo || undefined} />
+                      <AvatarFallback className="text-xs">
+                        {diary.author_name?.charAt(0) || "?"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <p className="text-xs text-muted-foreground">
+                      {diary.author_name || "Unknown"}
+                    </p>
+                  </div>
+                )}
+                {currentUserId && diary.user_id === currentUserId && (
                   <p className="text-xs text-muted-foreground mt-1">
-                    {diary.user_id === currentUserId 
-                      ? "by me" 
-                      : `by ${diary.author_name || "Unknown"}`
-                    }
+                    by me
                   </p>
                 )}
               </div>
