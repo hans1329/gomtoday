@@ -21,7 +21,7 @@ export type Database = {
           emoji: string | null
           id: string
           length: string | null
-          photo_id: string
+          photo_id: string | null
           tone: string | null
           user_id: string
         }
@@ -31,7 +31,7 @@ export type Database = {
           emoji?: string | null
           id?: string
           length?: string | null
-          photo_id: string
+          photo_id?: string | null
           tone?: string | null
           user_id: string
         }
@@ -41,7 +41,7 @@ export type Database = {
           emoji?: string | null
           id?: string
           length?: string | null
-          photo_id?: string
+          photo_id?: string | null
           tone?: string | null
           user_id?: string
         }
@@ -57,6 +57,8 @@ export type Database = {
       }
       photos: {
         Row: {
+          diary_id: string | null
+          display_order: number | null
           id: string
           metadata: Json | null
           photo_url: string
@@ -64,6 +66,8 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          diary_id?: string | null
+          display_order?: number | null
           id?: string
           metadata?: Json | null
           photo_url: string
@@ -71,13 +75,23 @@ export type Database = {
           user_id: string
         }
         Update: {
+          diary_id?: string | null
+          display_order?: number | null
           id?: string
           metadata?: Json | null
           photo_url?: string
           uploaded_at?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "photos_diary_id_fkey"
+            columns: ["diary_id"]
+            isOneToOne: false
+            referencedRelation: "diaries"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {

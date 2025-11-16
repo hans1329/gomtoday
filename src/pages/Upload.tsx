@@ -9,8 +9,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Upload as UploadIcon, Loader2 } from "lucide-react";
 
 export default function Upload() {
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string>("");
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [tone, setTone] = useState("warm");
   const [length, setLength] = useState("medium");
   const [perspective, setPerspective] = useState("camera");
@@ -19,15 +19,39 @@ export default function Upload() {
   const { toast } = useToast();
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-      setPreviewUrl(URL.createObjectURL(file));
+    const files = Array.from(e.target.files || []);
+    
+    if (files.length < 3) {
+      toast({
+        title: "사진이 부족해요",
+        description: "최소 3장의 사진을 선택해주세요.",
+        variant: "destructive",
+      });
+      return;
     }
+    
+    if (files.length > 6) {
+      toast({
+        title: "사진이 너무 많아요",
+        description: "최대 6장까지만 선택할 수 있어요.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setSelectedFiles(files);
+    setPreviewUrls(files.map(file => URL.createObjectURL(file)));
   };
 
   const handleUpload = async () => {
-    if (!selectedFile) return;
+    if (selectedFiles.length < 3) {
+      toast({
+        title: "사진이 부족해요",
+        description: "최소 3장의 사진을 선택해주세요.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setUploading(true);
     const { data: { user } } = await supabase.auth.getUser();
@@ -38,38 +62,58 @@ export default function Upload() {
     }
 
     try {
-      // Upload photo to storage
-      const fileExt = selectedFile.name.split(".").pop();
-      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
-
-      const { error: uploadError, data: uploadData } = await supabase.storage
-        .from("photos")
-        .upload(fileName, selectedFile);
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from("photos")
-        .getPublicUrl(fileName);
-
-      // Save photo record
-      const { data: photoData, error: photoError } = await supabase
-        .from("photos")
+      // 먼저 diary 레코드 생성 (photo_id 없이)
+      const { data: diaryData, error: diaryError } = await supabase
+        .from("diaries")
         .insert({
           user_id: user.id,
-          photo_url: publicUrl,
+          content: "", // AI 분석 전 임시
+          tone,
+          length,
         })
         .select()
         .single();
 
-      if (photoError) throw photoError;
+      if (diaryError) throw diaryError;
 
-      // Call AI to generate diary
+      // 모든 사진 업로드 및 저장
+      const photoUrls: string[] = [];
+      for (let i = 0; i < selectedFiles.length; i++) {
+        const file = selectedFiles[i];
+        const fileExt = file.name.split(".").pop();
+        const fileName = `${user.id}/${Date.now()}_${i}.${fileExt}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from("photos")
+          .upload(fileName, file);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from("photos")
+          .getPublicUrl(fileName);
+
+        // Save photo record with diary_id
+        const { error: photoError } = await supabase
+          .from("photos")
+          .insert({
+            user_id: user.id,
+            photo_url: publicUrl,
+            diary_id: diaryData.id,
+            display_order: i,
+          });
+
+        if (photoError) throw photoError;
+
+        photoUrls.push(publicUrl);
+      }
+
+      // Call AI to generate diary with all photos
       const { data: aiResponse, error: aiError } = await supabase.functions.invoke(
         "analyze-photo",
         {
           body: {
-            photoUrl: publicUrl,
+            photoUrls: photoUrls,
             tone,
             length,
             perspective,
@@ -79,25 +123,20 @@ export default function Upload() {
 
       if (aiError) throw aiError;
 
-      // Save diary
-      const { data: diaryData, error: diaryError } = await supabase
+      // Update diary with AI content
+      const { error: updateError } = await supabase
         .from("diaries")
-        .insert({
-          user_id: user.id,
-          photo_id: photoData.id,
+        .update({
           content: aiResponse.content,
           emoji: aiResponse.emoji,
-          tone,
-          length,
         })
-        .select()
-        .single();
+        .eq("id", diaryData.id);
 
-      if (diaryError) throw diaryError;
+      if (updateError) throw updateError;
 
       toast({
         title: "일기가 작성되었어요!",
-        description: "AI가 사진을 보고 일기를 작성했습니다.",
+        description: `${selectedFiles.length}장의 사진으로 AI가 일기를 작성했습니다.`,
       });
 
       navigate(`/diary/${diaryData.id}`);
@@ -214,7 +253,7 @@ export default function Upload() {
 
             <Button
               onClick={handleUpload}
-              disabled={!selectedFile || uploading}
+              disabled={selectedFiles.length < 3 || uploading}
               className="w-full"
             >
               {uploading ? (
