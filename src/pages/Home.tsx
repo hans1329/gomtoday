@@ -84,7 +84,12 @@ export default function Home() {
     
     const firstDayOfWeek = monthStart.getDay();
     for (let i = 0; i < firstDayOfWeek; i++) {
-      days.push(<div key={`empty-${i}`} className="w-full" style={{ aspectRatio: '1/1' }} />);
+      days.push(
+        <div key={`empty-${i}`} className="flex flex-col gap-1">
+          <div className="h-5" />
+          <div className="w-full" style={{ aspectRatio: '1/1' }} />
+        </div>
+      );
     }
     
     while (day <= endDate) {
@@ -96,26 +101,29 @@ export default function Home() {
         const isToday = isSameDay(currentDay, new Date());
         
         days.push(
-          <button
-            key={currentDay.toString()}
-            onClick={() => handleDateClick(currentDay)}
-            style={{ aspectRatio: '1/1' }}
-            className={`
-              w-full p-1 rounded-lg flex flex-col items-center justify-center gap-0.5 relative
-              transition-all hover:bg-secondary/50 hover:scale-105 active:scale-95
-              ${!isSameMonth(currentDay, currentMonth) ? "opacity-30" : ""}
-            `}
-          >
-            {isToday && (
-              <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-primary"></span>
-            )}
-            <span className={`text-sm ${isToday ? "font-bold text-primary" : "text-foreground"}`}>
-              {format(currentDay, dateFormat)}
-            </span>
-            <span className="text-2xl min-h-[32px] flex items-center justify-center">
-              {emoji}
-            </span>
-          </button>
+          <div key={currentDay.toString()} className="flex flex-col gap-1">
+            <div className="text-center h-5 flex items-center justify-center">
+              <span className={`text-sm ${isToday ? "font-bold text-primary" : "text-foreground"}`}>
+                {format(currentDay, dateFormat)}
+              </span>
+              {isToday && (
+                <span className="ml-1 w-1.5 h-1.5 rounded-full bg-primary"></span>
+              )}
+            </div>
+            <button
+              onClick={() => handleDateClick(currentDay)}
+              style={{ aspectRatio: '1/1' }}
+              className={`
+                w-full rounded-lg flex items-center justify-center relative
+                transition-all hover:bg-secondary/50 hover:scale-105 active:scale-95
+                ${!isSameMonth(currentDay, currentMonth) ? "opacity-30" : ""}
+              `}
+            >
+              <span className="text-2xl">
+                {emoji}
+              </span>
+            </button>
+          </div>
         );
         
         day = new Date(day);
