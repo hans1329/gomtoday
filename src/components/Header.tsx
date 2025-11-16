@@ -214,9 +214,13 @@ export default function Header() {
                     )}
                   </Button>
                 </div>
-                <div className="flex flex-col space-y-1">
+                <button
+                  onClick={() => navigate("/profile")}
+                  className="flex items-center justify-between w-full hover:opacity-70 transition-opacity"
+                >
                   <p className="text-sm font-medium leading-none">{userName || "사용자"}</p>
-                </div>
+                  <Settings className="h-4 w-4 text-muted-foreground" />
+                </button>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => navigate("/")} className="py-3">
@@ -234,10 +238,6 @@ export default function Header() {
               <DropdownMenuItem onClick={() => navigate("/friends")} className="py-3">
                 <Users className="mr-2 h-4 w-4" />
                 <span>일기친구</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate("/profile")} className="py-3">
-                <Settings className="mr-2 h-4 w-4" />
-                <span>설정</span>
               </DropdownMenuItem>
               {isAdmin && (
                 <>
