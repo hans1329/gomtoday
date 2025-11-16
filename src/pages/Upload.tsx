@@ -266,7 +266,7 @@ export default function Upload() {
                           <Button
                             size="icon"
                             variant="ghost"
-                            className="absolute bottom-1 left-1 h-7 w-7 bg-background/80 hover:bg-background text-destructive hover:text-destructive"
+                            className="absolute bottom-1 left-1 h-7 w-7 text-destructive hover:text-destructive"
                             onClick={() => removePhoto(index)}
                           >
                             <Trash2 className="h-3.5 w-3.5" />
