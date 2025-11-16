@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ChevronLeft, ChevronRight, BookOpen } from "lucide-react";
 import { format, startOfMonth, endOfMonth, isSameDay, addMonths, subMonths } from "date-fns";
 import { ko } from "date-fns/locale";
+import DiaryCard from "@/components/DiaryCard";
 
 export default function Home() {
   const [diaries, setDiaries] = useState<any[]>([]);
@@ -237,45 +238,13 @@ export default function Home() {
             <h3 className="text-lg font-semibold">최근 일기</h3>
             <div className="space-y-3">
               {diaries.slice(0, 5).map((diary) => (
-                <Card
+                <DiaryCard
                   key={diary.id}
-                  className="shadow-medium hover:shadow-lg transition-shadow cursor-pointer group"
+                  diary={diary}
                   onClick={() => navigate(`/diary/${diary.id}`)}
-                >
-                  <CardContent className="p-4">
-                    <div className="flex gap-4">
-                      {/* 썸네일 */}
-                      {diary.photos && diary.photos.length > 0 && (
-                        <div className="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden bg-muted relative">
-                          <img
-                            src={diary.photos[0].photo_url}
-                            alt="일기 사진"
-                            className="w-full h-full object-cover"
-                          />
-                          {diary.emoji && (
-                            <div className="absolute bottom-1 right-1 bg-background/90 rounded-full w-6 h-6 flex items-center justify-center text-xs shadow-sm">
-                              {diary.emoji}
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                      {/* 내용 */}
-                      <div className="flex-1 min-w-0 space-y-2">
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium">
-                              {format(new Date(diary.created_at), "yyyy년 M월 d일 (E)", { locale: ko })}
-                            </p>
-                          </div>
-                        </div>
-                        <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
-                          {diary.content}
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                  showTime={false}
+                  imageSize="sm"
+                />
               ))}
             </div>
           </div>
