@@ -17,6 +17,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
           description: "group-[.toast]:text-white/90",
           actionButton: "group-[.toast]:bg-white group-[.toast]:text-primary",
           cancelButton: "group-[.toast]:bg-white/20 group-[.toast]:text-white",
+          closeButton: "group-[.toast]:!top-1/2 group-[.toast]:!-translate-y-1/2",
         },
       }}
       {...props}

@@ -580,11 +580,17 @@ export default function Home() {
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
-                      variant={selectedEmoji ? "default" : "outline"}
+                      variant="outline"
                       size="icon"
-                      className="rounded-full h-9 w-9"
+                      className="rounded-full h-9 w-9 relative"
                     >
-                      {selectedEmoji || <Smile className="h-4 w-4" />}
+                      {selectedEmoji ? (
+                        <div className="bg-background/90 rounded-full w-7 h-7 flex items-center justify-center text-base shadow-sm">
+                          {selectedEmoji}
+                        </div>
+                      ) : (
+                        <Smile className="h-4 w-4" />
+                      )}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-3 bg-background z-50" align="start">
