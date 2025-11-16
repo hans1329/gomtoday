@@ -151,17 +151,17 @@ export default function Diaries() {
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="일기 내용 검색..."
+                  placeholder="검색"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-9"
                 />
               </div>
 
-              {/* 감정 필터 - 컴팩트 */}
+              {/* 감정 필터 - 아이콘만 */}
               <Select value={emotionFilter} onValueChange={setEmotionFilter}>
-                <SelectTrigger className="w-[110px]">
-                  <SelectValue />
+                <SelectTrigger className="w-[50px] px-0 justify-center">
+                  <Heart className="h-4 w-4" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">전체 감정</SelectItem>
@@ -215,21 +215,29 @@ export default function Diaries() {
               >
                 <CardContent className="p-4">
                   <div className="flex gap-4">
-                    {/* 썸네일 */}
-                    {diary.photos && diary.photos.length > 0 && (
-                      <div className="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden bg-muted relative">
-                        <img
-                          src={diary.photos[0].photo_url}
-                          alt="일기 사진"
-                          className="w-full h-full object-cover"
-                        />
-                        {diary.emoji && (
-                          <div className="absolute bottom-1 right-1 bg-background/90 rounded-full w-6 h-6 flex items-center justify-center text-xs shadow-sm">
+                    {/* 썸네일 또는 이모티콘 */}
+                    <div className="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden bg-muted relative flex items-center justify-center">
+                      {diary.photos && diary.photos.length > 0 ? (
+                        <>
+                          <img
+                            src={diary.photos[0].photo_url}
+                            alt="일기 사진"
+                            className="w-full h-full object-cover"
+                          />
+                          {diary.emoji && (
+                            <div className="absolute bottom-1 right-1 bg-background/90 rounded-full w-6 h-6 flex items-center justify-center text-xs shadow-sm">
+                              {diary.emoji}
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        diary.emoji && (
+                          <div className="text-3xl">
                             {diary.emoji}
                           </div>
-                        )}
-                      </div>
-                    )}
+                        )
+                      )}
+                    </div>
 
                      {/* 내용 */}
                     <div className="flex-1 min-w-0 space-y-2">
