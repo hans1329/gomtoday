@@ -370,22 +370,24 @@ export default function DiaryDetail() {
                 </p>
               </div>
 
-              {/* Edit/Delete Buttons */}
-              <div className="flex gap-2 pt-2 md:justify-end">
-                <Button variant="outline" size="sm" onClick={handleEdit} className="flex-1 sm:flex-none">
-                  <Edit className="h-4 w-4 mr-2" />
-                  수정
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => setDeleteDialogOpen(true)}
-                  className="flex-1 sm:flex-none text-destructive hover:text-destructive"
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  삭제
-                </Button>
-              </div>
+              {/* Edit/Delete Buttons - 본인의 일기일 경우에만 표시 */}
+              {currentUserId && diary.user_id === currentUserId && (
+                <div className="flex gap-2 pt-2 md:justify-end">
+                  <Button variant="outline" size="sm" onClick={handleEdit} className="flex-1 sm:flex-none rounded-full">
+                    <Edit className="h-4 w-4 mr-2" />
+                    수정
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setDeleteDialogOpen(true)}
+                    className="flex-1 sm:flex-none text-destructive hover:text-destructive rounded-full"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    삭제
+                  </Button>
+                </div>
+              )}
 
               {/* Likes and Comments */}
               <div className="space-y-4 pt-4 border-t">
