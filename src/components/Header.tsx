@@ -1,6 +1,6 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { User, PenLine, Settings, LogOut } from "lucide-react";
+import { User, PenLine, Settings, LogOut, ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   DropdownMenu,
@@ -39,13 +39,23 @@ export default function Header() {
     <header className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex h-14 items-center px-4">
         <div className="mr-4 flex">
-          <button 
-            onClick={() => navigate("/")}
-            className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
-          >
-            <img src="/3rdme-logo.png" alt="3rdMe" className="w-6 h-6" />
-            <span className="font-bold text-xl">3rdMe</span>
-          </button>
+          {currentPath === "/" ? (
+            <button 
+              onClick={() => navigate("/")}
+              className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
+            >
+              <img src="/3rdme-logo.png" alt="3rdMe" className="w-6 h-6" />
+              <span className="font-bold text-xl">3rdMe</span>
+            </button>
+          ) : (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate("/")}
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          )}
         </div>
 
         <div className="flex flex-1 items-center justify-end space-x-2">
