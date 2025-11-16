@@ -376,7 +376,10 @@ export default function Home() {
         {viewMode === "my" && (
           <Card className="shadow-medium">
             <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-6">
+              <div className={cn(
+                "flex items-center justify-between",
+                isCalendarExpanded ? "mb-6" : "mb-0"
+              )}>
                 <div className="flex items-center gap-2">
                   <Button
                     variant="ghost"
