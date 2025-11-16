@@ -350,12 +350,12 @@ export default function DiaryDetail() {
                 </div>
 
                 {/* Comment Input */}
-                <div className="flex gap-2">
+                <div className="relative">
                   <Textarea
                     placeholder="댓글을 입력하세요..."
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
-                    className="min-h-[60px] resize-none"
+                    className="min-h-[80px] resize-none pr-12"
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && !e.shiftKey) {
                         e.preventDefault();
@@ -364,11 +364,13 @@ export default function DiaryDetail() {
                     }}
                   />
                   <Button
+                    variant="ghost"
                     size="icon"
                     onClick={handleCommentSubmit}
                     disabled={!newComment.trim()}
+                    className="absolute bottom-2 right-2 h-8 w-8"
                   >
-                    <Send className="h-4 w-4" />
+                    <Send className="h-4 w-4 text-primary" />
                   </Button>
                 </div>
               </div>
