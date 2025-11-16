@@ -389,7 +389,7 @@ export default function Home() {
       <div className="max-w-4xl mx-auto p-2 sm:p-4 space-y-4">
         <div className="flex items-center justify-end gap-2 mb-2 px-2 sm:px-0">
           <Button
-            variant={viewMode === "my" ? "default" : "outline"}
+            variant="ghost"
             size="icon"
             onClick={() => {
               setViewMode("my");
@@ -398,13 +398,13 @@ export default function Home() {
                 title: "내 일기 보기"
               });
             }}
-            className="rounded-full"
+            className="rounded-full hover:bg-transparent"
           >
-            <User className="h-4 w-4" />
+            <User className={cn("h-5 w-5", viewMode === "my" ? "text-primary" : "text-muted-foreground")} />
           </Button>
           <div className="h-6 w-px bg-muted-foreground/30" />
           <Button
-            variant={viewMode === "public" ? "default" : "outline"}
+            variant="ghost"
             size="icon"
             onClick={() => {
               setViewMode("public");
@@ -413,9 +413,9 @@ export default function Home() {
                 title: "전체 공개 일기 보기"
               });
             }}
-            className="rounded-full"
+            className="rounded-full hover:bg-transparent"
           >
-            <Globe className="h-4 w-4" />
+            <Globe className={cn("h-5 w-5", viewMode === "public" ? "text-primary" : "text-muted-foreground")} />
           </Button>
         </div>
 
@@ -569,18 +569,6 @@ export default function Home() {
               </div>
             )}
           </div>
-        )}
-
-        {/* 리스트로 보기 버튼 - 내 일기 모드에서만 표시 */}
-        {viewMode === "my" && (
-          <Button
-            variant="outline"
-            className="w-full"
-            onClick={() => navigate("/diaries")}
-          >
-            <BookOpen className="mr-2 h-4 w-4" />
-            리스트로 보기
-          </Button>
         )}
 
         {/* 최근 일기 5개 - 내 일기 모드에서만 표시 */}
