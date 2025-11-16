@@ -17,9 +17,9 @@ export default defineConfig(({ mode }) => ({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico'],
       manifest: {
-        name: 'BreadShot',
-        short_name: 'BreadShot',
-        description: '누군가가 써주는 나의 일기',
+        name: '3rdMe',
+        short_name: '3rdMe',
+        description: '제3자의 시선으로 써주는 나의 일기',
         theme_color: '#F97316',
         background_color: '#FEF7F0',
         display: 'standalone',

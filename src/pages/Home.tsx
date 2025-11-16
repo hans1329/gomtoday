@@ -113,11 +113,13 @@ export default function Home() {
             <span className={`text-sm ${isToday ? "font-bold text-primary" : "text-foreground"}`}>
               {format(currentDay, dateFormat)}
             </span>
-            {breadChar && (
-              <span className="text-2xl animate-bounce" style={{ animationDuration: "2s" }}>
-                {breadChar}
-              </span>
-            )}
+            <span className="text-2xl min-h-[32px] flex items-center justify-center">
+              {breadChar && (
+                <span className="animate-bounce" style={{ animationDuration: "2s" }}>
+                  {breadChar}
+                </span>
+              )}
+            </span>
           </button>
         );
         
