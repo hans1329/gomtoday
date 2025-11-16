@@ -8,6 +8,7 @@ interface DiaryCardProps {
     id: string;
     content: string;
     created_at: string;
+    title?: string | null;
     emoji?: string | null;
     photos?: { photo_url: string }[];
     user_id?: string;
@@ -72,7 +73,12 @@ export default function DiaryCard({
           <div className="flex-1 min-w-0 space-y-2">
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium">
+                {diary.title && (
+                  <h3 className="text-base font-semibold mb-1 line-clamp-1">
+                    {diary.title}
+                  </h3>
+                )}
+                <p className="text-xs text-muted-foreground">
                   {showTime 
                     ? format(new Date(diary.created_at), "yyyy년 M월 d일 (E) a h:mm", { locale: ko })
                     : format(new Date(diary.created_at), "yyyy년 M월 d일 (E)", { locale: ko })
