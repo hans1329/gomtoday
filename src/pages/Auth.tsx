@@ -79,8 +79,8 @@ export default function Auth() {
     <div className="min-h-screen flex items-center justify-center gradient-soft px-6 py-8">
       <Card className="w-full max-w-md shadow-medium bg-white">
         <CardHeader className="space-y-3">
-          <div className="flex items-center gap-3 mb-2">
-            <img src="/3rdme-logo.png" alt="3rdMe" className="w-12 h-12" />
+          <div className="flex items-center justify-center gap-3 mb-2">
+            <img src="/3rdme-logo.png" alt="3rdMe" className="w-10 h-10" />
             <CardTitle className="text-3xl font-bold">
               3rdMe
             </CardTitle>
