@@ -376,9 +376,9 @@ export default function Upload() {
         
         setUploadProgress(100);
         
-        // 작성 완료 후 편집 모드로 이동
+        // 작성 완료 후 상세 페이지로 이동
         setTimeout(() => {
-          navigate(`/upload/${diaryData.id}`);
+          navigate(`/diary/${diaryData.id}`);
         }, 500);
       }
     } catch (error: any) {
