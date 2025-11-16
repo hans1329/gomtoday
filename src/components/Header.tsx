@@ -20,6 +20,8 @@ export default function Header() {
   const { toast } = useToast();
   const currentPath = location.pathname;
   const [profilePhotoUrl, setProfilePhotoUrl] = useState<string | null>(null);
+  const [userName, setUserName] = useState<string>("");
+  const [userEmail, setUserEmail] = useState<string>("");
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
@@ -56,14 +58,19 @@ export default function Header() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
+    setUserEmail(user.email || "");
+
     const { data: profile } = await supabase
       .from("profiles")
-      .select("profile_photo_url")
+      .select("profile_photo_url, name")
       .eq("user_id", user.id)
       .single();
 
     if (profile?.profile_photo_url) {
       setProfilePhotoUrl(profile.profile_photo_url);
+    }
+    if (profile?.name) {
+      setUserName(profile.name);
     }
   };
 
@@ -136,31 +143,38 @@ export default function Header() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 bg-background">
-              <DropdownMenuLabel>내 계정</DropdownMenuLabel>
+              <DropdownMenuLabel className="font-normal">
+                <div className="flex flex-col space-y-1">
+                  <p className="text-sm font-medium leading-none">{userName || "사용자"}</p>
+                </div>
+              </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate("/diaries")}>
+              <DropdownMenuItem onClick={() => navigate("/diaries")} className="py-3">
                 <BookOpen className="mr-2 h-4 w-4" />
                 <span>나의 일기</span>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate("/notebooks")}>
+              <DropdownMenuItem onClick={() => navigate("/notebooks")} className="py-3">
                 <User className="mr-2 h-4 w-4" />
                 <span>일기장 관리</span>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate("/profile")}>
+              <DropdownMenuItem onClick={() => navigate("/profile")} className="py-3">
                 <Settings className="mr-2 h-4 w-4" />
                 <span>설정</span>
               </DropdownMenuItem>
               {isAdmin && (
                 <>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => navigate("/admin")}>
+                  <DropdownMenuItem onClick={() => navigate("/admin")} className="py-3">
                     <Shield className="mr-2 h-4 w-4" />
                     <span>관리자</span>
                   </DropdownMenuItem>
                 </>
               )}
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout}>
+              <div className="px-2 py-2">
+                <p className="text-xs text-muted-foreground text-left">{userEmail}</p>
+              </div>
+              <DropdownMenuItem onClick={handleLogout} className="py-3">
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>로그아웃</span>
               </DropdownMenuItem>
