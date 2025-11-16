@@ -90,6 +90,8 @@ export default function Profile() {
         title: "프로필 사진 업데이트 완료!",
       });
       fetchProfile();
+      // Header에 프로필 업데이트 알림
+      window.dispatchEvent(new Event('profile-updated'));
     }
   };
 
@@ -113,6 +115,8 @@ export default function Profile() {
         title: "프로필 업데이트 완료!",
       });
       fetchProfile();
+      // Header에 프로필 업데이트 알림
+      window.dispatchEvent(new Event('profile-updated'));
     }
   };
 

@@ -23,7 +23,18 @@ export default function Header() {
 
   useEffect(() => {
     fetchProfile();
-  }, [location.pathname]);
+    
+    // 프로필 업데이트 이벤트 리스너
+    const handleProfileUpdate = () => {
+      fetchProfile();
+    };
+    
+    window.addEventListener('profile-updated', handleProfileUpdate);
+    
+    return () => {
+      window.removeEventListener('profile-updated', handleProfileUpdate);
+    };
+  }, []);
 
   const fetchProfile = async () => {
     const { data: { user } } = await supabase.auth.getUser();
