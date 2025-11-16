@@ -79,6 +79,10 @@ export default function Header() {
                 <Settings className="mr-2 h-4 w-4" />
                 <span>설정</span>
               </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/notebooks")}>
+                <User className="mr-2 h-4 w-4" />
+                <span>일기장 관리</span>
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
