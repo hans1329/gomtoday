@@ -329,7 +329,7 @@ export default function Diaries() {
                             <p className="text-sm font-medium">
                               {format(new Date(diary.created_at), "yyyy년 M월 d일 (E)", { locale: ko })}
                             </p>
-                            <span className="text-xs px-2 py-0.5 bg-secondary rounded inline-block mt-1">
+                            <span className="text-xs px-2 py-0.5 bg-muted rounded inline-block mt-1">
                               {getEmotionLabel(diary.tone)}
                             </span>
                           </div>
@@ -337,7 +337,7 @@ export default function Diaries() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive flex-shrink-0"
+                          className="sm:opacity-0 sm:group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive flex-shrink-0"
                           onClick={(e) => handleDeleteClick(e, diary.id)}
                         >
                           <Trash2 className="h-4 w-4" />
@@ -355,7 +355,7 @@ export default function Diaries() {
         </div>
 
         <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-          <AlertDialogContent className="mx-4">
+          <AlertDialogContent className="max-w-[calc(100%-2rem)] sm:max-w-lg">
             <AlertDialogHeader>
               <AlertDialogTitle>일기를 삭제하시겠습니까?</AlertDialogTitle>
               <AlertDialogDescription>
