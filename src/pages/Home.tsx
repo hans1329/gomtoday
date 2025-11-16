@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ChevronLeft, ChevronRight, BookOpen } from "lucide-react";
 import { format, startOfMonth, endOfMonth, isSameDay, addMonths, subMonths } from "date-fns";
 import { ko } from "date-fns/locale";
+import LoadingBar from "@/components/LoadingBar";
 import DiaryCard from "@/components/DiaryCard";
 
 export default function Home() {
@@ -203,11 +204,7 @@ export default function Home() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center gradient-soft">
-        <p>로딩 중...</p>
-      </div>
-    );
+    return <LoadingBar />;
   }
 
   return (
