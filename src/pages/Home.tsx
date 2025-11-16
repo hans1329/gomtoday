@@ -37,6 +37,9 @@ export default function Home() {
         photos!photos_diary_id_fkey (
           photo_url,
           display_order
+        ),
+        photo:photos!diaries_photo_id_fkey (
+          photo_url
         )
       `)
       .eq("user_id", user.id)
