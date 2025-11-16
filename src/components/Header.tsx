@@ -115,15 +115,6 @@ export default function Header() {
         </div>
 
         <div className="flex flex-1 items-center justify-end space-x-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate("/diaries")}
-            title="전체 일기"
-          >
-            <List className="h-5 w-5" />
-          </Button>
-
           {currentPath !== "/upload" && (
             <Button
               variant="ghost"
@@ -159,8 +150,8 @@ export default function Header() {
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => navigate("/diaries")} className="py-3">
-                <BookOpen className="mr-2 h-4 w-4" />
-                <span>나의 일기</span>
+                <List className="mr-2 h-4 w-4" />
+                <span>전체 일기</span>
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => navigate("/notebooks")} className="py-3">
                 <User className="mr-2 h-4 w-4" />
