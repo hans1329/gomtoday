@@ -13,6 +13,7 @@ import { BookOpen, Plus, Trash2, Users } from "lucide-react";
 export default function Notebooks() {
   const [notebooks, setNotebooks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState("");
   const [newVisibility, setNewVisibility] = useState<"private" | "shared" | "public">("shared");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -51,6 +52,8 @@ export default function Notebooks() {
   };
 
   const handleCreate = async () => {
+    if (creating) return;
+
     if (!newName.trim()) {
       toast({
         title: "이름을 입력해주세요",
@@ -68,8 +71,12 @@ export default function Notebooks() {
       return;
     }
 
+    setCreating(true);
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user) {
+      setCreating(false);
+      return;
+    }
 
     const { error } = await supabase
       .from("notebooks")
@@ -79,6 +86,8 @@ export default function Notebooks() {
         visibility: newVisibility,
         is_default: false,
       });
+
+    setCreating(false);
 
     if (error) {
       toast({
@@ -189,8 +198,19 @@ export default function Notebooks() {
                 </div>
               </div>
               <DialogFooter className="flex-col-reverse sm:flex-row gap-2">
-                <Button onClick={handleCreate} className="w-full sm:w-auto">만들기</Button>
-                <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="w-full sm:w-auto">
+                <Button 
+                  onClick={handleCreate} 
+                  className="w-full sm:w-auto"
+                  disabled={creating}
+                >
+                  {creating ? "만드는 중..." : "만들기"}
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setIsDialogOpen(false)} 
+                  className="w-full sm:w-auto"
+                  disabled={creating}
+                >
                   취소
                 </Button>
               </DialogFooter>

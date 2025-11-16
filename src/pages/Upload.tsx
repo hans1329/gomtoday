@@ -149,6 +149,8 @@ export default function Upload() {
     setUploadStatus("");
   };
   const handleUpload = async () => {
+    if (uploading) return;
+
     const totalPhotos = (existingPhotos.length || 0) + selectedFiles.length;
     
     if (totalPhotos < 1) {
