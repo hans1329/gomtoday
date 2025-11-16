@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ChevronLeft, ChevronRight, BookOpen, User, Globe, Calendar as CalendarIcon, ArrowUpDown, Heart, MessageCircle, Clock, Users } from "lucide-react";
+import { ChevronLeft, ChevronRight, BookOpen, User, Globe, Calendar as CalendarIcon, ArrowUpDown, Heart, MessageCircle, Clock, Users, Search, Smile } from "lucide-react";
 import { format, startOfMonth, endOfMonth, isSameDay, addMonths, subMonths, startOfDay, endOfDay } from "date-fns";
 import { ko } from "date-fns/locale";
 import LoadingBar from "@/components/LoadingBar";
@@ -13,6 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 
 export default function Home() {
   const [diaries, setDiaries] = useState<any[]>([]);
@@ -21,8 +22,9 @@ export default function Home() {
   const [currentUserId, setCurrentUserId] = useState<string>("");
   const [viewMode, setViewMode] = useState<"my" | "public">("my");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
-  const [sortBy, setSortBy] = useState<"latest" | "oldest" | "likes" | "comments">("latest");
+  const [sortBy, setSortBy] = useState<"latest" | "oldest" | "likes" | "comments" | "emoji">("latest");
   const [filterFriends, setFilterFriends] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -34,7 +36,7 @@ export default function Home() {
     if (currentUserId) {
       fetchDiaries();
     }
-  }, [currentUserId, viewMode, selectedDate, sortBy, filterFriends]);
+  }, [currentUserId, viewMode, selectedDate, sortBy, filterFriends, searchQuery]);
 
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -242,6 +244,21 @@ export default function Home() {
           diariesWithSortedPhotos.sort((a, b) => b.likes_count - a.likes_count);
         } else if (sortBy === "comments") {
           diariesWithSortedPhotos.sort((a, b) => b.comments_count - a.comments_count);
+        } else if (sortBy === "emoji") {
+          diariesWithSortedPhotos.sort((a, b) => {
+            if (!a.emoji && !b.emoji) return 0;
+            if (!a.emoji) return 1;
+            if (!b.emoji) return -1;
+            return a.emoji.localeCompare(b.emoji);
+          });
+        }
+        
+        // 검색 필터링
+        if (searchQuery.trim()) {
+          diariesWithSortedPhotos = diariesWithSortedPhotos.filter(diary => 
+            diary.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            diary.content?.toLowerCase().includes(searchQuery.toLowerCase())
+          );
         }
         
         setDiaries(diariesWithSortedPhotos);
@@ -387,36 +404,51 @@ export default function Home() {
   return (
     <div className="min-h-screen gradient-soft">
       <div className="max-w-4xl mx-auto p-2 sm:p-4 space-y-4">
-        <div className="flex items-center justify-end gap-2 mb-2 px-2 sm:px-0">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => {
-              setViewMode("my");
-              setLoading(true);
-              toast({
-                title: "내 일기 보기"
-              });
-            }}
-            className="rounded-full hover:bg-transparent"
-          >
-            <User className={cn("h-5 w-5", viewMode === "my" ? "text-primary" : "text-muted-foreground")} />
-          </Button>
-          <div className="h-3 w-px bg-muted-foreground/30" />
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => {
-              setViewMode("public");
-              setLoading(true);
-              toast({
-                title: "전체 공개 일기 보기"
-              });
-            }}
-            className="rounded-full hover:bg-transparent"
-          >
-            <Globe className={cn("h-5 w-5", viewMode === "public" ? "text-primary" : "text-muted-foreground")} />
-          </Button>
+        <div className="flex items-center justify-between gap-2 mb-2 px-2 sm:px-0">
+          {viewMode === "public" && (
+            <div className="relative flex-1 max-w-xs">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="일기 검색..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 rounded-full h-9"
+              />
+            </div>
+          )}
+          <div className={cn("flex items-center gap-2", viewMode === "my" && "ml-auto")}>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => {
+                setViewMode("my");
+                setLoading(true);
+                setSearchQuery("");
+                toast({
+                  title: "내 일기 보기"
+                });
+              }}
+              className="rounded-full hover:bg-transparent"
+            >
+              <User className={cn("h-5 w-5", viewMode === "my" ? "text-primary" : "text-muted-foreground")} />
+            </Button>
+            <div className="h-3 w-px bg-muted-foreground/30" />
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => {
+                setViewMode("public");
+                setLoading(true);
+                toast({
+                  title: "전체 공개 일기 보기"
+                });
+              }}
+              className="rounded-full hover:bg-transparent"
+            >
+              <Globe className={cn("h-5 w-5", viewMode === "public" ? "text-primary" : "text-muted-foreground")} />
+            </Button>
+          </div>
         </div>
 
         {viewMode === "my" ? (
@@ -528,6 +560,12 @@ export default function Home() {
                       <div className="flex items-center gap-2">
                         <MessageCircle className="h-4 w-4" />
                         댓글순
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="emoji">
+                      <div className="flex items-center gap-2">
+                        <Smile className="h-4 w-4" />
+                        감정순
                       </div>
                     </SelectItem>
                   </SelectContent>
