@@ -274,25 +274,8 @@ export default function DiaryDetail() {
 
             {/* Content */}
             <div className="p-6 space-y-4">
-              <div className="flex justify-between items-center">
-                <div className="text-sm text-muted-foreground">
-                  {format(new Date(diary.created_at), "yyyy년 M월 d일 (EEE) HH:mm", { locale: ko })}
-                </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={handleEdit}>
-                    <Edit className="h-4 w-4 mr-2" />
-                    수정
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => setDeleteDialogOpen(true)}
-                    className="text-destructive hover:text-destructive"
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    삭제
-                  </Button>
-                </div>
+              <div className="text-sm text-muted-foreground">
+                {format(new Date(diary.created_at), "yyyy년 M월 d일 (EEE) HH:mm", { locale: ko })}
               </div>
               
               {diary.title && (
@@ -305,6 +288,23 @@ export default function DiaryDetail() {
                 <p className="whitespace-pre-wrap leading-relaxed">
                   {diary.content}
                 </p>
+              </div>
+
+              {/* Edit/Delete Buttons */}
+              <div className="flex gap-2 pt-2">
+                <Button variant="outline" size="sm" onClick={handleEdit} className="flex-1 sm:flex-none">
+                  <Edit className="h-4 w-4 mr-2" />
+                  수정
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setDeleteDialogOpen(true)}
+                  className="flex-1 sm:flex-none text-destructive hover:text-destructive"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  삭제
+                </Button>
               </div>
 
               {/* Metadata */}
