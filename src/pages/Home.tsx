@@ -23,10 +23,12 @@ export default function Home() {
   const [viewMode, setViewMode] = useState<"my" | "public">("my");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [sortBy, setSortBy] = useState<"latest" | "oldest" | "likes" | "comments" | "friends">("latest");
-  const [sortByEmoji, setSortByEmoji] = useState(false);
+  const [selectedEmoji, setSelectedEmoji] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
   const { toast } = useToast();
+  
+  const commonEmojis = ["😊", "😢", "😡", "😍", "🤔", "😴", "😱", "🤗", "😎", "🥳", "😤", "😭"];
 
   useEffect(() => {
     checkAuth();
@@ -36,7 +38,7 @@ export default function Home() {
     if (currentUserId) {
       fetchDiaries();
     }
-  }, [currentUserId, viewMode, selectedDate, sortBy, sortByEmoji, searchQuery]);
+  }, [currentUserId, viewMode, selectedDate, sortBy, selectedEmoji, searchQuery]);
 
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -87,6 +89,13 @@ export default function Home() {
             photos: allPhotos
           };
         });
+        
+        // 감정 필터링
+        if (selectedEmoji) {
+          diariesWithSortedPhotos = diariesWithSortedPhotos.filter(diary => 
+            diary.emoji === selectedEmoji
+          );
+        }
         
         // 검색 필터링
         if (searchQuery.trim()) {
@@ -232,15 +241,15 @@ export default function Home() {
           };
         });
         
+        // 감정 필터링
+        if (selectedEmoji) {
+          diariesWithSortedPhotos = diariesWithSortedPhotos.filter(diary => 
+            diary.emoji === selectedEmoji
+          );
+        }
+        
         // 정렬 적용
-        if (sortByEmoji) {
-          diariesWithSortedPhotos.sort((a, b) => {
-            if (!a.emoji && !b.emoji) return 0;
-            if (!a.emoji) return 1;
-            if (!b.emoji) return -1;
-            return a.emoji.localeCompare(b.emoji);
-          });
-        } else if (sortBy === "likes") {
+        if (sortBy === "likes") {
           diariesWithSortedPhotos.sort((a, b) => b.likes_count - a.likes_count);
         } else if (sortBy === "comments") {
           diariesWithSortedPhotos.sort((a, b) => b.comments_count - a.comments_count);
@@ -568,21 +577,55 @@ export default function Home() {
                   </SelectContent>
                 </Select>
                 
-                <Button
-                  variant={sortByEmoji ? "default" : "outline"}
-                  size="icon"
-                  onClick={() => {
-                    setSortByEmoji(!sortByEmoji);
-                    if (!sortByEmoji) {
-                      toast({
-                        title: "감정순 정렬",
-                      });
-                    }
-                  }}
-                  className="rounded-full h-9 w-9"
-                >
-                  <Smile className="h-4 w-4" />
-                </Button>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant={selectedEmoji ? "default" : "outline"}
+                      size="icon"
+                      className="rounded-full h-9 w-9"
+                    >
+                      {selectedEmoji || <Smile className="h-4 w-4" />}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-3 bg-background z-50" align="start">
+                    <div className="space-y-2">
+                      <div className="text-xs font-medium text-muted-foreground mb-2">감정 선택</div>
+                      <div className="grid grid-cols-4 gap-2">
+                        {commonEmojis.map((emoji) => (
+                          <Button
+                            key={emoji}
+                            variant={selectedEmoji === emoji ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => {
+                              setSelectedEmoji(emoji);
+                              toast({
+                                title: `${emoji} 감정 필터 적용`,
+                              });
+                            }}
+                            className="h-10 w-10 p-0 text-xl"
+                          >
+                            {emoji}
+                          </Button>
+                        ))}
+                      </div>
+                      {selectedEmoji && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full rounded-full mt-2"
+                          onClick={() => {
+                            setSelectedEmoji("");
+                            toast({
+                              title: "감정 필터 해제",
+                            });
+                          }}
+                        >
+                          필터 해제
+                        </Button>
+                      )}
+                    </div>
+                  </PopoverContent>
+                </Popover>
               </div>
             </div>
             
