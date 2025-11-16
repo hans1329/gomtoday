@@ -390,7 +390,7 @@ export default function Home() {
         <div className="flex items-center justify-end gap-2 mb-2 px-2 sm:px-0">
           <Button
             variant={viewMode === "my" ? "default" : "outline"}
-            size="sm"
+            size="icon"
             onClick={() => {
               setViewMode("my");
               setLoading(true);
@@ -400,12 +400,12 @@ export default function Home() {
             }}
             className="rounded-full"
           >
-            <User className="h-4 w-4 mr-2" />
-            내 일기
+            <User className="h-4 w-4" />
           </Button>
+          <div className="h-6 w-px bg-muted-foreground/30" />
           <Button
             variant={viewMode === "public" ? "default" : "outline"}
-            size="sm"
+            size="icon"
             onClick={() => {
               setViewMode("public");
               setLoading(true);
@@ -415,8 +415,7 @@ export default function Home() {
             }}
             className="rounded-full"
           >
-            <Globe className="h-4 w-4 mr-2" />
-            전체 공개
+            <Globe className="h-4 w-4" />
           </Button>
         </div>
 
