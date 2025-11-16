@@ -17,25 +17,34 @@ serve(async (req) => {
   }
 
   try {
-    const { photoUrl, tone = 'warm', length = 'medium', userContext } = await req.json();
+    const { photoUrl, tone = 'warm', length = 'medium', perspective = 'first', userContext } = await req.json();
     
     console.log('Analyzing photo:', photoUrl);
 
     // System prompt in Korean for diary
+    const perspectiveText = perspective === 'first' ? '1인칭(나)' : perspective === 'third' ? '3인칭(그/그녀)' : '관찰자';
+    const perspectiveInstruction = perspective === 'first' 
+      ? '1인칭 시점으로 "나"를 주어로 작성한다.' 
+      : perspective === 'third'
+      ? '3인칭 시점으로 "그" 또는 "그녀"를 주어로 작성한다.'
+      : '관찰자 시점으로 객관적이고 중립적으로 작성한다.';
+
     const systemPrompt = `너는 '사진 기반 개인 일기' 작성 보조자다.
 원칙:
 - 사진에 '확실히 보이는 사실'과 '추정'은 구분한다.
 - 사생활 보호에 유의한다(이름·얼굴·차량번호 등 노출 금지).
-- 톤과 길이 지시를 따른다.
+- 톤과 길이, 시점 지시를 따른다.
 
 입력:
 - 사진 이미지
 - 톤: ${tone === 'warm' ? '따뜻함' : tone === 'calm' ? '차분함' : tone === 'essay' ? '에세이' : '경쾌함'}
 - 길이: ${length === 'short' ? '짧게(5-7문장)' : length === 'medium' ? '중간(8-10문장)' : '길게(11-15문장)'}
+- 시점: ${perspectiveText}
 ${userContext ? `- 사용자 맥락: ${userContext}` : ''}
 
 출력:
-- 1인칭 일기. 톤과 길이에 맞춤.
+- ${perspectiveInstruction}
+- 톤과 길이에 맞춤.
 - (추정) 문장은 "아마," "느껴졌다" 등 완곡 표현 사용.
 - 자연스러운 한국어로 작성.`;
 
