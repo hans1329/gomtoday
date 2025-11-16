@@ -56,6 +56,9 @@ export default function Diaries() {
         photos!photos_diary_id_fkey (
           photo_url,
           display_order
+        ),
+        photo:photos!diaries_photo_id_fkey (
+          photo_url
         )
       `)
       .eq("user_id", user.id)
@@ -64,11 +67,24 @@ export default function Diaries() {
     if (error) {
       console.error("Error fetching diaries:", error);
     } else if (data) {
-      // 각 일기의 사진들을 display_order로 정렬
-      const diariesWithSortedPhotos = data.map(diary => ({
-        ...diary,
-        photos: diary.photos?.sort((a: any, b: any) => a.display_order - b.display_order) || []
-      }));
+      // 각 일기의 사진들을 display_order로 정렬하고, photo_id 방식도 포함
+      const diariesWithSortedPhotos = data.map(diary => {
+        let allPhotos = [];
+        
+        // 새 방식: diary_id로 연결된 사진들
+        if (diary.photos && diary.photos.length > 0) {
+          allPhotos = diary.photos.sort((a: any, b: any) => a.display_order - b.display_order);
+        }
+        // 오래된 방식: photo_id로 연결된 사진
+        else if (diary.photo) {
+          allPhotos = [diary.photo];
+        }
+        
+        return {
+          ...diary,
+          photos: allPhotos
+        };
+      });
       setDiaries(diariesWithSortedPhotos);
     }
     setLoading(false);
