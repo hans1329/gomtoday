@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ChevronLeft, ChevronRight, BookOpen, User, Globe, Calendar as CalendarIcon, ArrowUpDown, Heart, MessageCircle, Clock, Users, Search, Smile } from "lucide-react";
-import { format, startOfMonth, endOfMonth, isSameDay, addMonths, subMonths, startOfDay, endOfDay } from "date-fns";
+import { ChevronLeft, ChevronRight, User, Globe, Calendar as CalendarIcon, Heart, MessageCircle, Clock, Users, Search, Smile } from "lucide-react";
+import { format, startOfMonth, endOfMonth, isSameDay, addMonths, subMonths } from "date-fns";
 import { ko } from "date-fns/locale";
 import LoadingBar from "@/components/LoadingBar";
 import DiaryCard from "@/components/DiaryCard";
@@ -54,7 +54,6 @@ export default function Home() {
     if (!user) return;
 
     if (viewMode === "my") {
-      // 내 일기 가져오기
       const { data, error } = await supabase
         .from("diaries")
         .select(`
@@ -90,14 +89,12 @@ export default function Home() {
           };
         });
         
-        // 감정 필터링
         if (selectedEmoji) {
           diariesWithSortedPhotos = diariesWithSortedPhotos.filter(diary => 
             diary.emoji === selectedEmoji
           );
         }
         
-        // 검색 필터링
         if (searchQuery.trim()) {
           diariesWithSortedPhotos = diariesWithSortedPhotos.filter(diary => 
             diary.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -105,52 +102,16 @@ export default function Home() {
           );
         }
         
+        if (selectedDate) {
+          diariesWithSortedPhotos = diariesWithSortedPhotos.filter(diary => 
+            isSameDay(new Date(diary.created_at), selectedDate)
+          );
+        }
+        
         setDiaries(diariesWithSortedPhotos);
       }
+      setLoading(false);
     } else {
-      // 전체 공개된 일기 가져오기
-      const { data: publicNotebooks } = await supabase
-        .from("notebooks")
-        .select("id")
-        .eq("visibility", "public");
-
-      if (!publicNotebooks || publicNotebooks.length === 0) {
-        setDiaries([]);
-        setLoading(false);
-        return;
-      }
-
-      const notebookIds = publicNotebooks.map(nb => nb.id);
-      
-      const { data: diaryNotebooks } = await supabase
-        .from("diary_notebooks")
-        .select("diary_id")
-        .in("notebook_id", notebookIds);
-
-      if (!diaryNotebooks || diaryNotebooks.length === 0) {
-        setDiaries([]);
-        setLoading(false);
-        return;
-      }
-
-      let diaryIds = diaryNotebooks.map(dn => dn.diary_id);
-      
-      // 친구 정보 가져오기 (정렬용)
-      const { data: friendships } = await supabase
-        .from("friend_requests")
-        .select("from_user_id, to_user_id")
-        .eq("status", "accepted")
-        .or(`from_user_id.eq.${user.id},to_user_id.eq.${user.id}`);
-      
-      const friendIds = new Set<string>();
-      friendships?.forEach(f => {
-        if (f.from_user_id === user.id) {
-          friendIds.add(f.to_user_id);
-        } else {
-          friendIds.add(f.from_user_id);
-        }
-      });
-      
       let query = supabase
         .from("diaries")
         .select(`
@@ -162,23 +123,35 @@ export default function Home() {
           photo:photos!diaries_photo_id_fkey (
             photo_url
           )
-        `)
-        .in("id", diaryIds);
-      
-      // 날짜 필터링 추가
-      if (selectedDate) {
-        const dayStart = startOfDay(selectedDate).toISOString();
-        const dayEnd = endOfDay(selectedDate).toISOString();
-        query = query.gte("created_at", dayStart).lte("created_at", dayEnd);
+        `);
+
+      const { data: publicNotebooks } = await supabase
+        .from("notebooks")
+        .select("id")
+        .eq("visibility", "public");
+
+      if (publicNotebooks && publicNotebooks.length > 0) {
+        const publicNotebookIds = publicNotebooks.map(nb => nb.id);
+        
+        const { data: publicDiaryIds } = await supabase
+          .from("diary_notebooks")
+          .select("diary_id")
+          .in("notebook_id", publicNotebookIds);
+
+        if (publicDiaryIds && publicDiaryIds.length > 0) {
+          const diaryIds = publicDiaryIds.map(dn => dn.diary_id);
+          query = query.in("id", diaryIds);
+        } else {
+          setDiaries([]);
+          setLoading(false);
+          return;
+        }
+      } else {
+        setDiaries([]);
+        setLoading(false);
+        return;
       }
-      
-      // 정렬 기준에 따라 기본 쿼리 정렬
-      if (sortBy === "latest") {
-        query = query.order("created_at", { ascending: false });
-      } else if (sortBy === "oldest") {
-        query = query.order("created_at", { ascending: true });
-      }
-      
+
       const { data, error } = await query;
 
       if (error) {
@@ -186,39 +159,6 @@ export default function Home() {
       }
 
       if (data) {
-        // 각 일기의 작성자 정보 가져오기
-        const userIds = [...new Set(data.map(d => d.user_id))];
-        
-        const { data: profiles } = await supabase
-          .from("profiles")
-          .select("user_id, name, profile_photo_url")
-          .in("user_id", userIds);
-
-        const profileMap = new Map(profiles?.map(p => [p.user_id, { name: p.name, photo: p.profile_photo_url }]) || []);
-
-        // 좋아요 수와 댓글 수 가져오기
-        const diaryIdsForCounts = data.map(d => d.id);
-        
-        const { data: likesData } = await supabase
-          .from("diary_likes")
-          .select("diary_id")
-          .in("diary_id", diaryIdsForCounts);
-        
-        const { data: commentsData } = await supabase
-          .from("diary_comments")
-          .select("diary_id")
-          .in("diary_id", diaryIdsForCounts);
-        
-        const likesCount = new Map<string, number>();
-        likesData?.forEach(l => {
-          likesCount.set(l.diary_id, (likesCount.get(l.diary_id) || 0) + 1);
-        });
-        
-        const commentsCount = new Map<string, number>();
-        commentsData?.forEach(c => {
-          commentsCount.set(c.diary_id, (commentsCount.get(c.diary_id) || 0) + 1);
-        });
-
         let diariesWithSortedPhotos = data.map((diary: any) => {
           let allPhotos = [];
           
@@ -228,40 +168,18 @@ export default function Home() {
             allPhotos = [diary.photo];
           }
           
-          const profile = profileMap.get(diary.user_id);
-          
           return {
             ...diary,
-            photos: allPhotos,
-            author_name: profile?.name,
-            author_photo: profile?.photo,
-            likes_count: likesCount.get(diary.id) || 0,
-            comments_count: commentsCount.get(diary.id) || 0,
-            is_friend: friendIds.has(diary.user_id)
+            photos: allPhotos
           };
         });
         
-        // 감정 필터링
         if (selectedEmoji) {
           diariesWithSortedPhotos = diariesWithSortedPhotos.filter(diary => 
             diary.emoji === selectedEmoji
           );
         }
         
-        // 정렬 적용
-        if (sortBy === "likes") {
-          diariesWithSortedPhotos.sort((a, b) => b.likes_count - a.likes_count);
-        } else if (sortBy === "comments") {
-          diariesWithSortedPhotos.sort((a, b) => b.comments_count - a.comments_count);
-        } else if (sortBy === "friends") {
-          diariesWithSortedPhotos.sort((a, b) => {
-            if (a.is_friend && !b.is_friend) return -1;
-            if (!a.is_friend && b.is_friend) return 1;
-            return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-          });
-        }
-        
-        // 검색 필터링
         if (searchQuery.trim()) {
           diariesWithSortedPhotos = diariesWithSortedPhotos.filter(diary => 
             diary.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -269,132 +187,158 @@ export default function Home() {
           );
         }
         
+        if (selectedDate) {
+          diariesWithSortedPhotos = diariesWithSortedPhotos.filter(diary => 
+            isSameDay(new Date(diary.created_at), selectedDate)
+          );
+        }
+
+        const diaryIds = diariesWithSortedPhotos.map(d => d.id);
+        const { data: likesData } = await supabase
+          .from("diary_likes")
+          .select("diary_id")
+          .in("diary_id", diaryIds);
+
+        const { data: commentsData } = await supabase
+          .from("diary_comments")
+          .select("diary_id")
+          .in("diary_id", diaryIds);
+
+        const likesCount = likesData?.reduce((acc: any, like: any) => {
+          acc[like.diary_id] = (acc[like.diary_id] || 0) + 1;
+          return acc;
+        }, {}) || {};
+
+        const commentsCount = commentsData?.reduce((acc: any, comment: any) => {
+          acc[comment.diary_id] = (acc[comment.diary_id] || 0) + 1;
+          return acc;
+        }, {}) || {};
+
+        diariesWithSortedPhotos = diariesWithSortedPhotos.map((diary: any) => ({
+          ...diary,
+          likesCount: likesCount[diary.id] || 0,
+          commentsCount: commentsCount[diary.id] || 0,
+        }));
+
+        const { data: friendships } = await supabase
+          .from("friend_requests")
+          .select("from_user_id, to_user_id")
+          .or(`from_user_id.eq.${user.id},to_user_id.eq.${user.id}`)
+          .eq("status", "accepted");
+
+        const friendIds = friendships?.map((f: any) => 
+          f.from_user_id === user.id ? f.to_user_id : f.from_user_id
+        ) || [];
+
+        if (sortBy === "latest") {
+          diariesWithSortedPhotos.sort((a, b) => 
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          );
+        } else if (sortBy === "oldest") {
+          diariesWithSortedPhotos.sort((a, b) => 
+            new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+          );
+        } else if (sortBy === "likes") {
+          diariesWithSortedPhotos.sort((a, b) => b.likesCount - a.likesCount);
+        } else if (sortBy === "comments") {
+          diariesWithSortedPhotos.sort((a, b) => b.commentsCount - a.commentsCount);
+        } else if (sortBy === "friends") {
+          diariesWithSortedPhotos.sort((a, b) => {
+            const aIsFriend = friendIds.includes(a.user_id);
+            const bIsFriend = friendIds.includes(b.user_id);
+            if (aIsFriend && !bIsFriend) return -1;
+            if (!aIsFriend && bIsFriend) return 1;
+            return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+          });
+        }
+
         setDiaries(diariesWithSortedPhotos);
       }
-    }
-    
-    setLoading(false);
-  };
-
-  const getDiaryForDate = (date: Date) => {
-    return diaries.find(diary => 
-      isSameDay(new Date(diary.created_at), date)
-    );
-  };
-
-  const getEmojiForDate = (date: Date) => {
-    const diary = getDiaryForDate(date);
-    return diary?.emoji || null;
-  };
-
-  const handleDateClick = (date: Date) => {
-    const diary = getDiaryForDate(date);
-    if (diary) {
-      navigate(`/diary/${diary.id}`);
-    } else {
-      navigate("/upload");
+      setLoading(false);
     }
   };
 
   const renderCalendar = () => {
     const monthStart = startOfMonth(currentMonth);
     const monthEnd = endOfMonth(currentMonth);
-    
-    const dateFormat = "d";
-    const rows = [];
-    
+    const startDate = monthStart;
+    const endDate = monthEnd;
+
+    const dateRows = [];
+    let days = [];
+    let day = startDate;
+
     const weekDays = ["일", "월", "화", "수", "목", "금", "토"];
     
-    const firstDayOfWeek = monthStart.getDay();
-    let days = [];
-    
-    // 첫 주의 빈 칸 추가
-    for (let i = 0; i < firstDayOfWeek; i++) {
-      days.push(
-        <div key={`empty-${i}`} className="flex flex-col gap-1">
-          <div className="h-5" />
-          <div className="w-full" style={{ aspectRatio: '1/1' }} />
-        </div>
-      );
-    }
-    
-    // 날짜 추가
-    let day = new Date(monthStart);
-    while (day <= monthEnd) {
-      const currentDay = new Date(day);
-      const emoji = getEmojiForDate(currentDay);
-      const isToday = isSameDay(currentDay, new Date());
-      
-      days.push(
-        <div key={currentDay.toString()} className="flex flex-col gap-1">
-          <div className="text-center h-5 flex items-center justify-center">
-            <span className={`text-sm ${isToday ? "font-bold text-primary" : "text-foreground"}`}>
-              {format(currentDay, dateFormat)}
-            </span>
-            {isToday && (
-              <span className="ml-1 w-1.5 h-1.5 rounded-full bg-primary"></span>
-            )}
+    dateRows.push(
+      <div key="weekdays" className="grid grid-cols-7 gap-1 mb-2">
+        {weekDays.map((weekDay) => (
+          <div key={weekDay} className="text-center text-sm font-medium text-muted-foreground p-2">
+            {weekDay}
           </div>
-          <button
-            onClick={() => handleDateClick(currentDay)}
-            style={{ aspectRatio: '1/1' }}
-            className={`
-              w-full rounded-lg flex items-center justify-center relative
-              transition-all hover:bg-secondary/50 hover:scale-105 active:scale-95
-            `}
-          >
-            <span className="text-2xl">
-              {emoji}
-            </span>
-          </button>
-        </div>
+        ))}
+      </div>
+    );
+
+    const startDayOfWeek = startDate.getDay();
+    for (let i = 0; i < startDayOfWeek; i++) {
+      days.push(<div key={`empty-start-${i}`} className="p-2"></div>);
+    }
+
+    while (day <= endDate) {
+      const currentDay = day;
+      const dayDiaries = diaries.filter((diary) =>
+        isSameDay(new Date(diary.created_at), currentDay)
       );
       
-      // 일주일마다 행 추가
+      days.push(
+        <div
+          key={currentDay.toISOString()}
+          onClick={() => {
+            if (dayDiaries.length > 0) {
+              navigate(`/diary/${dayDiaries[0].id}`);
+            }
+          }}
+          className={cn(
+            "p-2 text-center rounded-lg transition-all relative cursor-pointer",
+            dayDiaries.length > 0
+              ? "bg-primary/10 hover:bg-primary/20 text-primary font-semibold"
+              : "hover:bg-accent",
+            isSameDay(currentDay, new Date()) && "border-2 border-primary"
+          )}
+        >
+          <div className="text-sm">{format(currentDay, "d")}</div>
+          {dayDiaries.length > 0 && (
+            <div className="absolute top-1 right-1 w-1.5 h-1.5 bg-primary rounded-full"></div>
+          )}
+        </div>
+      );
+
+      day = new Date(day);
+      day.setDate(day.getDate() + 1);
+
       if (days.length === 7) {
-        rows.push(
-          <div key={`week-${rows.length}`} className="grid grid-cols-7 gap-2">
+        dateRows.push(
+          <div key={day.toISOString()} className="grid grid-cols-7 gap-1">
             {days}
           </div>
         );
         days = [];
       }
-      
-      day.setDate(day.getDate() + 1);
     }
-    
-    // 마지막 주의 남은 칸 처리
+
     if (days.length > 0) {
       while (days.length < 7) {
-        days.push(
-          <div key={`empty-end-${days.length}`} className="flex flex-col gap-1">
-            <div className="h-5" />
-            <div className="w-full" style={{ aspectRatio: '1/1' }} />
-          </div>
-        );
+        days.push(<div key={`empty-end-${days.length}`} className="p-2"></div>);
       }
-      rows.push(
-        <div key={`week-${rows.length}`} className="grid grid-cols-7 gap-2">
+      dateRows.push(
+        <div key="last-row" className="grid grid-cols-7 gap-1">
           {days}
         </div>
       );
     }
-    
-    return (
-      <div className="space-y-2">
-        <div className="grid grid-cols-7 gap-2 mb-2">
-          {weekDays.map((day) => (
-            <div
-              key={day}
-              className="text-center text-sm font-semibold text-muted-foreground h-5"
-            >
-              {day}
-            </div>
-          ))}
-        </div>
-        {rows}
-      </div>
-    );
+
+    return <div>{dateRows}</div>;
   };
 
   const handlePrevMonth = () => {
@@ -412,52 +356,40 @@ export default function Home() {
   return (
     <div className="min-h-screen gradient-soft">
       <div className="max-w-4xl mx-auto p-2 sm:p-4 space-y-4">
-        <div className="flex items-center justify-between gap-2 mb-2 px-2 sm:px-0">
-          <div className="relative flex-1 max-w-xs">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder=""
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 rounded-full h-9 text-sm"
-            />
-          </div>
-          <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => {
-                setViewMode("my");
-                setLoading(true);
-                setSearchQuery("");
-                toast({
-                  title: "내 일기 보기"
-                });
-              }}
-              className="rounded-full hover:bg-transparent h-9 w-9"
-            >
-              <User className={cn("h-5 w-5", viewMode === "my" ? "text-primary" : "text-muted-foreground")} />
-            </Button>
-            <div className="h-3 w-px bg-muted-foreground/30" />
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => {
-                setViewMode("public");
-                setLoading(true);
-                toast({
-                  title: "전체 공개 일기 보기"
-                });
-              }}
-              className="rounded-full hover:bg-transparent h-9 w-9"
-            >
-              <Globe className={cn("h-5 w-5", viewMode === "public" ? "text-primary" : "text-muted-foreground")} />
-            </Button>
-          </div>
+        <div className="flex items-center justify-center gap-1 mb-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => {
+              setViewMode("my");
+              setLoading(true);
+              setSearchQuery("");
+              toast({
+                title: "내 일기 보기"
+              });
+            }}
+            className="rounded-full hover:bg-transparent h-9 w-9"
+          >
+            <User className={cn("h-5 w-5", viewMode === "my" ? "text-primary" : "text-muted-foreground")} />
+          </Button>
+          <div className="h-3 w-px bg-muted-foreground/30" />
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => {
+              setViewMode("public");
+              setLoading(true);
+              toast({
+                title: "전체 공개 일기 보기"
+              });
+            }}
+            className="rounded-full hover:bg-transparent h-9 w-9"
+          >
+            <Globe className={cn("h-5 w-5", viewMode === "public" ? "text-primary" : "text-muted-foreground")} />
+          </Button>
         </div>
 
-        {viewMode === "my" ? (
+        {viewMode === "my" && (
           <Card className="shadow-medium">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-6">
@@ -484,198 +416,184 @@ export default function Home() {
               {renderCalendar()}
             </CardContent>
           </Card>
-        ) : (
-          <div className="space-y-3 px-2 sm:px-0">
-            <div className="space-y-3 pl-4">
-              <div className="flex items-center gap-3">
-                <h2 className="text-xl font-bold">전체 공개 일기</h2>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className={cn(
-                        "rounded-full",
-                        selectedDate && "border-primary"
-                      )}
-                    >
-                      <CalendarIcon className="h-4 w-4" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={selectedDate}
-                      onSelect={(date) => {
-                        setSelectedDate(date);
-                        if (date) {
-                          toast({
-                            title: format(date, "yyyy년 M월 d일 (E)", { locale: ko }) + " 일기",
-                          });
-                        }
-                      }}
-                      initialFocus
-                      className={cn("p-3 pointer-events-auto")}
-                    />
-                    {selectedDate && (
-                      <div className="p-3 border-t">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="w-full rounded-full"
-                          onClick={() => {
-                            setSelectedDate(undefined);
-                            toast({
-                              title: "날짜 필터 해제",
-                            });
-                          }}
-                        >
-                          필터 해제
-                        </Button>
-                      </div>
-                    )}
-                  </PopoverContent>
-                </Popover>
-              </div>
-              
-              <div className="flex items-center gap-2 flex-wrap">
-                <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
-                  <SelectTrigger className="w-[140px] rounded-full h-9">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="latest">
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4" />
-                        최신순
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="oldest">
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4" />
-                        오래된순
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="likes">
-                      <div className="flex items-center gap-2">
-                        <Heart className="h-4 w-4" />
-                        좋아요순
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="comments">
-                      <div className="flex items-center gap-2">
-                        <MessageCircle className="h-4 w-4" />
-                        댓글순
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="friends">
-                      <div className="flex items-center gap-2">
-                        <Users className="h-4 w-4" />
-                        친구 우선
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-                
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="rounded-full h-9 w-9 p-0 hover:bg-transparent border-0"
-                    >
-                      {selectedEmoji ? (
-                        <div className="bg-background/90 rounded-full w-7 h-7 flex items-center justify-center text-base shadow-sm border border-border">
-                          {selectedEmoji}
-                        </div>
-                      ) : (
-                        <div className="bg-background/90 rounded-full w-7 h-7 flex items-center justify-center shadow-sm border border-border">
-                          <Smile className="h-4 w-4" />
-                        </div>
-                      )}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-3 bg-background z-50" align="start">
-                    <div className="space-y-2">
-                      <div className="text-xs font-medium text-muted-foreground mb-2">감정 선택</div>
-                      <div className="grid grid-cols-4 gap-2">
-                        {commonEmojis.map((emoji) => (
-                          <Button
-                            key={emoji}
-                            variant={selectedEmoji === emoji ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => {
-                              setSelectedEmoji(emoji);
-                              toast({
-                                title: `${emoji} 감정 필터 적용`,
-                              });
-                            }}
-                            className="h-10 w-10 p-0 text-xl"
-                          >
-                            {emoji}
-                          </Button>
-                        ))}
-                      </div>
-                      {selectedEmoji && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="w-full rounded-full mt-2"
-                          onClick={() => {
-                            setSelectedEmoji("");
-                            toast({
-                              title: "감정 필터 해제",
-                            });
-                          }}
-                        >
-                          필터 해제
-                        </Button>
-                      )}
-                    </div>
-                  </PopoverContent>
-                </Popover>
-              </div>
-            </div>
-            
-            {diaries.length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground">
-                공개된 일기가 없습니다.
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {diaries.map((diary) => (
-                  <DiaryCard
-                    key={diary.id}
-                    diary={diary}
-                    onClick={() => navigate(`/diary/${diary.id}`)}
-                    showTime={true}
-                    imageSize="md"
-                    currentUserId={currentUserId}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
         )}
 
-        {/* 최근 일기 5개 - 내 일기 모드에서만 표시 */}
-        {viewMode === "my" && diaries.length > 0 && (
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">최근 일기</h3>
+        <div className="flex items-center gap-2 px-2 sm:px-0 flex-wrap">
+          <div className="relative flex-1 min-w-[200px]">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="검색"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 rounded-full h-9 text-sm"
+            />
+          </div>
+
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className={cn(
+                  "rounded-full h-9",
+                  selectedDate && "border-primary"
+                )}
+              >
+                <CalendarIcon className="h-4 w-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={(date) => {
+                  setSelectedDate(date);
+                  if (date) {
+                    toast({
+                      title: format(date, "yyyy년 M월 d일 (E)", { locale: ko }) + " 일기",
+                    });
+                  }
+                }}
+                initialFocus
+                className={cn("p-3 pointer-events-auto")}
+              />
+              {selectedDate && (
+                <div className="p-3 border-t">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full rounded-full"
+                    onClick={() => {
+                      setSelectedDate(undefined);
+                      toast({
+                        title: "날짜 필터 해제",
+                      });
+                    }}
+                  >
+                    필터 해제
+                  </Button>
+                </div>
+              )}
+            </PopoverContent>
+          </Popover>
+
+          <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
+            <SelectTrigger className="w-[140px] rounded-full h-9">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="latest">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  최신순
+                </div>
+              </SelectItem>
+              <SelectItem value="oldest">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  오래된순
+                </div>
+              </SelectItem>
+              <SelectItem value="likes">
+                <div className="flex items-center gap-2">
+                  <Heart className="h-4 w-4" />
+                  좋아요순
+                </div>
+              </SelectItem>
+              <SelectItem value="comments">
+                <div className="flex items-center gap-2">
+                  <MessageCircle className="h-4 w-4" />
+                  댓글순
+                </div>
+              </SelectItem>
+              <SelectItem value="friends">
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  친구 우선
+                </div>
+              </SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="rounded-full h-9 w-9 p-0 hover:bg-transparent border-0"
+              >
+                {selectedEmoji ? (
+                  <div className="bg-background/90 rounded-full w-7 h-7 flex items-center justify-center text-base shadow-sm border border-border">
+                    {selectedEmoji}
+                  </div>
+                ) : (
+                  <div className="bg-background/90 rounded-full w-7 h-7 flex items-center justify-center shadow-sm border border-border">
+                    <Smile className="h-4 w-4" />
+                  </div>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-3" align="start">
+              <div className="grid grid-cols-6 gap-2">
+                {commonEmojis.map((emoji) => (
+                  <Button
+                    key={emoji}
+                    variant="ghost"
+                    size="sm"
+                    className="h-10 w-10 p-0 hover:bg-accent text-xl"
+                    onClick={() => {
+                      setSelectedEmoji(emoji);
+                      toast({
+                        title: `${emoji} 감정으로 필터링`,
+                      });
+                    }}
+                  >
+                    {emoji}
+                  </Button>
+                ))}
+              </div>
+              {selectedEmoji && (
+                <div className="mt-3 pt-3 border-t">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full rounded-full"
+                    onClick={() => {
+                      setSelectedEmoji("");
+                      toast({
+                        title: "감정 필터 해제",
+                      });
+                    }}
+                  >
+                    필터 해제
+                  </Button>
+                </div>
+              )}
+            </PopoverContent>
+          </Popover>
+        </div>
+
+        <div className="space-y-3 px-2 sm:px-0">
+          {diaries.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground">
+              {viewMode === "my" ? "아직 작성한 일기가 없습니다." : "공개된 일기가 없습니다."}
+            </div>
+          ) : (
             <div className="space-y-3">
               {diaries.slice(0, 5).map((diary) => (
                 <DiaryCard
                   key={diary.id}
                   diary={diary}
                   onClick={() => navigate(`/diary/${diary.id}`)}
-                  showTime={false}
-                  imageSize="sm"
+                  showTime={viewMode === "public"}
+                  imageSize="md"
                   currentUserId={currentUserId}
                 />
               ))}
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
