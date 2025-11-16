@@ -29,6 +29,7 @@ function App() {
               <Route path="/auth" element={<Auth />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/upload" element={<Upload />} />
+              <Route path="/upload/:id" element={<Upload />} />
               <Route path="/diaries" element={<Diaries />} />
               <Route path="/notebooks" element={<Notebooks />} />
               <Route path="/diary/:id" element={<DiaryDetail />} />
