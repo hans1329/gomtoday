@@ -3,16 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Plus, User, ChevronLeft, ChevronRight } from "lucide-react";
-import { format, startOfMonth, endOfMonth, isSameMonth, isSameDay, addMonths, subMonths } from "date-fns";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { format, startOfMonth, endOfMonth, isSameDay, addMonths, subMonths } from "date-fns";
 import { ko } from "date-fns/locale";
-
 
 export default function Home() {
   const [diaries, setDiaries] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -75,18 +73,16 @@ export default function Home() {
   const renderCalendar = () => {
     const monthStart = startOfMonth(currentMonth);
     const monthEnd = endOfMonth(currentMonth);
-    const startDate = monthStart;
-    const endDate = monthEnd;
     
     const dateFormat = "d";
     const rows = [];
     
-    let days = [];
-    let day = startDate;
-    
     const weekDays = ["일", "월", "화", "수", "목", "금", "토"];
     
     const firstDayOfWeek = monthStart.getDay();
+    let days = [];
+    
+    // 첫 주의 빈 칸 추가
     for (let i = 0; i < firstDayOfWeek; i++) {
       days.push(
         <div key={`empty-${i}`} className="flex flex-col gap-1">
@@ -96,59 +92,76 @@ export default function Home() {
       );
     }
     
-    while (day <= endDate) {
-      for (let i = 0; i < 7; i++) {
-        if (day > endDate) break;
-        
-        const currentDay = day;
-        const emoji = getEmojiForDate(currentDay);
-        const isToday = isSameDay(currentDay, new Date());
-        
-        days.push(
-          <div key={currentDay.toString()} className="flex flex-col gap-1">
-            <div className="text-center h-5 flex items-center justify-center">
-              <span className={`text-sm ${isToday ? "font-bold text-primary" : "text-foreground"}`}>
-                {format(currentDay, dateFormat)}
-              </span>
-              {isToday && (
-                <span className="ml-1 w-1.5 h-1.5 rounded-full bg-primary"></span>
-              )}
-            </div>
-            <button
-              onClick={() => handleDateClick(currentDay)}
-              style={{ aspectRatio: '1/1' }}
-              className={`
-                w-full rounded-lg flex items-center justify-center relative
-                transition-all hover:bg-secondary/50 hover:scale-105 active:scale-95
-                ${!isSameMonth(currentDay, currentMonth) ? "opacity-30" : ""}
-              `}
-            >
-              <span className="text-2xl">
-                {emoji}
-              </span>
-            </button>
-          </div>
-        );
-        
-        day = new Date(day);
-        day.setDate(day.getDate() + 1);
-      }
+    // 날짜 추가
+    let day = new Date(monthStart);
+    while (day <= monthEnd) {
+      const currentDay = new Date(day);
+      const emoji = getEmojiForDate(currentDay);
+      const isToday = isSameDay(currentDay, new Date());
       
-      if (days.length > 0) {
+      days.push(
+        <div key={currentDay.toString()} className="flex flex-col gap-1">
+          <div className="text-center h-5 flex items-center justify-center">
+            <span className={`text-sm ${isToday ? "font-bold text-primary" : "text-foreground"}`}>
+              {format(currentDay, dateFormat)}
+            </span>
+            {isToday && (
+              <span className="ml-1 w-1.5 h-1.5 rounded-full bg-primary"></span>
+            )}
+          </div>
+          <button
+            onClick={() => handleDateClick(currentDay)}
+            style={{ aspectRatio: '1/1' }}
+            className={`
+              w-full rounded-lg flex items-center justify-center relative
+              transition-all hover:bg-secondary/50 hover:scale-105 active:scale-95
+            `}
+          >
+            <span className="text-2xl">
+              {emoji}
+            </span>
+          </button>
+        </div>
+      );
+      
+      // 일주일마다 행 추가
+      if (days.length === 7) {
         rows.push(
-          <div key={day.toString()} className="grid grid-cols-7 gap-2">
+          <div key={`week-${rows.length}`} className="grid grid-cols-7 gap-2">
             {days}
           </div>
         );
         days = [];
       }
+      
+      day.setDate(day.getDate() + 1);
+    }
+    
+    // 마지막 주의 남은 칸 처리
+    if (days.length > 0) {
+      while (days.length < 7) {
+        days.push(
+          <div key={`empty-end-${days.length}`} className="flex flex-col gap-1">
+            <div className="h-5" />
+            <div className="w-full" style={{ aspectRatio: '1/1' }} />
+          </div>
+        );
+      }
+      rows.push(
+        <div key={`week-${rows.length}`} className="grid grid-cols-7 gap-2">
+          {days}
+        </div>
+      );
     }
     
     return (
-      <div className="space-y-3">
-        <div className="grid grid-cols-7 gap-2 mb-3">
-          {weekDays.map((day, i) => (
-            <div key={day} className={`text-center text-sm font-semibold ${i === 0 ? "text-destructive" : i === 6 ? "text-primary" : "text-muted-foreground"}`}>
+      <div className="space-y-2">
+        <div className="grid grid-cols-7 gap-2 mb-2">
+          {weekDays.map((day) => (
+            <div
+              key={day}
+              className="text-center text-sm font-semibold text-muted-foreground h-5"
+            >
               {day}
             </div>
           ))}
@@ -156,6 +169,14 @@ export default function Home() {
         {rows}
       </div>
     );
+  };
+
+  const handlePrevMonth = () => {
+    setCurrentMonth(subMonths(currentMonth, 1));
+  };
+
+  const handleNextMonth = () => {
+    setCurrentMonth(addMonths(currentMonth, 1));
   };
 
   if (loading) {
@@ -168,19 +189,16 @@ export default function Home() {
 
   return (
     <div className="min-h-screen gradient-soft">
-      <div className="max-w-4xl mx-auto p-4 space-y-6">
-        {/* Calendar */}
-        <Card className="shadow-soft bg-white">
+      <div className="max-w-4xl mx-auto p-4 space-y-4">
+        <Card className="shadow-medium">
           <CardContent className="p-6">
-            {/* Month Navigation */}
             <div className="flex items-center justify-between mb-6">
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-                className="rounded-full"
+                onClick={handlePrevMonth}
               >
-                <ChevronLeft className="w-5 h-5" />
+                <ChevronLeft className="h-5 w-5" />
               </Button>
               <h2 className="text-xl font-bold">
                 {format(currentMonth, "yyyy년 M월", { locale: ko })}
@@ -188,69 +206,16 @@ export default function Home() {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-                className="rounded-full"
+                onClick={handleNextMonth}
               >
-                <ChevronRight className="w-5 h-5" />
+                <ChevronRight className="h-5 w-5" />
               </Button>
             </div>
 
-            {/* Calendar Grid */}
             {renderCalendar()}
-
-            {/* Legend */}
-            <div className="mt-6 pt-4 border-t text-center">
-              <p className="text-sm text-muted-foreground">
-                📅 날짜를 클릭해서 일기를 보거나 작성해보세요!
-              </p>
-              <p className="text-xs text-muted-foreground mt-2">
-                이모지가 있는 날은 일기가 있는 날이에요
-              </p>
-            </div>
           </CardContent>
         </Card>
-
-        {/* Recent Diaries */}
-        {diaries.length > 0 && (
-          <div className="space-y-3">
-            <h3 className="text-lg font-semibold px-2">최근 일기</h3>
-            {diaries.slice(0, 3).map((diary) => (
-              <Card 
-                key={diary.id} 
-                className="shadow-soft hover:shadow-medium transition-all cursor-pointer hover:scale-[1.02] bg-white"
-                onClick={() => navigate(`/diary/${diary.id}`)}
-              >
-                <CardContent className="p-4 flex gap-4">
-                  <div className="w-20 h-20 rounded-xl bg-muted flex-shrink-0 overflow-hidden">
-                    {diary.photos?.photo_url && (
-                      <img
-                        src={diary.photos.photo_url}
-                        alt="Diary"
-                        className="w-full h-full object-cover"
-                      />
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-xs text-muted-foreground mb-1">
-                      {format(new Date(diary.created_at), "M월 d일 (EEE)", { locale: ko })}
-                    </div>
-                    <p className="text-sm line-clamp-2">{diary.content}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
       </div>
-
-      {/* Floating Action Button */}
-      <Button
-        size="icon"
-        className="fixed bottom-6 right-6 rounded-full w-14 h-14 shadow-medium aspect-square"
-        onClick={() => navigate("/upload")}
-      >
-        <Plus className="w-6 h-6" />
-      </Button>
     </div>
   );
 }
