@@ -386,17 +386,20 @@ export default function Home() {
           </CardContent>
         </Card>
 
-        <Button
-          variant="outline"
-          className="w-full"
-          onClick={() => navigate("/diaries")}
-        >
-          <BookOpen className="mr-2 h-4 w-4" />
-          리스트로 보기
-        </Button>
+        {/* 리스트로 보기 버튼 - 내 일기 모드에서만 표시 */}
+        {viewMode === "my" && (
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() => navigate("/diaries")}
+          >
+            <BookOpen className="mr-2 h-4 w-4" />
+            리스트로 보기
+          </Button>
+        )}
 
-        {/* 최근 일기 5개 */}
-        {diaries.length > 0 && (
+        {/* 최근 일기 5개 - 내 일기 모드에서만 표시 */}
+        {viewMode === "my" && diaries.length > 0 && (
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">최근 일기</h3>
             <div className="space-y-3">
