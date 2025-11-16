@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { Upload as UploadIcon, Loader2 } from "lucide-react";
+import { Upload as UploadIcon, Loader2, ArrowLeft } from "lucide-react";
 
 export default function Upload() {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
@@ -236,11 +236,20 @@ export default function Upload() {
   return (
     <div className="min-h-screen gradient-soft p-4">
       <div className="max-w-2xl mx-auto pt-8 space-y-6">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate("/")}
+          className="mb-4"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          뒤로가기
+        </Button>
         <Card className="shadow-medium">
           <CardHeader>
-            <CardTitle>사진 일기 작성</CardTitle>
+            <CardTitle>일기 작성</CardTitle>
             <CardDescription>
-              3~6장의 사진을 업로드하면 AI가 자동으로 일기를 작성해드려요
+              오늘을 대표하는 3장의 사진을 업로드하면 누군가가 자동으로 일기를 작성해드려요
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
