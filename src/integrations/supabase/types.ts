@@ -267,27 +267,45 @@ export type Database = {
       }
       profiles: {
         Row: {
+          bio: string | null
+          birthday: string | null
+          blood_type: string | null
           created_at: string | null
           email: string | null
+          gender: string | null
           id: string
+          location: string | null
+          mbti: string | null
           name: string | null
           profile_photo_url: string | null
           updated_at: string | null
           user_id: string
         }
         Insert: {
+          bio?: string | null
+          birthday?: string | null
+          blood_type?: string | null
           created_at?: string | null
           email?: string | null
+          gender?: string | null
           id?: string
+          location?: string | null
+          mbti?: string | null
           name?: string | null
           profile_photo_url?: string | null
           updated_at?: string | null
           user_id: string
         }
         Update: {
+          bio?: string | null
+          birthday?: string | null
+          blood_type?: string | null
           created_at?: string | null
           email?: string | null
+          gender?: string | null
           id?: string
+          location?: string | null
+          mbti?: string | null
           name?: string | null
           profile_photo_url?: string | null
           updated_at?: string | null
