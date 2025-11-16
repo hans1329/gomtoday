@@ -580,16 +580,18 @@ export default function Home() {
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
-                      variant="outline"
+                      variant="ghost"
                       size="icon"
-                      className="rounded-full h-9 w-9 relative"
+                      className="rounded-full h-9 w-9 p-0 hover:bg-transparent border-0"
                     >
                       {selectedEmoji ? (
-                        <div className="bg-background/90 rounded-full w-7 h-7 flex items-center justify-center text-base shadow-sm">
+                        <div className="bg-background/90 rounded-full w-7 h-7 flex items-center justify-center text-base shadow-sm border border-border">
                           {selectedEmoji}
                         </div>
                       ) : (
-                        <Smile className="h-4 w-4" />
+                        <div className="bg-background/90 rounded-full w-7 h-7 flex items-center justify-center shadow-sm border border-border">
+                          <Smile className="h-4 w-4" />
+                        </div>
                       )}
                     </Button>
                   </PopoverTrigger>
