@@ -218,10 +218,10 @@ export default function Upload() {
   const handleUpload = async () => {
     const totalPhotos = (existingPhotos.length || 0) + selectedFiles.length;
     
-    if (totalPhotos < 3) {
+    if (totalPhotos < 1) {
       toast({
-        title: "사진이 부족해요",
-        description: "최소 3장의 사진을 선택해주세요.",
+        title: "사진이 필요해요",
+        description: "최소 1장의 사진을 선택해주세요.",
         variant: "destructive"
       });
       return;

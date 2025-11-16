@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { User, PenLine, Settings, LogOut, ArrowLeft, BookOpen } from "lucide-react";
@@ -10,6 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Header() {
@@ -17,6 +19,26 @@ export default function Header() {
   const location = useLocation();
   const { toast } = useToast();
   const currentPath = location.pathname;
+  const [profilePhotoUrl, setProfilePhotoUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  const fetchProfile = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("profile_photo_url")
+      .eq("user_id", user.id)
+      .single();
+
+    if (profile?.profile_photo_url) {
+      setProfilePhotoUrl(profile.profile_photo_url);
+    }
+  };
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
@@ -76,9 +98,14 @@ export default function Header() {
                 variant="ghost"
                 size="icon"
                 title="프로필"
-                className="shadow-md"
+                className="shadow-md rounded-full p-0 h-9 w-9"
               >
-                <User className="h-5 w-5" />
+                <Avatar className="h-9 w-9">
+                  <AvatarImage src={profilePhotoUrl || undefined} alt="프로필" />
+                  <AvatarFallback>
+                    <User className="h-5 w-5" />
+                  </AvatarFallback>
+                </Avatar>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 bg-background">
