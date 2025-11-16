@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
-import { Edit, Heart, MessageCircle, Send } from "lucide-react";
+import { Edit, Heart, MessageCircle, Send, Trash2 } from "lucide-react";
 import {
   Carousel,
   CarouselContent,
@@ -15,6 +15,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 export default function DiaryDetail() {
   const { id } = useParams();
@@ -25,6 +26,8 @@ export default function DiaryDetail() {
   const [isLiked, setIsLiked] = useState(false);
   const [newComment, setNewComment] = useState("");
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -162,6 +165,60 @@ export default function DiaryDetail() {
     navigate(`/upload/${id}`);
   };
 
+  const handleDelete = async () => {
+    if (deleting) return;
+    
+    setDeleting(true);
+    try {
+      // 일기에 연결된 사진들 먼저 삭제
+      const { data: photos } = await supabase
+        .from("photos")
+        .select("photo_url")
+        .eq("diary_id", id);
+
+      if (photos) {
+        for (const photo of photos) {
+          const fileName = photo.photo_url.split("/").slice(-2).join("/");
+          await supabase.storage.from("photos").remove([fileName]);
+        }
+      }
+
+      // 사진 레코드 삭제
+      await supabase.from("photos").delete().eq("diary_id", id);
+
+      // 댓글 삭제
+      await supabase.from("diary_comments").delete().eq("diary_id", id);
+
+      // 좋아요 삭제
+      await supabase.from("diary_likes").delete().eq("diary_id", id);
+
+      // 일기장 연결 삭제
+      await supabase.from("diary_notebooks").delete().eq("diary_id", id);
+
+      // 일기 삭제
+      const { error } = await supabase
+        .from("diaries")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+
+      toast({
+        title: "일기가 삭제되었습니다",
+      });
+
+      navigate("/");
+    } catch (error: any) {
+      console.error("Delete error:", error);
+      toast({
+        title: "삭제 실패",
+        description: error.message,
+        variant: "destructive",
+      });
+      setDeleting(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center gradient-soft">
@@ -221,10 +278,21 @@ export default function DiaryDetail() {
                 <div className="text-sm text-muted-foreground">
                   {format(new Date(diary.created_at), "yyyy년 M월 d일 (EEE) HH:mm", { locale: ko })}
                 </div>
-                <Button variant="outline" size="sm" onClick={handleEdit}>
-                  <Edit className="h-4 w-4 mr-2" />
-                  수정
-                </Button>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={handleEdit}>
+                    <Edit className="h-4 w-4 mr-2" />
+                    수정
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setDeleteDialogOpen(true)}
+                    className="text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    삭제
+                  </Button>
+                </div>
               </div>
               
               {diary.title && (
@@ -310,6 +378,32 @@ export default function DiaryDetail() {
           </CardContent>
         </Card>
       </div>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent className="max-w-[calc(100%-1rem)] sm:max-w-lg mx-2 sm:mx-auto">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-base sm:text-lg">일기를 삭제하시겠습니까?</AlertDialogTitle>
+            <AlertDialogDescription className="text-xs sm:text-sm">
+              이 작업은 되돌릴 수 없습니다. 일기와 관련된 모든 사진, 댓글, 좋아요가 영구적으로 삭제됩니다.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+            <AlertDialogCancel 
+              className="w-full sm:w-auto text-sm sm:text-base order-2 sm:order-1"
+              disabled={deleting}
+            >
+              취소
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={deleting}
+              className="w-full sm:w-auto text-sm sm:text-base order-1 sm:order-2 bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? "삭제 중..." : "삭제"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
