@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { User, PenLine, Settings, LogOut, ArrowLeft, BookOpen, Shield, List, Bell, Users } from "lucide-react";
+import { User, PenLine, Settings, LogOut, ArrowLeft, BookOpen, Shield, List, Bell, Users, Globe } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   DropdownMenu,
@@ -14,6 +14,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import NotificationsSheet from "./NotificationsSheet";
+import { cn } from "@/lib/utils";
 
 export default function Header() {
   const navigate = useNavigate();
@@ -26,6 +27,7 @@ export default function Header() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [notificationCount, setNotificationCount] = useState(0);
+  const [viewMode, setViewMode] = useState<"my" | "public">("my");
 
   useEffect(() => {
     fetchProfile();
@@ -36,14 +38,22 @@ export default function Header() {
     const handleProfileUpdate = () => {
       fetchProfile();
     };
+
+    // viewMode 변경 이벤트 리스너
+    const handleViewModeChange = (e: Event) => {
+      const customEvent = e as CustomEvent<"my" | "public">;
+      setViewMode(customEvent.detail);
+    };
     
     window.addEventListener('profile-updated', handleProfileUpdate);
+    window.addEventListener('viewModeChange', handleViewModeChange as EventListener);
     
     // 알림 개수 주기적으로 업데이트
     const interval = setInterval(fetchNotificationCount, 30000);
     
     return () => {
       window.removeEventListener('profile-updated', handleProfileUpdate);
+      window.removeEventListener('viewModeChange', handleViewModeChange as EventListener);
       clearInterval(interval);
     };
   }, []);
@@ -164,7 +174,37 @@ export default function Header() {
           )}
         </div>
 
-        <div className="flex flex-1 items-center justify-end space-x-2">
+        {currentPath === "/" && (
+          <div className="flex-1 flex items-center justify-center">
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => {
+                  setViewMode("my");
+                  window.dispatchEvent(new CustomEvent('viewModeChange', { detail: 'my' }));
+                }}
+                className="rounded-full hover:bg-transparent h-9 w-9"
+              >
+                <User className={cn("h-5 w-5", viewMode === "my" ? "text-primary" : "text-muted-foreground")} />
+              </Button>
+              <div className="h-3 w-px bg-muted-foreground/30" />
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => {
+                  setViewMode("public");
+                  window.dispatchEvent(new CustomEvent('viewModeChange', { detail: 'public' }));
+                }}
+                className="rounded-full hover:bg-transparent h-9 w-9"
+              >
+                <Globe className={cn("h-5 w-5", viewMode === "public" ? "text-primary" : "text-muted-foreground")} />
+              </Button>
+            </div>
+          </div>
+        )}
+
+        <div className={`flex items-center justify-end space-x-2 ${currentPath === "/" ? "" : "flex-1"}`}>
           {currentPath !== "/upload" && (
             <Button
               variant="ghost"
