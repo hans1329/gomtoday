@@ -478,7 +478,7 @@ export default function Upload() {
       </div>
 
       <Dialog open={uploading} onOpenChange={() => {}}>
-        <DialogContent className="sm:max-w-md mx-4" onPointerDownOutside={(e) => e.preventDefault()}>
+        <DialogContent className="max-w-[calc(100%-2rem)] sm:max-w-md" onPointerDownOutside={(e) => e.preventDefault()}>
           <DialogHeader>
             <DialogTitle>일기 작성 중</DialogTitle>
             <DialogDescription>
