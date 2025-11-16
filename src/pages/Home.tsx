@@ -73,7 +73,7 @@ export default function Home() {
       }
       
       if (data) {
-        const diariesWithSortedPhotos = data.map((diary: any) => {
+        let diariesWithSortedPhotos = data.map((diary: any) => {
           let allPhotos = [];
           
           if (diary.photos && diary.photos.length > 0) {
@@ -87,6 +87,15 @@ export default function Home() {
             photos: allPhotos
           };
         });
+        
+        // 검색 필터링
+        if (searchQuery.trim()) {
+          diariesWithSortedPhotos = diariesWithSortedPhotos.filter(diary => 
+            diary.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            diary.content?.toLowerCase().includes(searchQuery.toLowerCase())
+          );
+        }
+        
         setDiaries(diariesWithSortedPhotos);
       }
     } else {
@@ -395,19 +404,17 @@ export default function Home() {
     <div className="min-h-screen gradient-soft">
       <div className="max-w-4xl mx-auto p-2 sm:p-4 space-y-4">
         <div className="flex items-center justify-between gap-2 mb-2 px-2 sm:px-0">
-          {viewMode === "public" && (
-            <div className="relative flex-1 max-w-xs">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="text"
-                placeholder=""
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 rounded-full h-9 text-sm"
-              />
-            </div>
-          )}
-          <div className={cn("flex items-center gap-2", viewMode === "my" && "ml-auto")}>
+          <div className="relative flex-1 max-w-xs">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder=""
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 rounded-full h-9 text-sm"
+            />
+          </div>
+          <div className="flex items-center gap-1">
             <Button
               variant="ghost"
               size="icon"
@@ -419,7 +426,7 @@ export default function Home() {
                   title: "내 일기 보기"
                 });
               }}
-              className="rounded-full hover:bg-transparent"
+              className="rounded-full hover:bg-transparent h-9 w-9"
             >
               <User className={cn("h-5 w-5", viewMode === "my" ? "text-primary" : "text-muted-foreground")} />
             </Button>
@@ -434,7 +441,7 @@ export default function Home() {
                   title: "전체 공개 일기 보기"
                 });
               }}
-              className="rounded-full hover:bg-transparent"
+              className="rounded-full hover:bg-transparent h-9 w-9"
             >
               <Globe className={cn("h-5 w-5", viewMode === "public" ? "text-primary" : "text-muted-foreground")} />
             </Button>
