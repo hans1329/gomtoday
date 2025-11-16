@@ -189,7 +189,8 @@ export default function Upload() {
       const photoUrls: string[] = [];
       for (let i = 0; i < selectedFiles.length; i++) {
         const file = selectedFiles[i];
-        const fileName = `${user.id}/${Date.now()}-${i}-${file.name}`;
+        const fileExt = file.name.split('.').pop() || 'jpg';
+        const fileName = `${user.id}/${Date.now()}-${i}.${fileExt}`;
         const {
           error: uploadError
         } = await supabase.storage.from("photos").upload(fileName, file);
