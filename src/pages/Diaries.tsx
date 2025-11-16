@@ -5,9 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Calendar, Heart, FileText, Trash2 } from "lucide-react";
+import { Search, Calendar, Heart, FileText } from "lucide-react";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 
@@ -29,8 +28,6 @@ export default function Diaries() {
   const [emotionFilter, setEmotionFilter] = useState("all");
   const [lengthFilter, setLengthFilter] = useState("all");
   const [sortBy, setSortBy] = useState("latest");
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [diaryToDelete, setDiaryToDelete] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -130,60 +127,6 @@ export default function Diaries() {
     return lengths[length] || length;
   };
 
-  const handleDeleteClick = (e: React.MouseEvent, diaryId: string) => {
-    e.stopPropagation();
-    setDiaryToDelete(diaryId);
-    setDeleteDialogOpen(true);
-  };
-
-  const handleDeleteConfirm = async () => {
-    if (!diaryToDelete) return;
-
-    try {
-      // 일기에 연결된 사진들 먼저 삭제
-      const { data: photos } = await supabase
-        .from("photos")
-        .select("photo_url")
-        .eq("diary_id", diaryToDelete);
-
-      if (photos) {
-        for (const photo of photos) {
-          const fileName = photo.photo_url.split("/").slice(-2).join("/");
-          await supabase.storage.from("photos").remove([fileName]);
-        }
-      }
-
-      // 사진 레코드 삭제
-      await supabase.from("photos").delete().eq("diary_id", diaryToDelete);
-
-      // 일기장 연결 삭제
-      await supabase.from("diary_notebooks").delete().eq("diary_id", diaryToDelete);
-
-      // 일기 삭제
-      const { error } = await supabase
-        .from("diaries")
-        .delete()
-        .eq("id", diaryToDelete);
-
-      if (error) throw error;
-
-      toast({
-        title: "일기가 삭제되었습니다",
-      });
-
-      // 목록에서 제거
-      setDiaries(prev => prev.filter(d => d.id !== diaryToDelete));
-      setDeleteDialogOpen(false);
-      setDiaryToDelete(null);
-    } catch (error: any) {
-      console.error("Delete error:", error);
-      toast({
-        title: "삭제 실패",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  };
 
   if (loading) {
     return (
@@ -331,14 +274,6 @@ export default function Diaries() {
                             {format(new Date(diary.created_at), "yyyy년 M월 d일 (E)", { locale: ko })}
                           </p>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="sm:opacity-0 sm:group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive flex-shrink-0"
-                          onClick={(e) => handleDeleteClick(e, diary.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
                       </div>
                       <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
                         {diary.content}
@@ -350,28 +285,6 @@ export default function Diaries() {
             ))
           )}
         </div>
-
-        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-          <AlertDialogContent className="max-w-[calc(100%-2rem)] sm:max-w-lg">
-            <AlertDialogHeader>
-              <AlertDialogTitle>일기를 삭제하시겠습니까?</AlertDialogTitle>
-              <AlertDialogDescription>
-                이 작업은 되돌릴 수 없습니다. 일기와 관련된 모든 사진이 영구적으로 삭제됩니다.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter className="flex-col sm:flex-row gap-2">
-              <AlertDialogCancel className="w-full sm:w-auto order-2 sm:order-1">
-                취소
-              </AlertDialogCancel>
-              <AlertDialogAction
-                onClick={handleDeleteConfirm}
-                className="w-full sm:w-auto order-1 sm:order-2 bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              >
-                삭제
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
       </div>
     </div>
   );
