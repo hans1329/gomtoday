@@ -105,9 +105,11 @@ export default function DiaryDetail() {
 
   const handleLike = async () => {
     if (isLikingRef.current) return;
+    isLikingRef.current = true;
     
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
+      isLikingRef.current = false;
       toast({
         title: "로그인이 필요합니다",
         variant: "destructive",
@@ -115,8 +117,6 @@ export default function DiaryDetail() {
       return;
     }
 
-    isLikingRef.current = true;
-    
     // Optimistic update
     const wasLiked = isLiked;
     const previousLikes = [...likes];
@@ -144,7 +144,8 @@ export default function DiaryDetail() {
             diary_id: id,
             user_id: user.id,
           });
-        if (error) throw error;
+        // 409 에러는 이미 좋아요가 존재하는 것이므로 무시
+        if (error && error.code !== '23505') throw error;
       }
     } catch (error: any) {
       // Rollback on error
@@ -155,7 +156,9 @@ export default function DiaryDetail() {
         variant: "destructive",
       });
     } finally {
-      isLikingRef.current = false;
+      setTimeout(() => {
+        isLikingRef.current = false;
+      }, 300); // 300ms 디바운스
     }
   };
 
