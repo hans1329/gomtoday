@@ -232,7 +232,7 @@ export default function Diaries() {
                 <CardContent className="p-4">
                   <div className="flex gap-4">
                     {/* 썸네일 또는 이모티콘 */}
-                    <div className="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden bg-muted relative flex items-center justify-center">
+                    <div className="flex-shrink-0 w-20 h-20 md:w-32 md:h-32 rounded-lg overflow-hidden bg-muted relative flex items-center justify-center">
                       {diary.photos && diary.photos.length > 0 ? (
                         <>
                           <img
@@ -260,7 +260,7 @@ export default function Diaries() {
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium">
-                            {format(new Date(diary.created_at), "yyyy년 M월 d일 (E)", { locale: ko })}
+                            {format(new Date(diary.created_at), "yyyy년 M월 d일 (E) a h:mm", { locale: ko })}
                           </p>
                         </div>
                       </div>
