@@ -256,26 +256,23 @@ export default function Upload() {
             <div className="space-y-2">
               <Label>사진 선택 (3~6장)</Label>
               {previewUrls.length > 0 ? <div className="space-y-3">
-                  <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-thin">
-                    {previewUrls.map((url, index) => <div key={index} className="relative flex-shrink-0 w-40 aspect-[3/4] rounded-lg overflow-hidden border-2 border-border snap-center">
-                        <img src={url} alt={`Preview ${index + 1}`} className="w-full h-full object-cover" />
-                        <div className="absolute top-2 left-2 bg-primary text-primary-foreground rounded-full w-7 h-7 flex items-center justify-center text-sm font-bold shadow-lg">
+                  <div className="space-y-2">
+                    {previewUrls.map((url, index) => <div key={index} className="relative flex items-center gap-3 p-3 rounded-lg border-2 border-border bg-card">
+                        <div className="flex-shrink-0 bg-primary text-primary-foreground rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold">
                           {index + 1}
                         </div>
-                        <Button
-                          size="icon"
-                          variant="secondary"
-                          className="absolute top-2 right-2 h-7 w-7 opacity-90 hover:opacity-100"
-                          onClick={() => removePhoto(index)}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+                        <div className="relative flex-shrink-0 w-24 h-16 rounded overflow-hidden">
+                          <img src={url} alt={`Preview ${index + 1}`} className="w-full h-full object-cover" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-muted-foreground truncate">사진 {index + 1}</p>
+                        </div>
+                        <div className="flex items-center gap-1">
                           {index > 0 && (
                             <Button
                               size="icon"
-                              variant="secondary"
-                              className="h-7 w-7 opacity-90 hover:opacity-100"
+                              variant="ghost"
+                              className="h-8 w-8"
                               onClick={() => movePhoto(index, 'left')}
                             >
                               <ChevronLeft className="h-4 w-4" />
@@ -284,13 +281,21 @@ export default function Upload() {
                           {index < previewUrls.length - 1 && (
                             <Button
                               size="icon"
-                              variant="secondary"
-                              className="h-7 w-7 opacity-90 hover:opacity-100"
+                              variant="ghost"
+                              className="h-8 w-8"
                               onClick={() => movePhoto(index, 'right')}
                             >
                               <ChevronRight className="h-4 w-4" />
                             </Button>
                           )}
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8 text-destructive hover:text-destructive"
+                            onClick={() => removePhoto(index)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
                         </div>
                       </div>)}
                   </div>
