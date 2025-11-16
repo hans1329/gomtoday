@@ -17,9 +17,16 @@ serve(async (req) => {
   }
 
   try {
-    const { photoUrl, tone = 'warm', length = 'medium', perspective = 'camera', userContext } = await req.json();
+    const { photoUrl, photoUrls, tone = 'warm', length = 'medium', perspective = 'camera', userContext } = await req.json();
     
-    console.log('Analyzing photo:', photoUrl);
+    // 여러 사진 또는 단일 사진 지원
+    const photos = photoUrls || (photoUrl ? [photoUrl] : []);
+    
+    if (photos.length === 0) {
+      throw new Error('No photos provided');
+    }
+    
+    console.log('Analyzing photos:', photos.length, 'images');
 
     // System prompt in Korean for diary
     const perspectiveMap: Record<string, { name: string; instruction: string }> = {
@@ -56,9 +63,10 @@ serve(async (req) => {
 - 사진에 '확실히 보이는 사실'과 '추정'은 구분한다.
 - 사생활 보호에 유의한다(이름·얼굴·차량번호 등 노출 금지).
 - 톤과 길이, 시점 지시를 따른다.
+- ${photos.length}장의 사진이 있으면, 모든 사진의 내용을 종합하여 하나의 완성된 일기를 작성한다.
 
 입력:
-- 사진 이미지
+- 사진 ${photos.length}장
 - 톤: ${tone === 'warm' ? '따뜻함' : tone === 'calm' ? '차분함' : tone === 'essay' ? '에세이' : '경쾌함'}
 - 길이: ${length === 'short' ? '짧게(5-7문장)' : length === 'medium' ? '중간(8-10문장)' : '길게(11-15문장)'}
 - 시점: ${selectedPerspective.name}
@@ -68,9 +76,12 @@ ${userContext ? `- 사용자 맥락: ${userContext}` : ''}
 - ${selectedPerspective.instruction}
 - 톤과 길이에 맞춤.
 - (추정) 문장은 "아마," "느껴졌다" 등 완곡 표현 사용.
-- 자연스러운 한국어로 작성.`;
+- 자연스러운 한국어로 작성.
+- 여러 사진의 경우, 시간 흐름이나 주제에 따라 자연스럽게 연결하여 작성.`;
 
-    const userPrompt = '이 사진을 보고 오늘의 일기를 작성해주세요.';
+    const userPrompt = photos.length > 1 
+      ? `이 ${photos.length}장의 사진을 보고 하나의 완성된 일기를 작성해주세요. 각 사진의 순서와 내용을 고려하여 자연스러운 이야기로 엮어주세요.`
+      : '이 사진을 보고 오늘의 일기를 작성해주세요.';
 
     // Call OpenAI Vision API for diary content
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -90,13 +101,13 @@ ${userContext ? `- 사용자 맥락: ${userContext}` : ''}
             role: 'user',
             content: [
               { type: 'text', text: userPrompt },
-              { 
+              ...photos.map((url: string) => ({
                 type: 'image_url',
                 image_url: {
-                  url: photoUrl,
+                  url: url,
                   detail: 'high'
                 }
-              }
+              }))
             ]
           }
         ],

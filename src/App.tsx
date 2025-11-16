@@ -9,6 +9,7 @@ import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
 import Upload from "./pages/Upload";
 import DiaryDetail from "./pages/DiaryDetail";
+import Notebooks from "./pages/Notebooks";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/upload" element={<Upload />} />
+            <Route path="/notebooks" element={<Notebooks />} />
             <Route path="/diary/:id" element={<DiaryDetail />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
