@@ -31,6 +31,22 @@ export default function Home() {
   const commonEmojis = ["😊", "😢", "😡", "😍", "🤔", "😴", "😱", "🤗", "😎", "🥳", "😤", "😭"];
 
   useEffect(() => {
+    const handleViewModeChange = (e: CustomEvent<"my" | "public">) => {
+      setViewMode(e.detail);
+      setLoading(true);
+      if (e.detail === "my") {
+        setSearchQuery("");
+      }
+      toast({
+        title: e.detail === "my" ? "내 일기 보기" : "전체 공개 일기 보기"
+      });
+    };
+
+    window.addEventListener('viewModeChange', handleViewModeChange as any);
+    return () => window.removeEventListener('viewModeChange', handleViewModeChange as any);
+  }, []);
+
+  useEffect(() => {
     checkAuth();
   }, []);
 
@@ -356,39 +372,6 @@ export default function Home() {
   return (
     <div className="min-h-screen gradient-soft">
       <div className="max-w-4xl mx-auto p-2 sm:p-4 space-y-4">
-        <div className="flex items-center justify-center gap-1 mb-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => {
-              setViewMode("my");
-              setLoading(true);
-              setSearchQuery("");
-              toast({
-                title: "내 일기 보기"
-              });
-            }}
-            className="rounded-full hover:bg-transparent h-9 w-9"
-          >
-            <User className={cn("h-5 w-5", viewMode === "my" ? "text-primary" : "text-muted-foreground")} />
-          </Button>
-          <div className="h-3 w-px bg-muted-foreground/30" />
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => {
-              setViewMode("public");
-              setLoading(true);
-              toast({
-                title: "전체 공개 일기 보기"
-              });
-            }}
-            className="rounded-full hover:bg-transparent h-9 w-9"
-          >
-            <Globe className={cn("h-5 w-5", viewMode === "public" ? "text-primary" : "text-muted-foreground")} />
-          </Button>
-        </div>
-
         {viewMode === "my" && (
           <Card className="shadow-medium">
             <CardContent className="p-6">
