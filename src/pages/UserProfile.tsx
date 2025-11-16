@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import LoadingBar from "@/components/LoadingBar";
-import { ArrowLeft, UserPlus, UserCheck } from "lucide-react";
+import { UserPlus, UserCheck, MapPin, Calendar, Droplet } from "lucide-react";
 
 export default function UserProfile() {
   const { userId } = useParams();
@@ -120,15 +120,6 @@ export default function UserProfile() {
   return (
     <div className="min-h-screen gradient-soft">
       <div className="max-w-2xl mx-auto p-4 space-y-4">
-        <Button
-          variant="ghost"
-          onClick={() => navigate(-1)}
-          className="mb-4"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          뒤로가기
-        </Button>
-
         <Card className="shadow-medium">
           <CardContent className="p-6 space-y-6">
             {/* 프로필 헤더 */}
@@ -140,10 +131,10 @@ export default function UserProfile() {
                 </AvatarFallback>
               </Avatar>
               
-              <div>
+              <div className="space-y-1">
                 <h1 className="text-2xl font-bold">{profile.name || "이름 없음"}</h1>
-                {profile.email && (
-                  <p className="text-sm text-muted-foreground">{profile.email}</p>
+                {profile.bio && (
+                  <p className="text-sm text-muted-foreground max-w-md">{profile.bio}</p>
                 )}
               </div>
 
@@ -183,40 +174,43 @@ export default function UserProfile() {
             </div>
 
             {/* 프로필 정보 */}
-            <div className="space-y-4 pt-4 border-t">
-              {profile.bio && (
-                <div>
-                  <h3 className="text-sm font-semibold mb-2">소개</h3>
-                  <p className="text-sm text-muted-foreground">{profile.bio}</p>
-                </div>
-              )}
-
-              <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-3 pt-4 border-t">
+              <div className="grid grid-cols-2 gap-3">
                 {profile.mbti && (
-                  <div>
-                    <h3 className="text-sm font-semibold mb-1">MBTI</h3>
-                    <p className="text-sm text-muted-foreground">{profile.mbti}</p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-muted-foreground">MBTI</span>
+                    <span className="text-sm">{profile.mbti}</span>
                   </div>
                 )}
                 
                 {profile.blood_type && (
-                  <div>
-                    <h3 className="text-sm font-semibold mb-1">혈액형</h3>
-                    <p className="text-sm text-muted-foreground">{profile.blood_type}형</p>
+                  <div className="flex items-center gap-2">
+                    <Droplet className="h-3.5 w-3.5 text-muted-foreground" />
+                    <span className="text-sm font-medium text-muted-foreground">혈액형</span>
+                    <span className="text-sm">{profile.blood_type}형</span>
                   </div>
                 )}
                 
                 {profile.birthday && (
-                  <div>
-                    <h3 className="text-sm font-semibold mb-1">생일</h3>
-                    <p className="text-sm text-muted-foreground">{profile.birthday}</p>
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+                    <span className="text-sm font-medium text-muted-foreground">생일</span>
+                    <span className="text-sm">{profile.birthday}</span>
+                  </div>
+                )}
+
+                {profile.gender && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-muted-foreground">성별</span>
+                    <span className="text-sm">{profile.gender === 'male' ? '남성' : profile.gender === 'female' ? '여성' : profile.gender}</span>
                   </div>
                 )}
                 
                 {profile.location && (
-                  <div>
-                    <h3 className="text-sm font-semibold mb-1">위치</h3>
-                    <p className="text-sm text-muted-foreground">{profile.location}</p>
+                  <div className="flex items-center gap-2 col-span-2">
+                    <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
+                    <span className="text-sm font-medium text-muted-foreground">위치</span>
+                    <span className="text-sm">{profile.location}</span>
                   </div>
                 )}
               </div>
