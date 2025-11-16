@@ -299,8 +299,8 @@ export default function Home() {
 
   return (
     <div className="min-h-screen gradient-soft">
-      <div className="max-w-4xl mx-auto p-4 space-y-4">
-        <div className="flex items-center justify-end gap-2 mb-2">
+      <div className="max-w-4xl mx-auto p-2 sm:p-4 space-y-4">
+        <div className="flex items-center justify-end gap-2 mb-2 px-2 sm:px-0">
           <Button
             variant={viewMode === "my" ? "default" : "outline"}
             size="sm"
@@ -333,58 +333,56 @@ export default function Home() {
           </Button>
         </div>
 
-        <Card className="shadow-medium">
-          <CardContent className="p-6">
-            {viewMode === "my" ? (
-              <>
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={handlePrevMonth}
-                    >
-                      <ChevronLeft className="h-5 w-5" />
-                    </Button>
-                    <h2 className="text-xl font-bold">
-                      {format(currentMonth, "yyyy년 M월", { locale: ko })}
-                    </h2>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={handleNextMonth}
-                    >
-                      <ChevronRight className="h-5 w-5" />
-                    </Button>
-                  </div>
+        {viewMode === "my" ? (
+          <Card className="shadow-medium">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handlePrevMonth}
+                  >
+                    <ChevronLeft className="h-5 w-5" />
+                  </Button>
+                  <h2 className="text-xl font-bold">
+                    {format(currentMonth, "yyyy년 M월", { locale: ko })}
+                  </h2>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleNextMonth}
+                  >
+                    <ChevronRight className="h-5 w-5" />
+                  </Button>
                 </div>
-                {renderCalendar()}
-              </>
+              </div>
+              {renderCalendar()}
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-3 px-2 sm:px-0">
+            <h2 className="text-xl font-bold">전체 공개 일기</h2>
+            {diaries.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                공개된 일기가 없습니다.
+              </div>
             ) : (
-              <div className="space-y-4">
-                <h2 className="text-xl font-bold mb-4">전체 공개 일기</h2>
-                {diaries.length === 0 ? (
-                  <div className="text-center py-12 text-muted-foreground">
-                    공개된 일기가 없습니다.
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {diaries.map((diary) => (
-                      <DiaryCard
-                        key={diary.id}
-                        diary={diary}
-                        onClick={() => navigate(`/diary/${diary.id}`)}
-                        showTime={true}
-                        imageSize="md"
-                        currentUserId={currentUserId}
-                      />
-                    ))}
-                  </div>
-                )}
+              <div className="space-y-3">
+                {diaries.map((diary) => (
+                  <DiaryCard
+                    key={diary.id}
+                    diary={diary}
+                    onClick={() => navigate(`/diary/${diary.id}`)}
+                    showTime={true}
+                    imageSize="md"
+                    currentUserId={currentUserId}
+                  />
+                ))}
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        )}
 
         {/* 리스트로 보기 버튼 - 내 일기 모드에서만 표시 */}
         {viewMode === "my" && (
