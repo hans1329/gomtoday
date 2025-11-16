@@ -13,6 +13,7 @@ export default function Upload() {
   const [previewUrl, setPreviewUrl] = useState<string>("");
   const [tone, setTone] = useState("warm");
   const [length, setLength] = useState("medium");
+  const [perspective, setPerspective] = useState("first");
   const [uploading, setUploading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -71,6 +72,7 @@ export default function Upload() {
             photoUrl: publicUrl,
             tone,
             length,
+            perspective,
           },
         }
       );
@@ -191,6 +193,21 @@ export default function Upload() {
                   <SelectItem value="short">짧게 (5-7문장)</SelectItem>
                   <SelectItem value="medium">중간 (8-10문장)</SelectItem>
                   <SelectItem value="long">길게 (11-15문장)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Perspective Selection */}
+            <div className="space-y-2">
+              <Label>시점</Label>
+              <Select value={perspective} onValueChange={setPerspective}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="first">1인칭 (나)</SelectItem>
+                  <SelectItem value="third">3인칭 (그/그녀)</SelectItem>
+                  <SelectItem value="observer">관찰자</SelectItem>
                 </SelectContent>
               </Select>
             </div>
