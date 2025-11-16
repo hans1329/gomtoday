@@ -9,6 +9,7 @@ import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
 import Upload from "./pages/Upload";
 import DiaryDetail from "./pages/DiaryDetail";
+import Diaries from "./pages/Diaries";
 import Notebooks from "./pages/Notebooks";
 import NotFound from "./pages/NotFound";
 
@@ -28,6 +29,7 @@ function App() {
               <Route path="/auth" element={<Auth />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/upload" element={<Upload />} />
+              <Route path="/diaries" element={<Diaries />} />
               <Route path="/notebooks" element={<Notebooks />} />
               <Route path="/diary/:id" element={<DiaryDetail />} />
               <Route path="*" element={<NotFound />} />

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, BookOpen } from "lucide-react";
 import { format, startOfMonth, endOfMonth, isSameDay, addMonths, subMonths } from "date-fns";
 import { ko } from "date-fns/locale";
 
@@ -215,6 +215,15 @@ export default function Home() {
             {renderCalendar()}
           </CardContent>
         </Card>
+
+        <Button
+          variant="outline"
+          className="w-full"
+          onClick={() => navigate("/diaries")}
+        >
+          <BookOpen className="mr-2 h-4 w-4" />
+          리스트로 보기
+        </Button>
       </div>
     </div>
   );
