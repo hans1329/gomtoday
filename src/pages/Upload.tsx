@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Upload as UploadIcon, Loader2, ArrowLeft } from "lucide-react";
+import { Upload as UploadIcon, Loader2, ArrowLeft, X, ChevronUp, ChevronDown } from "lucide-react";
 export default function Upload() {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
@@ -82,15 +82,9 @@ export default function Upload() {
   };
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    if (files.length < 3) {
-      toast({
-        title: "사진이 부족해요",
-        description: "최소 3장의 사진을 선택해주세요.",
-        variant: "destructive"
-      });
-      return;
-    }
-    if (files.length > 6) {
+    const newFiles = [...selectedFiles, ...files];
+    
+    if (newFiles.length > 6) {
       toast({
         title: "사진이 너무 많아요",
         description: "최대 6장까지만 선택할 수 있어요.",
@@ -98,8 +92,31 @@ export default function Upload() {
       });
       return;
     }
-    setSelectedFiles(files);
-    setPreviewUrls(files.map(file => URL.createObjectURL(file)));
+    
+    setSelectedFiles(newFiles);
+    setPreviewUrls(newFiles.map(file => URL.createObjectURL(file)));
+  };
+
+  const movePhoto = (index: number, direction: 'up' | 'down') => {
+    const newFiles = [...selectedFiles];
+    const newUrls = [...previewUrls];
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    
+    if (targetIndex < 0 || targetIndex >= newFiles.length) return;
+    
+    [newFiles[index], newFiles[targetIndex]] = [newFiles[targetIndex], newFiles[index]];
+    [newUrls[index], newUrls[targetIndex]] = [newUrls[targetIndex], newUrls[index]];
+    
+    setSelectedFiles(newFiles);
+    setPreviewUrls(newUrls);
+  };
+
+  const removePhoto = (index: number) => {
+    const newFiles = selectedFiles.filter((_, i) => i !== index);
+    const newUrls = previewUrls.filter((_, i) => i !== index);
+    
+    setSelectedFiles(newFiles);
+    setPreviewUrls(newUrls);
   };
   const toggleNotebook = (notebookId: string, isPrivate: boolean) => {
     if (isPrivate) return;
@@ -238,21 +255,59 @@ export default function Upload() {
           <CardContent className="p-6 space-y-6">
             <div className="space-y-2">
               <Label>사진 선택 (3~6장)</Label>
-              {previewUrls.length > 0 ? <div className="space-y-2">
-                  <div className="grid grid-cols-3 gap-2">
-                    {previewUrls.map((url, index) => <div key={index} className="relative aspect-square rounded-lg overflow-hidden border-2 border-border">
+              {previewUrls.length > 0 ? <div className="space-y-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {previewUrls.map((url, index) => <div key={index} className="relative aspect-square rounded-lg overflow-hidden border-2 border-border group">
                         <img src={url} alt={`Preview ${index + 1}`} className="w-full h-full object-cover" />
-                        <div className="absolute top-1 right-1 bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
+                        <div className="absolute top-2 left-2 bg-primary text-primary-foreground rounded-full w-7 h-7 flex items-center justify-center text-sm font-bold shadow-lg">
                           {index + 1}
+                        </div>
+                        <div className="absolute top-2 right-2 flex flex-col gap-1">
+                          <Button
+                            size="icon"
+                            variant="secondary"
+                            className="h-7 w-7 opacity-90 hover:opacity-100"
+                            onClick={() => removePhoto(index)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                          {index > 0 && (
+                            <Button
+                              size="icon"
+                              variant="secondary"
+                              className="h-7 w-7 opacity-90 hover:opacity-100"
+                              onClick={() => movePhoto(index, 'up')}
+                            >
+                              <ChevronUp className="h-4 w-4" />
+                            </Button>
+                          )}
+                          {index < previewUrls.length - 1 && (
+                            <Button
+                              size="icon"
+                              variant="secondary"
+                              className="h-7 w-7 opacity-90 hover:opacity-100"
+                              onClick={() => movePhoto(index, 'down')}
+                            >
+                              <ChevronDown className="h-4 w-4" />
+                            </Button>
+                          )}
                         </div>
                       </div>)}
                   </div>
-                  <Button variant="secondary" size="sm" className="w-full" onClick={() => {
-                setSelectedFiles([]);
-                setPreviewUrls([]);
-              }}>
-                    다시 선택
-                  </Button>
+                  <div className="flex gap-2">
+                    <label className="flex-1">
+                      <Button variant="secondary" size="sm" className="w-full" asChild>
+                        <span>사진 추가</span>
+                      </Button>
+                      <input type="file" accept="image/*" multiple onChange={handleFileSelect} className="hidden" />
+                    </label>
+                    <Button variant="outline" size="sm" className="flex-1" onClick={() => {
+                      setSelectedFiles([]);
+                      setPreviewUrls([]);
+                    }}>
+                      전체 삭제
+                    </Button>
+                  </div>
                 </div> : <label className="flex flex-col items-center justify-center aspect-[4/3] rounded-lg border-2 border-dashed border-border hover:border-primary cursor-pointer transition-colors">
                   <UploadIcon className="w-12 h-12 text-muted-foreground mb-2" />
                   <p className="text-sm text-muted-foreground">클릭하여 3~6장의 사진 선택</p>
