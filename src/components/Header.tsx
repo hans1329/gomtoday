@@ -182,7 +182,7 @@ export default function Header() {
                 variant="ghost"
                 size="icon"
                 title="프로필"
-                className="shadow-md rounded-full p-0 h-9 w-9"
+                className="shadow-md rounded-full p-0 h-9 w-9 relative"
               >
                 <Avatar className="h-9 w-9">
                   <AvatarImage src={profilePhotoUrl || undefined} alt="프로필" />
@@ -190,12 +190,14 @@ export default function Header() {
                     <User className="h-5 w-5" />
                   </AvatarFallback>
                 </Avatar>
+                {notificationCount > 0 && (
+                  <span className="absolute top-0 right-0 h-2.5 w-2.5 rounded-full bg-destructive border-2 border-background" />
+                )}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 bg-background">
               <DropdownMenuLabel className="font-normal">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs text-muted-foreground">알림</span>
+                <div className="flex items-center justify-end mb-2">
                   <Button
                     variant="ghost"
                     size="icon"
