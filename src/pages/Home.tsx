@@ -402,7 +402,7 @@ export default function Home() {
           >
             <User className={cn("h-5 w-5", viewMode === "my" ? "text-primary" : "text-muted-foreground")} />
           </Button>
-          <div className="h-6 w-px bg-muted-foreground/30" />
+          <div className="h-3 w-px bg-muted-foreground/30" />
           <Button
             variant="ghost"
             size="icon"
