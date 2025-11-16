@@ -116,10 +116,6 @@ export default function Upload() {
   return (
     <div className="min-h-screen gradient-soft p-4">
       <div className="max-w-2xl mx-auto pt-8 space-y-6">
-        <Button variant="ghost" onClick={() => navigate("/")}>
-          ← 뒤로
-        </Button>
-
         <Card className="shadow-medium">
           <CardHeader>
             <CardTitle>사진 일기 작성</CardTitle>
