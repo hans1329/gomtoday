@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -24,11 +24,11 @@ export default function DiaryDetail() {
   const [likes, setLikes] = useState<any[]>([]);
   const [comments, setComments] = useState<any[]>([]);
   const [isLiked, setIsLiked] = useState(false);
-  const [liking, setLiking] = useState(false);
   const [newComment, setNewComment] = useState("");
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const isLikingRef = useRef(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -104,7 +104,7 @@ export default function DiaryDetail() {
   };
 
   const handleLike = async () => {
-    if (liking) return;
+    if (isLikingRef.current) return;
     
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
@@ -115,7 +115,7 @@ export default function DiaryDetail() {
       return;
     }
 
-    setLiking(true);
+    isLikingRef.current = true;
     
     // Optimistic update
     const wasLiked = isLiked;
@@ -155,7 +155,7 @@ export default function DiaryDetail() {
         variant: "destructive",
       });
     } finally {
-      setLiking(false);
+      isLikingRef.current = false;
     }
   };
 
@@ -348,7 +348,6 @@ export default function DiaryDetail() {
                     variant="ghost"
                     size="sm"
                     onClick={handleLike}
-                    disabled={liking}
                     className={`gap-2 ${isLiked ? "text-red-500" : ""}`}
                   >
                     <Heart className={`h-5 w-5 ${isLiked ? "fill-current" : ""}`} />
