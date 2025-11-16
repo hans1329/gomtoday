@@ -274,8 +274,13 @@ export default function DiaryDetail() {
 
             {/* Content */}
             <div className="p-6 space-y-4">
-              <div className="text-sm text-muted-foreground">
-                {format(new Date(diary.created_at), "yyyy년 M월 d일 (EEE) HH:mm", { locale: ko })}
+              <div className="flex items-center gap-3">
+                <div className="text-sm text-muted-foreground">
+                  {format(new Date(diary.created_at), "yyyy년 M월 d일 (EEE) HH:mm", { locale: ko })}
+                </div>
+                {diary.emoji && (
+                  <span className="text-2xl">{diary.emoji}</span>
+                )}
               </div>
               
               {diary.title && (
@@ -305,13 +310,6 @@ export default function DiaryDetail() {
                   <Trash2 className="h-4 w-4 mr-2" />
                   삭제
                 </Button>
-              </div>
-
-              {/* Metadata */}
-              <div className="flex items-center gap-3 pt-4 border-t">
-                {diary.emoji && (
-                  <span className="text-3xl">{diary.emoji}</span>
-                )}
               </div>
 
               {/* Likes and Comments */}
