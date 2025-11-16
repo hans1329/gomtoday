@@ -344,7 +344,7 @@ export default function DiaryDetail() {
               </div>
 
               {/* Edit/Delete Buttons */}
-              <div className="flex gap-2 pt-2 sm:justify-end">
+              <div className="flex gap-2 pt-2 md:justify-end">
                 <Button variant="outline" size="sm" onClick={handleEdit} className="flex-1 sm:flex-none">
                   <Edit className="h-4 w-4 mr-2" />
                   수정
