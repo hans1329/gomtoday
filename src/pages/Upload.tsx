@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Upload as UploadIcon, Loader2, ArrowLeft, Trash2, ChevronUp, ChevronDown } from "lucide-react";
@@ -18,13 +17,9 @@ export default function Upload() {
   const [emotion, setEmotion] = useState("happy");
   const [length, setLength] = useState("medium");
   const [perspective, setPerspective] = useState("camera");
-  const [notebooks, setNotebooks] = useState<any[]>([]);
-  const [selectedNotebooks, setSelectedNotebooks] = useState<Set<string>>(new Set());
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadStatus, setUploadStatus] = useState("");
-  const [showNotebookDialog, setShowNotebookDialog] = useState(false);
-  const [createdDiaryId, setCreatedDiaryId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const {
@@ -36,7 +31,6 @@ export default function Upload() {
     } else {
       checkTodayDiary();
     }
-    fetchNotebooks();
   }, [id]);
   const checkTodayDiary = async () => {
     const {
@@ -107,37 +101,7 @@ export default function Upload() {
     setExistingPhotos(diary.photos || []);
     setPreviewUrls((diary.photos || []).map((p: any) => p.photo_url));
     
-    // 일기장 선택 상태 초기화
-    const notebookIds = new Set(diary.diary_notebooks.map((dn: any) => dn.notebook_id));
-    setSelectedNotebooks(notebookIds);
-    
     setLoading(false);
-  };
-  const fetchNotebooks = async () => {
-    const {
-      data: {
-        user
-      }
-    } = await supabase.auth.getUser();
-    if (!user) {
-      navigate("/auth");
-      return;
-    }
-    const {
-      data,
-      error
-    } = await supabase.from("notebooks").select("*").eq("user_id", user.id).order("is_default", {
-      ascending: false
-    }).order("created_at");
-    if (error) {
-      console.error("Error fetching notebooks:", error);
-    } else if (data) {
-      setNotebooks(data);
-      const privateNotebook = data.find(nb => nb.visibility === "private" && nb.is_default);
-      if (privateNotebook) {
-        setSelectedNotebooks(new Set([privateNotebook.id]));
-      }
-    }
   };
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -179,49 +143,10 @@ export default function Upload() {
     setPreviewUrls(newUrls);
     setExistingPhotos(newExisting);
   };
-  const toggleNotebook = (notebookId: string) => {
-    setSelectedNotebooks(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(notebookId)) {
-        newSet.delete(notebookId);
-      } else {
-        newSet.add(notebookId);
-      }
-      return newSet;
-    });
-  };
-  
   const cancelUpload = () => {
     setUploading(false);
     setUploadProgress(0);
     setUploadStatus("");
-  };
-
-  const saveToNotebooks = async () => {
-    if (!createdDiaryId) return;
-    
-    try {
-      for (const notebookId of selectedNotebooks) {
-        const { error } = await supabase.from("diary_notebooks").insert({
-          diary_id: createdDiaryId,
-          notebook_id: notebookId
-        });
-        if (error) console.error("Error linking diary to notebook:", error);
-      }
-      
-      toast({
-        title: "일기가 저장되었어요!",
-        description: "선택한 일기장에 저장되었습니다."
-      });
-      navigate(`/diary/${createdDiaryId}`);
-    } catch (error: any) {
-      console.error("Save to notebooks error:", error);
-      toast({
-        title: "저장 실패",
-        description: error.message,
-        variant: "destructive"
-      });
-    }
   };
   const handleUpload = async () => {
     const totalPhotos = (existingPhotos.length || 0) + selectedFiles.length;
@@ -380,8 +305,11 @@ export default function Upload() {
         if (updateError) throw updateError;
         
         setUploadProgress(100);
-        setCreatedDiaryId(diaryData.id);
-        setShowNotebookDialog(true);
+        
+        // 작성 완료 후 리뷰 페이지로 이동
+        setTimeout(() => {
+          navigate(`/diary-review/${diaryData.id}`);
+        }, 500);
       }
     } catch (error: any) {
       console.error("Upload error:", error);
@@ -550,7 +478,7 @@ export default function Upload() {
       </div>
 
       <Dialog open={uploading} onOpenChange={() => {}}>
-        <DialogContent className="mx-4" onPointerDownOutside={(e) => e.preventDefault()}>
+        <DialogContent className="sm:max-w-md mx-4" onPointerDownOutside={(e) => e.preventDefault()}>
           <DialogHeader>
             <DialogTitle>일기 작성 중</DialogTitle>
             <DialogDescription>
@@ -569,60 +497,6 @@ export default function Upload() {
           <DialogFooter className="flex-col-reverse sm:flex-row sm:justify-end gap-2">
             <Button variant="outline" onClick={cancelUpload} className="w-full sm:w-auto">
               취소
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={showNotebookDialog} onOpenChange={setShowNotebookDialog}>
-        <DialogContent className="mx-4">
-          <DialogHeader>
-            <DialogTitle>일기장 선택</DialogTitle>
-            <DialogDescription>
-              이 일기를 저장할 일기장을 선택해주세요
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-2 max-h-60 overflow-y-auto">
-            {notebooks.map(notebook => {
-              const isPrivate = notebook.visibility === "private" && notebook.is_default;
-              const isSelected = selectedNotebooks.has(notebook.id);
-              return (
-                <div
-                  key={notebook.id}
-                  className={`flex items-center space-x-2 p-3 rounded-lg border ${isPrivate ? "bg-muted" : "hover:bg-secondary cursor-pointer"}`}
-                  onClick={() => !isPrivate && toggleNotebook(notebook.id)}
-                >
-                  <Checkbox
-                    checked={isSelected}
-                    disabled={isPrivate}
-                    onCheckedChange={() => toggleNotebook(notebook.id)}
-                  />
-                  <div className="flex-1">
-                    <div className="font-medium">{notebook.name}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {notebook.visibility === "private" ? "비공개" : "공개"}
-                      {isPrivate && " (기본)"}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          <DialogFooter className="flex-col-reverse sm:flex-row sm:justify-end gap-2">
-            <Button
-              variant="outline"
-              onClick={() => {
-                setShowNotebookDialog(false);
-                if (createdDiaryId) {
-                  navigate(`/diary/${createdDiaryId}`);
-                }
-              }}
-              className="w-full sm:w-auto"
-            >
-              건너뛰기
-            </Button>
-            <Button onClick={saveToNotebooks} className="w-full sm:w-auto">
-              저장
             </Button>
           </DialogFooter>
         </DialogContent>
