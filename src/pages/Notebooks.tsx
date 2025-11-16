@@ -145,19 +145,19 @@ export default function Notebooks() {
   return (
     <div className="min-h-screen gradient-soft p-4">
       <div className="max-w-4xl mx-auto pt-8 space-y-6">
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold">내 일기장</h1>
-            <p className="text-muted-foreground">일기장을 관리하고 공유하세요</p>
+            <h1 className="text-2xl sm:text-3xl font-bold">내 일기장</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">일기장을 관리하고 공유하세요</p>
           </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button disabled={notebooks.length >= 5}>
+              <Button disabled={notebooks.length >= 5} className="w-full sm:w-auto">
                 <Plus className="mr-2 h-4 w-4" />
                 새 일기장
               </Button>
             </DialogTrigger>
-            <DialogContent className="mx-4">
+            <DialogContent className="max-w-[calc(100%-2rem)] sm:max-w-md">
               <DialogHeader>
                 <DialogTitle>새 일기장 만들기</DialogTitle>
                 <DialogDescription>
@@ -188,11 +188,11 @@ export default function Notebooks() {
                   </Select>
                 </div>
               </div>
-              <DialogFooter className="flex-col sm:flex-row gap-2">
+              <DialogFooter className="flex-col-reverse sm:flex-row gap-2">
+                <Button onClick={handleCreate} className="w-full sm:w-auto">만들기</Button>
                 <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="w-full sm:w-auto">
                   취소
                 </Button>
-                <Button onClick={handleCreate} className="w-full sm:w-auto">만들기</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -246,7 +246,7 @@ export default function Notebooks() {
           ))}
         </div>
 
-        <Button variant="outline" onClick={() => navigate("/")} className="w-full">
+        <Button variant="outline" onClick={() => navigate("/")} className="w-full sm:w-auto rounded-full">
           ← 홈으로 돌아가기
         </Button>
       </div>
