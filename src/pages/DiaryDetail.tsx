@@ -323,12 +323,12 @@ export default function DiaryDetail() {
             {/* Content */}
             <div className="p-6 space-y-4">
               <div className="flex items-center gap-2">
+                <div className="text-sm text-muted-foreground">
+                  {format(new Date(diary.created_at), "yyyy년 M월 d일 (EEE) a h:mm", { locale: ko })}
+                </div>
                 {diary.emoji && (
                   <span className="text-2xl">{diary.emoji}</span>
                 )}
-                <div className="text-sm text-muted-foreground">
-                  {format(new Date(diary.created_at), "yyyy년 M월 d일 (EEE) HH:mm", { locale: ko })}
-                </div>
               </div>
               
               {diary.title && (
@@ -344,7 +344,7 @@ export default function DiaryDetail() {
               </div>
 
               {/* Edit/Delete Buttons */}
-              <div className="flex gap-2 pt-2">
+              <div className="flex gap-2 pt-2 sm:justify-end">
                 <Button variant="outline" size="sm" onClick={handleEdit} className="flex-1 sm:flex-none">
                   <Edit className="h-4 w-4 mr-2" />
                   수정
