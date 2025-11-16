@@ -201,7 +201,7 @@ export default function Header() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 relative -mr-2"
+                    className="h-8 w-8 relative"
                     onClick={(e) => {
                       e.stopPropagation();
                       setNotificationsOpen(true);
@@ -214,13 +214,17 @@ export default function Header() {
                     )}
                   </Button>
                 </div>
-                <button
-                  onClick={() => navigate("/profile")}
-                  className="flex items-center justify-between w-full hover:opacity-70 transition-opacity"
-                >
+                <div className="flex items-center justify-between">
                   <p className="text-sm font-medium leading-none">{userName || "사용자"}</p>
-                  <Settings className="h-4 w-4 text-muted-foreground -mr-2" />
-                </button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => navigate("/profile")}
+                  >
+                    <Settings className="h-4 w-4" />
+                  </Button>
+                </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => navigate("/")} className="py-3">
