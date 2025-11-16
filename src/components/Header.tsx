@@ -78,7 +78,7 @@ export default function Header() {
               className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
             >
               <img src="/3rdme-logo.png" alt="3rdMe" className="w-6 h-6" />
-              <span className="font-bold text-xl">3rdMe</span>
+              <span className="hidden md:inline font-bold text-xl">3rdMe</span>
             </button>
           ) : (
             <Button
