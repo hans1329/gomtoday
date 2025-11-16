@@ -338,9 +338,23 @@ export default function DiaryDetail() {
                     <span className="text-2xl">{diary.emoji}</span>
                   )}
                 </div>
-                
-                {/* 작성자 정보 - 다른 사람의 일기일 경우에만 표시 */}
-                {currentUserId && diary.user_id !== currentUserId && (
+              </div>
+              
+              {diary.title && (
+                <h2 className="text-xl font-bold text-foreground">
+                  {diary.title}
+                </h2>
+              )}
+              
+              <div className="prose prose-sm max-w-none text-sm text-muted-foreground/80">
+                <p className="whitespace-pre-wrap leading-relaxed">
+                  {diary.content}
+                </p>
+              </div>
+
+              {/* 작성자 정보 - 다른 사람의 일기일 경우에만 표시 */}
+              {currentUserId && diary.user_id !== currentUserId && (
+                <div className="flex justify-end pt-2">
                   <button
                     onClick={() => navigate(`/user/${diary.user_id}`)}
                     className="flex items-center gap-2 hover:opacity-70 transition-opacity"
@@ -355,20 +369,8 @@ export default function DiaryDetail() {
                       by {diary.author_name || "Unknown"}
                     </p>
                   </button>
-                )}
-              </div>
-              
-              {diary.title && (
-                <h2 className="text-xl font-bold text-foreground">
-                  {diary.title}
-                </h2>
+                </div>
               )}
-              
-              <div className="prose prose-sm max-w-none text-sm text-muted-foreground/80">
-                <p className="whitespace-pre-wrap leading-relaxed">
-                  {diary.content}
-                </p>
-              </div>
 
               {/* Edit/Delete Buttons - 본인의 일기일 경우에만 표시 */}
               {currentUserId && diary.user_id === currentUserId && (
