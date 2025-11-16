@@ -161,6 +161,7 @@ export default function Upload() {
                     accept="image/*"
                     className="hidden"
                     onChange={handleFileSelect}
+                    autoComplete="off"
                   />
                 </label>
               )}
