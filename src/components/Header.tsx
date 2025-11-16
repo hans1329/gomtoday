@@ -1,6 +1,9 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { User, Plus, Home } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+
+const LOGO_URL = supabase.storage.from('brand-assets').getPublicUrl('logo.png').data.publicUrl;
 
 export default function Header() {
   const navigate = useNavigate();
@@ -15,7 +18,7 @@ export default function Header() {
             onClick={() => navigate("/")}
             className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
           >
-            <span className="text-2xl">📝</span>
+            <img src={LOGO_URL} alt="3rdMe" className="w-8 h-8" />
             <span className="font-bold text-xl">3rdMe</span>
           </button>
         </div>
