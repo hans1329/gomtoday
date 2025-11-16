@@ -3,12 +3,15 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ChevronLeft, ChevronRight, BookOpen, User, Globe } from "lucide-react";
-import { format, startOfMonth, endOfMonth, isSameDay, addMonths, subMonths } from "date-fns";
+import { ChevronLeft, ChevronRight, BookOpen, User, Globe, Calendar as CalendarIcon } from "lucide-react";
+import { format, startOfMonth, endOfMonth, isSameDay, addMonths, subMonths, startOfDay, endOfDay } from "date-fns";
 import { ko } from "date-fns/locale";
 import LoadingBar from "@/components/LoadingBar";
 import DiaryCard from "@/components/DiaryCard";
 import { useToast } from "@/hooks/use-toast";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
 
 export default function Home() {
   const [diaries, setDiaries] = useState<any[]>([]);
@@ -16,6 +19,7 @@ export default function Home() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [currentUserId, setCurrentUserId] = useState<string>("");
   const [viewMode, setViewMode] = useState<"my" | "public">("my");
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -27,7 +31,7 @@ export default function Home() {
     if (currentUserId) {
       fetchDiaries();
     }
-  }, [currentUserId, viewMode]);
+  }, [currentUserId, viewMode, selectedDate]);
 
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -108,7 +112,7 @@ export default function Home() {
 
       const diaryIds = diaryNotebooks.map(dn => dn.diary_id);
       
-      const { data, error } = await supabase
+      let query = supabase
         .from("diaries")
         .select(`
           *,
@@ -120,8 +124,16 @@ export default function Home() {
             photo_url
           )
         `)
-        .in("id", diaryIds)
-        .order("created_at", { ascending: false });
+        .in("id", diaryIds);
+      
+      // 날짜 필터링 추가
+      if (selectedDate) {
+        const dayStart = startOfDay(selectedDate).toISOString();
+        const dayEnd = endOfDay(selectedDate).toISOString();
+        query = query.gte("created_at", dayStart).lte("created_at", dayEnd);
+      }
+      
+      const { data, error } = await query.order("created_at", { ascending: false });
 
       if (error) {
         console.error("Error fetching public diaries:", error);
@@ -362,7 +374,56 @@ export default function Home() {
           </Card>
         ) : (
           <div className="space-y-3 px-2 sm:px-0">
-            <h2 className="text-xl font-bold">전체 공개 일기</h2>
+            <div className="flex items-center gap-3 pl-4">
+              <h2 className="text-xl font-bold">전체 공개 일기</h2>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className={cn(
+                      "rounded-full",
+                      selectedDate && "border-primary"
+                    )}
+                  >
+                    <CalendarIcon className="h-4 w-4" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={(date) => {
+                      setSelectedDate(date);
+                      if (date) {
+                        toast({
+                          title: format(date, "yyyy년 M월 d일 (E)", { locale: ko }) + " 일기",
+                        });
+                      }
+                    }}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                  {selectedDate && (
+                    <div className="p-3 border-t">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full rounded-full"
+                        onClick={() => {
+                          setSelectedDate(undefined);
+                          toast({
+                            title: "날짜 필터 해제",
+                          });
+                        }}
+                      >
+                        필터 해제
+                      </Button>
+                    </div>
+                  )}
+                </PopoverContent>
+              </Popover>
+            </div>
             {diaries.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
                 공개된 일기가 없습니다.
