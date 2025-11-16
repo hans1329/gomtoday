@@ -14,6 +14,7 @@ import DiaryDetail from "./pages/DiaryDetail";
 import DiaryReview from "./pages/DiaryReview";
 import Diaries from "./pages/Diaries";
 import Notebooks from "./pages/Notebooks";
+import Friends from "./pages/Friends";
 import NotFound from "./pages/NotFound";
 import Admin from "./pages/Admin";
 import Privacy from "./pages/Privacy";
@@ -36,6 +37,7 @@ function AppContent() {
         <Route path="/upload/:id" element={<Upload />} />
         <Route path="/diaries" element={<Diaries />} />
         <Route path="/notebooks" element={<Notebooks />} />
+        <Route path="/friends" element={<Friends />} />
         <Route path="/diary/:id" element={<DiaryDetail />} />
         <Route path="/diary-review/:id" element={<DiaryReview />} />
         <Route path="/admin" element={<Admin />} />
