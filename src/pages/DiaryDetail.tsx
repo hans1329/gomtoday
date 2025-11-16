@@ -227,6 +227,12 @@ export default function DiaryDetail() {
                 </Button>
               </div>
               
+              {diary.title && (
+                <h2 className="text-xl font-bold text-foreground">
+                  {diary.title}
+                </h2>
+              )}
+              
               <div className="prose prose-sm max-w-none text-sm text-muted-foreground/80">
                 <p className="whitespace-pre-wrap leading-relaxed">
                   {diary.content}

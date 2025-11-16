@@ -345,6 +345,7 @@ export default function Upload() {
           error: updateError
         } = await supabase.from("diaries").update({
           content: aiResponse.content,
+          title: aiResponse.title,
           emoji: aiResponse.emoji
         }).eq("id", diaryData.id);
         if (updateError) throw updateError;

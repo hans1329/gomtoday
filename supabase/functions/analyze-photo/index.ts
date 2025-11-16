@@ -177,6 +177,16 @@ ${userContext ? `- 사용자 맥락: ${userContext}` : ''}
 - 가장 어울리는 이모지 1개만 선택한다.
 - 응답은 이모지 1개만 출력한다(설명 없이).`;
 
+    // System prompt for title generation
+    const titlePrompt = `너는 일기 내용을 요약하여 간결하고 매력적인 제목을 만드는 전문가다.
+
+지침:
+- 일기의 핵심 내용과 감정을 담는다.
+- 10자 이내로 짧고 임팩트 있게 작성한다.
+- 이모지 없이 텍스트만 출력한다.
+- 자연스러운 한국어로 작성한다.
+- 응답은 제목만 출력한다(설명 없이).`;
+
     // Call OpenAI to select emoji
     const emojiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -202,11 +212,37 @@ ${userContext ? `- 사용자 맥락: ${userContext}` : ''}
     const emojiData = await emojiResponse.json();
     const selectedEmoji = emojiData.choices[0].message.content.trim() || '📝';
 
-    console.log('Generated diary content and emoji:', selectedEmoji);
+    // Call OpenAI to generate title
+    const titleResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openAIApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: titlePrompt },
+          { role: 'user', content: `다음 일기의 제목을 만들어주세요:\n\n${diaryContent}` }
+        ],
+        max_tokens: 30,
+        temperature: 0.5,
+      }),
+    });
+
+    if (!titleResponse.ok) {
+      console.error('Title generation error, using default');
+    }
+
+    const titleData = await titleResponse.json();
+    const generatedTitle = titleData.choices[0].message.content.trim() || '오늘의 일기';
+
+    console.log('Generated diary content, title and emoji:', generatedTitle, selectedEmoji);
 
     return new Response(
       JSON.stringify({ 
         content: diaryContent,
+        title: generatedTitle,
         emoji: selectedEmoji,
         emotion,
         length 
