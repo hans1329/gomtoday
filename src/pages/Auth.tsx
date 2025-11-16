@@ -82,8 +82,8 @@ export default function Auth() {
           <div className="flex justify-center mb-2">
             <img src="/breadshot-logo.png" alt="BreadShot" className="w-20 h-20" />
           </div>
-          <CardTitle className="text-3xl font-bold gradient-warm bg-clip-text text-transparent">
-            BreadShot
+          <CardTitle className="text-3xl font-bold">
+            3rdMe
           </CardTitle>
           <CardDescription className="text-base">
             누군가가 써주는 나의 일기
