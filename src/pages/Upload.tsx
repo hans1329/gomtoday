@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Upload as UploadIcon, Loader2, ArrowLeft, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { Upload as UploadIcon, Loader2, ArrowLeft, Trash2, ChevronUp, ChevronDown } from "lucide-react";
 export default function Upload() {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
@@ -97,10 +97,10 @@ export default function Upload() {
     setPreviewUrls(newFiles.map(file => URL.createObjectURL(file)));
   };
 
-  const movePhoto = (index: number, direction: 'left' | 'right') => {
+  const movePhoto = (index: number, direction: 'up' | 'down') => {
     const newFiles = [...selectedFiles];
     const newUrls = [...previewUrls];
-    const targetIndex = direction === 'left' ? index - 1 : index + 1;
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
     
     if (targetIndex < 0 || targetIndex >= newFiles.length) return;
     
@@ -258,44 +258,44 @@ export default function Upload() {
               {previewUrls.length > 0 ? <div className="space-y-3">
                   <div className="space-y-2">
                     {previewUrls.map((url, index) => <div key={index} className="relative flex items-center gap-3 p-3 rounded-lg border-2 border-border bg-card">
-                        <div className="flex-shrink-0 bg-primary text-primary-foreground rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold">
-                          {index + 1}
-                        </div>
-                        <div className="relative flex-shrink-0 w-24 h-16 rounded overflow-hidden">
-                          <img src={url} alt={`Preview ${index + 1}`} className="w-full h-full object-cover" />
+                        <div className="relative flex-shrink-0 w-28 h-20 rounded overflow-hidden bg-muted">
+                          <img src={url} alt={`Preview ${index + 1}`} className="w-full h-full object-contain" />
+                          <div className="absolute top-1 left-1 bg-primary/90 text-primary-foreground rounded px-1.5 py-0.5 text-xs font-medium">
+                            {index + 1}
+                          </div>
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm text-muted-foreground truncate">사진 {index + 1}</p>
+                          <p className="text-sm text-muted-foreground">사진 {index + 1}</p>
                         </div>
-                        <div className="flex items-center gap-1">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="absolute top-2 right-2 h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                          onClick={() => removePhoto(index)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                        <div className="flex flex-col gap-1">
                           {index > 0 && (
                             <Button
                               size="icon"
                               variant="ghost"
-                              className="h-8 w-8"
-                              onClick={() => movePhoto(index, 'left')}
+                              className="h-7 w-7"
+                              onClick={() => movePhoto(index, 'up')}
                             >
-                              <ChevronLeft className="h-4 w-4" />
+                              <ChevronUp className="h-4 w-4" />
                             </Button>
                           )}
                           {index < previewUrls.length - 1 && (
                             <Button
                               size="icon"
                               variant="ghost"
-                              className="h-8 w-8"
-                              onClick={() => movePhoto(index, 'right')}
+                              className="h-7 w-7"
+                              onClick={() => movePhoto(index, 'down')}
                             >
-                              <ChevronRight className="h-4 w-4" />
+                              <ChevronDown className="h-4 w-4" />
                             </Button>
                           )}
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-8 w-8 text-destructive hover:text-destructive"
-                            onClick={() => removePhoto(index)}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
                         </div>
                       </div>)}
                   </div>
