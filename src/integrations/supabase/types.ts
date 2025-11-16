@@ -325,6 +325,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_notebook_owner: {
+        Args: { _notebook_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin" | "user"
