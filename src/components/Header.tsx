@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { User, PenLine, Settings, LogOut, ArrowLeft, BookOpen, Shield, List } from "lucide-react";
+import { User, PenLine, Settings, LogOut, ArrowLeft, BookOpen, Shield, List, Bell } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   DropdownMenu,
@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
+import NotificationsSheet from "./NotificationsSheet";
 
 export default function Header() {
   const navigate = useNavigate();
@@ -23,10 +24,13 @@ export default function Header() {
   const [userName, setUserName] = useState<string>("");
   const [userEmail, setUserEmail] = useState<string>("");
   const [isAdmin, setIsAdmin] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [notificationCount, setNotificationCount] = useState(0);
 
   useEffect(() => {
     fetchProfile();
     checkAdminRole();
+    fetchNotificationCount();
     
     // 프로필 업데이트 이벤트 리스너
     const handleProfileUpdate = () => {
@@ -35,8 +39,12 @@ export default function Header() {
     
     window.addEventListener('profile-updated', handleProfileUpdate);
     
+    // 알림 개수 주기적으로 업데이트
+    const interval = setInterval(fetchNotificationCount, 30000); // 30초마다
+    
     return () => {
       window.removeEventListener('profile-updated', handleProfileUpdate);
+      clearInterval(interval);
     };
   }, []);
 
@@ -72,6 +80,52 @@ export default function Header() {
     if (profile?.name) {
       setUserName(profile.name);
     }
+  };
+
+  const fetchNotificationCount = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    // 친구 요청 개수
+    const { count: requestCount } = await supabase
+      .from("friend_requests" as any)
+      .select("*", { count: "exact", head: true })
+      .eq("to_user_id", user.id)
+      .eq("status", "pending");
+
+    // 내 일기 ID 가져오기
+    const { data: myDiaries } = await supabase
+      .from("diaries")
+      .select("id")
+      .eq("user_id", user.id);
+
+    let likeCount = 0;
+    let commentCount = 0;
+
+    if (myDiaries && myDiaries.length > 0) {
+      const diaryIds = myDiaries.map(d => d.id);
+
+      // 좋아요 개수
+      const { count: likes } = await supabase
+        .from("diary_likes")
+        .select("*", { count: "exact", head: true })
+        .in("diary_id", diaryIds)
+        .neq("user_id", user.id)
+        .gte("created_at", new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()); // 최근 7일
+
+      // 댓글 개수
+      const { count: comments } = await supabase
+        .from("diary_comments")
+        .select("*", { count: "exact", head: true })
+        .in("diary_id", diaryIds)
+        .neq("user_id", user.id)
+        .gte("created_at", new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()); // 최근 7일
+
+      likeCount = likes || 0;
+      commentCount = comments || 0;
+    }
+
+    setNotificationCount((requestCount || 0) + likeCount + commentCount);
   };
 
   const handleLogout = async () => {
@@ -125,6 +179,22 @@ export default function Header() {
               <PenLine className="h-5 w-5" />
             </Button>
           )}
+
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => {
+              setNotificationsOpen(true);
+              fetchNotificationCount();
+            }}
+            title="알림"
+            className="relative"
+          >
+            <Bell className="h-5 w-5" />
+            {notificationCount > 0 && (
+              <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-destructive" />
+            )}
+          </Button>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -186,6 +256,11 @@ export default function Header() {
           </DropdownMenu>
         </div>
       </div>
+
+      <NotificationsSheet 
+        open={notificationsOpen} 
+        onOpenChange={setNotificationsOpen}
+      />
     </header>
   );
 }
