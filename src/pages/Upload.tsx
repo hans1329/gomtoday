@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
+
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
@@ -27,7 +27,7 @@ export default function Upload() {
   const [content, setContent] = useState("");
   const [title, setTitle] = useState("");
   const [notebooks, setNotebooks] = useState<any[]>([]);
-  const [selectedNotebooks, setSelectedNotebooks] = useState<Set<string>>(new Set());
+  const [selectedNotebook, setSelectedNotebook] = useState<string | null>(null);
   const navigate = useNavigate();
   const {
     toast
@@ -111,9 +111,9 @@ export default function Upload() {
     setContent(diary.content || "");
     setTitle(diary.title || "");
     
-    // 선택된 일기장 설정
+    // 선택된 일기장 설정 (첫 번째 일기장만)
     const notebookIds = diary.diary_notebooks?.map((dn: any) => dn.notebook_id) || [];
-    setSelectedNotebooks(new Set(notebookIds));
+    setSelectedNotebook(notebookIds[0] || null);
     
     setLoading(false);
   };
@@ -130,19 +130,12 @@ export default function Upload() {
 
     if (data) {
       setNotebooks(data);
-    }
-  };
-
-  const toggleNotebook = (notebookId: string) => {
-    setSelectedNotebooks(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(notebookId)) {
-        newSet.delete(notebookId);
-      } else {
-        newSet.add(notebookId);
+      // 기본 일기장을 자동으로 선택
+      const defaultNotebook = data.find(nb => nb.is_default);
+      if (defaultNotebook && !selectedNotebook) {
+        setSelectedNotebook(defaultNotebook.id);
       }
-      return newSet;
-    });
+    }
   };
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -231,7 +224,7 @@ export default function Upload() {
           return;
         }
 
-        if (selectedNotebooks.size === 0) {
+        if (!selectedNotebook) {
           toast({
             title: "일기장을 선택해주세요",
             variant: "destructive",
@@ -262,14 +255,12 @@ export default function Upload() {
           .delete()
           .eq("diary_id", id);
 
-        for (const notebookId of selectedNotebooks) {
-          await supabase
-            .from("diary_notebooks")
-            .insert({
-              diary_id: id,
-              notebook_id: notebookId
-            });
-        }
+        await supabase
+          .from("diary_notebooks")
+          .insert({
+            diary_id: id,
+            notebook_id: selectedNotebook
+          });
         
         // 새로운 사진만 업로드
         if (selectedFiles.length > 0) {
@@ -454,24 +445,19 @@ export default function Upload() {
 
                 <div className="space-y-2">
                   <Label>일기장 선택</Label>
-                  <div className="space-y-2">
-                    {notebooks.map((notebook) => (
-                      <div key={notebook.id} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`notebook-${notebook.id}`}
-                          checked={selectedNotebooks.has(notebook.id)}
-                          onCheckedChange={() => toggleNotebook(notebook.id)}
-                        />
-                        <Label
-                          htmlFor={`notebook-${notebook.id}`}
-                          className="text-sm font-normal cursor-pointer"
-                        >
+                  <Select value={selectedNotebook || undefined} onValueChange={setSelectedNotebook}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="일기장을 선택하세요" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {notebooks.map((notebook) => (
+                        <SelectItem key={notebook.id} value={notebook.id}>
                           {notebook.name}
                           {notebook.is_default && " (기본)"}
-                        </Label>
-                      </div>
-                    ))}
-                  </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="border-t pt-6 mt-6" />
