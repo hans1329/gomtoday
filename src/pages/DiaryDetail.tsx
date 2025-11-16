@@ -322,13 +322,13 @@ export default function DiaryDetail() {
 
             {/* Content */}
             <div className="p-6 space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="text-sm text-muted-foreground">
-                  {format(new Date(diary.created_at), "yyyy년 M월 d일 (EEE) HH:mm", { locale: ko })}
-                </div>
+              <div className="flex items-center gap-2">
                 {diary.emoji && (
                   <span className="text-2xl">{diary.emoji}</span>
                 )}
+                <div className="text-sm text-muted-foreground">
+                  {format(new Date(diary.created_at), "yyyy년 M월 d일 (EEE) HH:mm", { locale: ko })}
+                </div>
               </div>
               
               {diary.title && (

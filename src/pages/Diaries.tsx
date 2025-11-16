@@ -232,27 +232,25 @@ export default function Diaries() {
                 <CardContent className="p-4">
                   <div className="flex gap-4">
                     {/* 썸네일 또는 이모티콘 */}
-                    <div className="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden bg-muted relative flex items-center justify-center">
-                      {diary.photos && diary.photos.length > 0 ? (
-                        <>
+                    <div className="flex-shrink-0 space-y-1">
+                      {diary.emoji && (
+                        <div className="text-2xl text-center">
+                          {diary.emoji}
+                        </div>
+                      )}
+                      <div className="w-20 h-20 rounded-lg overflow-hidden bg-muted flex items-center justify-center">
+                        {diary.photos && diary.photos.length > 0 ? (
                           <img
                             src={diary.photos[0].photo_url}
                             alt="일기 사진"
                             className="w-full h-full object-cover"
                           />
-                          {diary.emoji && (
-                            <div className="absolute bottom-1 right-1 bg-background/90 rounded-full w-6 h-6 flex items-center justify-center text-xs shadow-sm">
-                              {diary.emoji}
-                            </div>
-                          )}
-                        </>
-                      ) : (
-                        diary.emoji && (
-                          <div className="text-3xl">
-                            {diary.emoji}
+                        ) : (
+                          <div className="text-4xl text-muted-foreground/20">
+                            📝
                           </div>
-                        )
-                      )}
+                        )}
+                      </div>
                     </div>
 
                      {/* 내용 */}
