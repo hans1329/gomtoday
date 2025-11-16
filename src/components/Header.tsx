@@ -149,9 +149,13 @@ export default function Header() {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate("/diaries")} className="py-3">
+              <DropdownMenuItem onClick={() => navigate("/")} className="py-3">
                 <List className="mr-2 h-4 w-4" />
                 <span>전체 일기</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/diaries")} className="py-3">
+                <BookOpen className="mr-2 h-4 w-4" />
+                <span>나의 일기</span>
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => navigate("/notebooks")} className="py-3">
                 <User className="mr-2 h-4 w-4" />
