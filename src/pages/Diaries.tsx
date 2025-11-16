@@ -58,9 +58,6 @@ export default function Diaries() {
       .from("diaries")
       .select(`
         *,
-        profiles!diaries_user_id_fkey (
-          name
-        ),
         photos!photos_diary_id_fkey (
           photo_url,
           display_order
@@ -90,8 +87,7 @@ export default function Diaries() {
         
         return {
           ...diary,
-          photos: allPhotos,
-          author_name: diary.profiles?.name
+          photos: allPhotos
         };
       });
       setDiaries(diariesWithSortedPhotos);
