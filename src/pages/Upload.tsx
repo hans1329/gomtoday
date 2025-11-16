@@ -21,8 +21,8 @@ export default function Upload() {
   const [notebooks, setNotebooks] = useState<any[]>([]);
   const [selectedNotebooks, setSelectedNotebooks] = useState<Set<string>>(new Set());
   const [uploading, setUploading] = useState(false);
-  const [showNotebookDialog, setShowNotebookDialog] = useState(false);
-  const [createdDiaryId, setCreatedDiaryId] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadStatus, setUploadStatus] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const {
@@ -177,8 +177,7 @@ export default function Upload() {
     setPreviewUrls(newUrls);
     setExistingPhotos(newExisting);
   };
-  const toggleNotebook = (notebookId: string, isPrivate: boolean) => {
-    if (isPrivate) return;
+  const toggleNotebook = (notebookId: string) => {
     setSelectedNotebooks(prev => {
       const newSet = new Set(prev);
       if (newSet.has(notebookId)) {
@@ -189,31 +188,11 @@ export default function Upload() {
       return newSet;
     });
   };
-  const handleSaveToNotebooks = async () => {
-    if (!createdDiaryId) return;
-    try {
-      for (const notebookId of selectedNotebooks) {
-        const {
-          error
-        } = await supabase.from("diary_notebooks").insert({
-          diary_id: createdDiaryId,
-          notebook_id: notebookId
-        });
-        if (error) console.error("Error linking diary to notebook:", error);
-      }
-      toast({
-        title: "일기가 저장되었어요!",
-        description: "선택한 일기장에 저장되었습니다."
-      });
-      navigate(`/diary/${createdDiaryId}`);
-    } catch (error: any) {
-      console.error("Save to notebooks error:", error);
-      toast({
-        title: "저장 실패",
-        description: error.message,
-        variant: "destructive"
-      });
-    }
+  
+  const cancelUpload = () => {
+    setUploading(false);
+    setUploadProgress(0);
+    setUploadStatus("");
   };
   const handleUpload = async () => {
     const totalPhotos = (existingPhotos.length || 0) + selectedFiles.length;
@@ -228,6 +207,9 @@ export default function Upload() {
     }
     
     setUploading(true);
+    setUploadProgress(10);
+    setUploadStatus("사진 업로드 준비 중...");
+    
     const {
       data: {
         user
@@ -243,6 +225,9 @@ export default function Upload() {
       
       if (isEditMode) {
         // 편집 모드: 일기 업데이트
+        setUploadStatus("일기 업데이트 중...");
+        setUploadProgress(30);
+        
         const { error: updateError } = await supabase
           .from("diaries")
           .update({
@@ -255,6 +240,9 @@ export default function Upload() {
         
         // 새로운 사진만 업로드
         if (selectedFiles.length > 0) {
+          setUploadStatus("사진 업로드 중...");
+          setUploadProgress(50);
+          
           for (let i = 0; i < selectedFiles.length; i++) {
             const file = selectedFiles[i];
             const fileExt = file.name.split('.').pop() || 'jpg';
@@ -277,15 +265,20 @@ export default function Upload() {
               display_order: existingPhotos.length + i
             });
             if (photoError) throw photoError;
+            setUploadProgress(50 + ((i + 1) / selectedFiles.length) * 30);
           }
         }
         
+        setUploadProgress(100);
         toast({
           title: "일기가 수정되었어요!",
         });
         navigate(`/diary/${id}`);
       } else {
         // 새로 작성 모드
+        setUploadStatus("일기 생성 중...");
+        setUploadProgress(20);
+        
         const {
           data: diaryData,
           error: diaryError
@@ -298,6 +291,9 @@ export default function Upload() {
         if (diaryError) throw diaryError;
         
         diaryId = diaryData.id;
+        
+        setUploadStatus("사진 업로드 중...");
+        setUploadProgress(30);
         
         const photoUrls: string[] = [];
         for (let i = 0; i < selectedFiles.length; i++) {
@@ -323,7 +319,12 @@ export default function Upload() {
           });
           if (photoError) throw photoError;
           photoUrls.push(publicUrl);
+          setUploadProgress(30 + ((i + 1) / selectedFiles.length) * 30);
         }
+        
+        setUploadStatus("AI가 일기를 작성하고 있어요...");
+        setUploadProgress(70);
+        
         const {
           data: aiResponse,
           error: aiError
@@ -336,6 +337,10 @@ export default function Upload() {
           }
         });
         if (aiError) throw aiError;
+        
+        setUploadProgress(90);
+        setUploadStatus("일기를 저장하고 있어요...");
+        
         const {
           error: updateError
         } = await supabase.from("diaries").update({
@@ -343,8 +348,24 @@ export default function Upload() {
           emoji: aiResponse.emoji
         }).eq("id", diaryData.id);
         if (updateError) throw updateError;
-        setCreatedDiaryId(diaryData.id);
-        setShowNotebookDialog(true);
+        
+        // 일기장에 저장
+        for (const notebookId of selectedNotebooks) {
+          const {
+            error
+          } = await supabase.from("diary_notebooks").insert({
+            diary_id: diaryData.id,
+            notebook_id: notebookId
+          });
+          if (error) console.error("Error linking diary to notebook:", error);
+        }
+        
+        setUploadProgress(100);
+        toast({
+          title: "일기가 작성되었어요!",
+          description: "선택한 일기장에 저장되었습니다."
+        });
+        navigate(`/diary/${diaryData.id}`);
       }
     } catch (error: any) {
       console.error("Upload error:", error);
@@ -355,6 +376,8 @@ export default function Upload() {
       });
     } finally {
       setUploading(false);
+      setUploadProgress(0);
+      setUploadStatus("");
     }
   };
   
@@ -500,6 +523,38 @@ export default function Upload() {
               </div>
             )}
 
+            {!isEditMode && (
+              <div className="space-y-3">
+                <Label>일기장 선택</Label>
+                <div className="space-y-2 max-h-48 overflow-y-auto border rounded-lg p-3">
+                  {notebooks.map(notebook => {
+                    const isPrivate = notebook.visibility === "private" && notebook.is_default;
+                    const isSelected = selectedNotebooks.has(notebook.id);
+                    return (
+                      <div
+                        key={notebook.id}
+                        className={`flex items-center space-x-2 p-2 rounded ${isPrivate ? "bg-muted/50" : "hover:bg-muted/50 cursor-pointer"}`}
+                        onClick={() => !isPrivate && toggleNotebook(notebook.id)}
+                      >
+                        <Checkbox
+                          checked={isSelected}
+                          disabled={isPrivate}
+                          onCheckedChange={() => toggleNotebook(notebook.id)}
+                        />
+                        <div className="flex-1">
+                          <div className="font-medium text-sm">{notebook.name}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {notebook.visibility === "private" ? "비공개" : "공개"}
+                            {isPrivate && " (기본)"}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             <Button onClick={handleUpload} disabled={uploading || (existingPhotos.length + selectedFiles.length) < 1} className="w-full">
               {uploading ? <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -510,41 +565,26 @@ export default function Upload() {
         </Card>
       </div>
 
-      <Dialog open={showNotebookDialog} onOpenChange={setShowNotebookDialog}>
-        <DialogContent className="mx-4">
+      <Dialog open={uploading} onOpenChange={() => {}}>
+        <DialogContent className="mx-4" onPointerDownOutside={(e) => e.preventDefault()}>
           <DialogHeader>
-            <DialogTitle>일기장 선택</DialogTitle>
+            <DialogTitle>일기 작성 중</DialogTitle>
             <DialogDescription>
-              이 일기를 저장할 일기장을 선택해주세요
+              {uploadStatus}
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-2 max-h-60 overflow-y-auto">
-            {notebooks.map(notebook => {
-            const isPrivate = notebook.visibility === "private" && notebook.is_default;
-            const isSelected = selectedNotebooks.has(notebook.id);
-            return <div key={notebook.id} className={`flex items-center space-x-2 p-3 rounded-lg border ${isPrivate ? "bg-muted" : "hover:bg-secondary cursor-pointer"}`} onClick={() => !isPrivate && toggleNotebook(notebook.id, isPrivate)}>
-                  <Checkbox checked={isSelected} disabled={isPrivate} onCheckedChange={() => toggleNotebook(notebook.id, isPrivate)} />
-                  <div className="flex-1">
-                    <div className="font-medium">{notebook.name}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {notebook.visibility === "private" ? "비공개" : "공개"}
-                      {isPrivate && " (기본)"}
-                    </div>
-                  </div>
-                </div>;
-          })}
+          <div className="space-y-4 py-4">
+            <div className="relative h-3 w-full overflow-hidden rounded-full bg-secondary">
+              <div 
+                className="h-full bg-gradient-to-r from-primary via-purple-500 to-pink-500 transition-all duration-500 ease-out"
+                style={{ width: `${uploadProgress}%` }}
+              />
+            </div>
+            <p className="text-center text-sm text-muted-foreground">{uploadProgress}%</p>
           </div>
-          <DialogFooter className="flex-col sm:flex-row gap-2">
-            <Button variant="outline" onClick={() => {
-            setShowNotebookDialog(false);
-            if (createdDiaryId) {
-              navigate(`/diary/${createdDiaryId}`);
-            }
-          }} className="w-full sm:w-auto order-2 sm:order-1">
-              건너뛰기
-            </Button>
-            <Button onClick={handleSaveToNotebooks} className="w-full sm:w-auto order-1 sm:order-2">
-              저장
+          <DialogFooter className="flex-col-reverse sm:flex-row sm:justify-end gap-2">
+            <Button variant="outline" onClick={cancelUpload} className="w-full sm:w-auto">
+              취소
             </Button>
           </DialogFooter>
         </DialogContent>
