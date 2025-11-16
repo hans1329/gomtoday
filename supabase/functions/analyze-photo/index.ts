@@ -17,7 +17,7 @@ serve(async (req) => {
   }
 
   try {
-    const { photoUrl, photoUrls, tone = 'warm', length = 'medium', perspective = 'camera', userContext } = await req.json();
+    const { photoUrl, photoUrls, emotion = 'happy', length = 'medium', perspective = 'camera', userContext } = await req.json();
     
     // 여러 사진 또는 단일 사진 지원
     const photos = photoUrls || (photoUrl ? [photoUrl] : []);
@@ -56,25 +56,53 @@ serve(async (req) => {
       }
     };
 
+    const emotionMap: Record<string, { name: string; description: string }> = {
+      happy: {
+        name: '기쁨',
+        description: '밝고 긍정적인 에너지가 넘치는 톤으로 작성한다. 기쁨과 행복감을 전달하는 표현을 사용한다.'
+      },
+      sad: {
+        name: '슬픔',
+        description: '잔잔하고 감성적인 톤으로 작성한다. 슬픔과 아쉬움을 담되 과도하지 않게 표현한다.'
+      },
+      angry: {
+        name: '화남',
+        description: '강렬하고 직설적인 톤으로 작성한다. 분노와 답답함을 표현하되 품위를 유지한다.'
+      },
+      calm: {
+        name: '평온',
+        description: '차분하고 고요한 톤으로 작성한다. 평화롭고 안정된 감정을 전달한다.'
+      },
+      excited: {
+        name: '신남',
+        description: '활기차고 역동적인 톤으로 작성한다. 들뜸과 흥분을 생동감 있게 표현한다.'
+      },
+      anxious: {
+        name: '불안',
+        description: '조심스럽고 긴장된 톤으로 작성한다. 걱정과 불안감을 섬세하게 표현한다.'
+      }
+    };
+
     const selectedPerspective = perspectiveMap[perspective] || perspectiveMap.camera;
+    const selectedEmotion = emotionMap[emotion] || emotionMap.happy;
 
     const systemPrompt = `너는 '사진 기반 개인 일기' 작성 보조자다.
 원칙:
 - 사진에 '확실히 보이는 사실'과 '추정'은 구분한다.
 - 사생활 보호에 유의한다(이름·얼굴·차량번호 등 노출 금지).
-- 톤과 길이, 시점 지시를 따른다.
+- 감정, 길이, 시점 지시를 따른다.
 - ${photos.length}장의 사진이 있으면, 모든 사진의 내용을 종합하여 하나의 완성된 일기를 작성한다.
 
 입력:
 - 사진 ${photos.length}장
-- 톤: ${tone === 'warm' ? '따뜻함' : tone === 'calm' ? '차분함' : tone === 'essay' ? '에세이' : '경쾌함'}
+- 감정: ${selectedEmotion.name} - ${selectedEmotion.description}
 - 길이: ${length === 'short' ? '짧게(5-7문장)' : length === 'medium' ? '중간(8-10문장)' : '길게(11-15문장)'}
 - 시점: ${selectedPerspective.name}
 ${userContext ? `- 사용자 맥락: ${userContext}` : ''}
 
 출력:
 - ${selectedPerspective.instruction}
-- 톤과 길이에 맞춤.
+- 감정과 길이에 맞춤.
 - (추정) 문장은 "아마," "느껴졌다" 등 완곡 표현 사용.
 - 자연스러운 한국어로 작성.
 - 여러 사진의 경우, 시간 흐름이나 주제에 따라 자연스럽게 연결하여 작성.`;
@@ -180,7 +208,7 @@ ${userContext ? `- 사용자 맥락: ${userContext}` : ''}
       JSON.stringify({ 
         content: diaryContent,
         emoji: selectedEmoji,
-        tone,
+        emotion,
         length 
       }), 
       {
