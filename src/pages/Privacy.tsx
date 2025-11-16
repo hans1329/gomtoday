@@ -12,7 +12,7 @@ export default function Privacy() {
             <section>
               <h3 className="text-lg font-semibold mb-2">1. 수집하는 개인정보 항목</h3>
               <p className="text-muted-foreground">
-                3rdMe는 회원가입 및 서비스 제공을 위해 다음과 같은 개인정보를 수집합니다:
+                3rdME는 회원가입 및 서비스 제공을 위해 다음과 같은 개인정보를 수집합니다:
               </p>
               <ul className="list-disc pl-6 text-muted-foreground space-y-1">
                 <li>필수항목: 이메일 주소, 비밀번호, 이름</li>
@@ -39,7 +39,7 @@ export default function Privacy() {
             <section>
               <h3 className="text-lg font-semibold mb-2">4. 개인정보 제3자 제공</h3>
               <p className="text-muted-foreground">
-                3rdMe는 원칙적으로 이용자의 개인정보를 제3자에게 제공하지 않습니다.
+                3rdME는 원칙적으로 이용자의 개인정보를 제3자에게 제공하지 않습니다.
               </p>
             </section>
 

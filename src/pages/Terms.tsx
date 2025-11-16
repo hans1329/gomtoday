@@ -12,7 +12,7 @@ export default function Terms() {
             <section>
               <h3 className="text-lg font-semibold mb-2">제1조 (목적)</h3>
               <p className="text-muted-foreground">
-                본 약관은 3rdMe(이하 "회사")가 제공하는 일기 작성 서비스(이하 "서비스")의 이용과 관련하여 
+                본 약관은 3rdME(이하 "회사")가 제공하는 일기 작성 서비스(이하 "서비스")의 이용과 관련하여
                 회사와 이용자의 권리, 의무 및 책임사항을 규정함을 목적으로 합니다.
               </p>
             </section>

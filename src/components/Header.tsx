@@ -100,8 +100,8 @@ export default function Header() {
               onClick={() => navigate("/")}
               className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
             >
-              <img src="/3rdme-logo.png" alt="3rdMe" className="w-6 h-6" />
-              <span className="hidden md:inline font-bold text-xl">3rdMe</span>
+              <img src="/3rdme-logo.png" alt="3rdME" className="w-6 h-6" />
+              <span className="hidden md:inline font-bold text-xl">3rdME</span>
             </button>
           ) : (
             <Button

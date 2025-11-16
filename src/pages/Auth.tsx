@@ -80,9 +80,9 @@ export default function Auth() {
       <Card className="w-full max-w-md shadow-medium bg-white">
         <CardHeader className="space-y-3">
           <div className="flex items-center justify-center gap-1.5 mb-2">
-            <img src="https://sqxoqvfcaekaxbpfguod.supabase.co/storage/v1/object/public/brand-assets/3rdme-logo.png" alt="3rdMe" className="w-10 h-10" />
+            <img src="https://sqxoqvfcaekaxbpfguod.supabase.co/storage/v1/object/public/brand-assets/3rdme-logo.png" alt="3rdME" className="w-10 h-10" />
             <CardTitle className="text-3xl font-bold">
-              3rdMe
+              3rdME
             </CardTitle>
           </div>
           <CardDescription className="text-base text-center">
@@ -202,7 +202,7 @@ export default function Auth() {
               </a>
             </div>
             <p className="text-center text-xs text-muted-foreground mt-4">
-              © 2024 3rdMe. All rights reserved.
+              © 2024 3rdME. All rights reserved.
             </p>
           </div>
         </CardContent>
