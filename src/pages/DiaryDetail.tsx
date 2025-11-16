@@ -53,6 +53,10 @@ export default function DiaryDetail() {
           id,
           photo_url,
           display_order
+        ),
+        photo:photos!diaries_photo_id_fkey (
+          id,
+          photo_url
         )
       `)
       .eq("id", id)
@@ -63,7 +67,19 @@ export default function DiaryDetail() {
     }
 
     if (data) {
-      setDiary(data);
+      // 오래된 방식과 새 방식 모두 처리
+      let allPhotos = [];
+      
+      if (data.photos && data.photos.length > 0) {
+        allPhotos = data.photos.sort((a: any, b: any) => a.display_order - b.display_order);
+      } else if (data.photo) {
+        allPhotos = [data.photo];
+      }
+      
+      setDiary({
+        ...data,
+        photos: allPhotos
+      });
       fetchLikes();
       fetchComments();
     }
