@@ -87,7 +87,7 @@ export default function DiaryCard({
                       </AvatarFallback>
                     </Avatar>
                     <p className="text-xs text-muted-foreground">
-                      {diary.author_name || "Unknown"}
+                      by {diary.author_name || "Unknown"}
                     </p>
                   </div>
                 )}
