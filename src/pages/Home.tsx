@@ -34,7 +34,8 @@ export default function Home() {
       .select(`
         *,
         photos!photos_diary_id_fkey (
-          photo_url
+          photo_url,
+          display_order
         )
       `)
       .eq("user_id", user.id)
@@ -45,7 +46,12 @@ export default function Home() {
     }
     
     if (data) {
-      setDiaries(data);
+      // 각 일기의 사진들을 display_order로 정렬
+      const diariesWithSortedPhotos = data.map(diary => ({
+        ...diary,
+        photos: diary.photos?.sort((a: any, b: any) => a.display_order - b.display_order) || []
+      }));
+      setDiaries(diariesWithSortedPhotos);
     }
     setLoading(false);
   };
@@ -224,6 +230,56 @@ export default function Home() {
           <BookOpen className="mr-2 h-4 w-4" />
           리스트로 보기
         </Button>
+
+        {/* 최근 일기 5개 */}
+        {diaries.length > 0 && (
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">최근 일기</h3>
+            <div className="space-y-3">
+              {diaries.slice(0, 5).map((diary) => (
+                <Card
+                  key={diary.id}
+                  className="shadow-medium hover:shadow-lg transition-shadow cursor-pointer group"
+                  onClick={() => navigate(`/diary/${diary.id}`)}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex gap-4">
+                      {/* 썸네일 */}
+                      {diary.photos && diary.photos.length > 0 && (
+                        <div className="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden bg-muted relative">
+                          <img
+                            src={diary.photos[0].photo_url}
+                            alt="일기 사진"
+                            className="w-full h-full object-cover"
+                          />
+                          {diary.emoji && (
+                            <div className="absolute bottom-1 right-1 bg-background/90 rounded-full w-6 h-6 flex items-center justify-center text-xs shadow-sm">
+                              {diary.emoji}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* 내용 */}
+                      <div className="flex-1 min-w-0 space-y-2">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium">
+                              {format(new Date(diary.created_at), "yyyy년 M월 d일 (E)", { locale: ko })}
+                            </p>
+                          </div>
+                        </div>
+                        <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                          {diary.content}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
