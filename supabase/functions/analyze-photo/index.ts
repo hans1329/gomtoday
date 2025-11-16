@@ -17,17 +17,39 @@ serve(async (req) => {
   }
 
   try {
-    const { photoUrl, tone = 'warm', length = 'medium', perspective = 'first', userContext } = await req.json();
+    const { photoUrl, tone = 'warm', length = 'medium', perspective = 'camera', userContext } = await req.json();
     
     console.log('Analyzing photo:', photoUrl);
 
     // System prompt in Korean for diary
-    const perspectiveText = perspective === 'first' ? '1인칭(나)' : perspective === 'third' ? '3인칭(그/그녀)' : '관찰자';
-    const perspectiveInstruction = perspective === 'first' 
-      ? '1인칭 시점으로 "나"를 주어로 작성한다.' 
-      : perspective === 'third'
-      ? '3인칭 시점으로 "그" 또는 "그녀"를 주어로 작성한다.'
-      : '관찰자 시점으로 객관적이고 중립적으로 작성한다.';
+    const perspectiveMap: Record<string, { name: string; instruction: string }> = {
+      camera: {
+        name: '카메라',
+        instruction: '카메라의 시점에서 렌즈를 통해 바라본 장면을 객관적이고 시각적으로 묘사한다. "렌즈가 포착한", "프레임 안에" 등의 표현을 사용한다.'
+      },
+      pet: {
+        name: '애완동물',
+        instruction: '애완동물(강아지, 고양이 등)의 시점에서 주인을 바라보며 작성한다. 동물의 순수하고 애정 어린 시선으로 표현한다.'
+      },
+      friend: {
+        name: '친구',
+        instruction: '친한 친구의 시점에서 따뜻하고 친근하게 작성한다. "내 친구는", "그/그녀는" 등의 표현을 사용한다.'
+      },
+      family: {
+        name: '가족',
+        instruction: '가족 구성원의 시점에서 애정과 걱정이 담긴 시선으로 작성한다. 따뜻하고 보살피는 어조를 사용한다.'
+      },
+      stranger: {
+        name: '낯선 사람',
+        instruction: '처음 보는 낯선 사람의 시점에서 호기심 어린 시선으로 객관적으로 관찰하듯 작성한다.'
+      },
+      future: {
+        name: '미래의 나',
+        instruction: '미래에서 과거를 돌아보는 시점으로 작성한다. 회상하고 반추하는 어조로 "그때의 나는" 등의 표현을 사용한다.'
+      }
+    };
+
+    const selectedPerspective = perspectiveMap[perspective] || perspectiveMap.camera;
 
     const systemPrompt = `너는 '사진 기반 개인 일기' 작성 보조자다.
 원칙:
@@ -39,11 +61,11 @@ serve(async (req) => {
 - 사진 이미지
 - 톤: ${tone === 'warm' ? '따뜻함' : tone === 'calm' ? '차분함' : tone === 'essay' ? '에세이' : '경쾌함'}
 - 길이: ${length === 'short' ? '짧게(5-7문장)' : length === 'medium' ? '중간(8-10문장)' : '길게(11-15문장)'}
-- 시점: ${perspectiveText}
+- 시점: ${selectedPerspective.name}
 ${userContext ? `- 사용자 맥락: ${userContext}` : ''}
 
 출력:
-- ${perspectiveInstruction}
+- ${selectedPerspective.instruction}
 - 톤과 길이에 맞춤.
 - (추정) 문장은 "아마," "느껴졌다" 등 완곡 표현 사용.
 - 자연스러운 한국어로 작성.`;

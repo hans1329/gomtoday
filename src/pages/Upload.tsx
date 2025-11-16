@@ -13,7 +13,7 @@ export default function Upload() {
   const [previewUrl, setPreviewUrl] = useState<string>("");
   const [tone, setTone] = useState("warm");
   const [length, setLength] = useState("medium");
-  const [perspective, setPerspective] = useState("first");
+  const [perspective, setPerspective] = useState("camera");
   const [uploading, setUploading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -205,9 +205,12 @@ export default function Upload() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="first">1인칭 (나)</SelectItem>
-                  <SelectItem value="third">3인칭 (그/그녀)</SelectItem>
-                  <SelectItem value="observer">관찰자</SelectItem>
+                  <SelectItem value="camera">카메라 시점</SelectItem>
+                  <SelectItem value="pet">애완동물 시점</SelectItem>
+                  <SelectItem value="friend">친구 시점</SelectItem>
+                  <SelectItem value="family">가족 시점</SelectItem>
+                  <SelectItem value="stranger">낯선 사람 시점</SelectItem>
+                  <SelectItem value="future">미래의 나 시점</SelectItem>
                 </SelectContent>
               </Select>
             </div>
