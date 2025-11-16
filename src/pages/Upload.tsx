@@ -6,18 +6,21 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Upload as UploadIcon, Loader2, ArrowLeft } from "lucide-react";
 
 export default function Upload() {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
-  const [tone, setTone] = useState("warm");
+  const [emotion, setEmotion] = useState("happy");
   const [length, setLength] = useState("medium");
   const [perspective, setPerspective] = useState("camera");
   const [notebooks, setNotebooks] = useState<any[]>([]);
   const [selectedNotebooks, setSelectedNotebooks] = useState<Set<string>>(new Set());
   const [uploading, setUploading] = useState(false);
+  const [showNotebookDialog, setShowNotebookDialog] = useState(false);
+  const [createdDiaryId, setCreatedDiaryId] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -119,6 +122,37 @@ export default function Upload() {
     });
   };
 
+  const handleSaveToNotebooks = async () => {
+    if (!createdDiaryId) return;
+
+    try {
+      for (const notebookId of selectedNotebooks) {
+        const { error } = await supabase
+          .from("diary_notebooks")
+          .insert({
+            diary_id: createdDiaryId,
+            notebook_id: notebookId,
+          });
+        
+        if (error) console.error("Error linking diary to notebook:", error);
+      }
+
+      toast({
+        title: "일기가 저장되었어요!",
+        description: "선택한 일기장에 저장되었습니다.",
+      });
+
+      navigate(`/diary/${createdDiaryId}`);
+    } catch (error: any) {
+      console.error("Save to notebooks error:", error);
+      toast({
+        title: "저장 실패",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleUpload = async () => {
     if (selectedFiles.length < 3) {
       toast({
@@ -143,7 +177,7 @@ export default function Upload() {
         .insert({
           user_id: user.id,
           content: "",
-          tone,
+          tone: emotion,
           length,
         })
         .select()
@@ -154,8 +188,7 @@ export default function Upload() {
       const photoUrls: string[] = [];
       for (let i = 0; i < selectedFiles.length; i++) {
         const file = selectedFiles[i];
-        const fileExt = file.name.split(".").pop();
-        const fileName = `${user.id}/${Date.now()}_${i}.${fileExt}`;
+        const fileName = `${user.id}/${Date.now()}-${i}-${file.name}`;
 
         const { error: uploadError } = await supabase.storage
           .from("photos")
@@ -185,7 +218,7 @@ export default function Upload() {
         {
           body: {
             photoUrls: photoUrls,
-            tone,
+            emotion,
             length,
             perspective,
           },
@@ -204,23 +237,8 @@ export default function Upload() {
 
       if (updateError) throw updateError;
 
-      for (const notebookId of selectedNotebooks) {
-        const { error } = await supabase
-          .from("diary_notebooks")
-          .insert({
-            diary_id: diaryData.id,
-            notebook_id: notebookId,
-          });
-        
-        if (error) console.error("Error linking diary to notebook:", error);
-      }
-
-      toast({
-        title: "일기가 작성되었어요!",
-        description: `${selectedFiles.length}장의 사진으로 AI가 일기를 작성했습니다.`,
-      });
-
-      navigate(`/diary/${diaryData.id}`);
+      setCreatedDiaryId(diaryData.id);
+      setShowNotebookDialog(true);
     } catch (error: any) {
       console.error("Upload error:", error);
       toast({
@@ -235,16 +253,15 @@ export default function Upload() {
 
   return (
     <div className="min-h-screen gradient-soft p-4">
-      <div className="max-w-2xl mx-auto pt-8 space-y-6">
+      <div className="max-w-2xl mx-auto pt-4 space-y-6">
         <Button
           variant="ghost"
-          size="sm"
+          size="icon"
           onClick={() => navigate("/")}
-          className="mb-4"
         >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          뒤로가기
+          <ArrowLeft className="h-5 w-5" />
         </Button>
+        
         <Card className="shadow-medium">
           <CardHeader>
             <CardTitle>일기 작성</CardTitle>
@@ -287,59 +304,30 @@ export default function Upload() {
                 <label className="flex flex-col items-center justify-center aspect-[4/3] rounded-lg border-2 border-dashed border-border hover:border-primary cursor-pointer transition-colors">
                   <UploadIcon className="w-12 h-12 text-muted-foreground mb-2" />
                   <p className="text-sm text-muted-foreground">클릭하여 3~6장의 사진 선택</p>
-                  <p className="text-xs text-muted-foreground mt-1">PNG, JPG, HEIC</p>
                   <input
                     type="file"
                     accept="image/*"
                     multiple
-                    className="hidden"
                     onChange={handleFileSelect}
+                    className="hidden"
                   />
                 </label>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label>일기장 선택</Label>
-              <div className="space-y-2 p-3 rounded-lg border">
-                {notebooks.map((notebook) => {
-                  const isPrivate = notebook.visibility === "private" && notebook.is_default;
-                  const isSelected = selectedNotebooks.has(notebook.id);
-                  
-                  return (
-                    <div key={notebook.id} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={notebook.id}
-                        checked={isSelected}
-                        disabled={isPrivate}
-                        onCheckedChange={() => toggleNotebook(notebook.id, isPrivate)}
-                      />
-                      <Label
-                        htmlFor={notebook.id}
-                        className="flex-1 cursor-pointer"
-                      >
-                        {notebook.name}
-                        {isPrivate && " (기본)"}
-                        {notebook.visibility === "public" && " 🌍"}
-                        {notebook.visibility === "shared" && " 👥"}
-                      </Label>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label>톤 선택</Label>
-              <Select value={tone} onValueChange={setTone}>
+              <Label>감정 선택</Label>
+              <Select value={emotion} onValueChange={setEmotion}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="warm">따뜻하게</SelectItem>
-                  <SelectItem value="funny">재미있게</SelectItem>
-                  <SelectItem value="serious">진지하게</SelectItem>
-                  <SelectItem value="poetic">시적으로</SelectItem>
+                  <SelectItem value="happy">기쁨 😊</SelectItem>
+                  <SelectItem value="sad">슬픔 😢</SelectItem>
+                  <SelectItem value="angry">화남 😠</SelectItem>
+                  <SelectItem value="calm">평온 😌</SelectItem>
+                  <SelectItem value="excited">신남 🤩</SelectItem>
+                  <SelectItem value="anxious">불안 😰</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -351,9 +339,9 @@ export default function Upload() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="short">짧게</SelectItem>
-                  <SelectItem value="medium">보통</SelectItem>
-                  <SelectItem value="long">길게</SelectItem>
+                  <SelectItem value="short">짧게 (5-7문장)</SelectItem>
+                  <SelectItem value="medium">중간 (8-10문장)</SelectItem>
+                  <SelectItem value="long">길게 (11-15문장)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -365,16 +353,19 @@ export default function Upload() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="camera">카메라 시점</SelectItem>
-                  <SelectItem value="photographer">사진 찍는 사람 시점</SelectItem>
-                  <SelectItem value="subject">사진 속 인물 시점</SelectItem>
+                  <SelectItem value="camera">핸드폰</SelectItem>
+                  <SelectItem value="pet">애완동물</SelectItem>
+                  <SelectItem value="friend">친구</SelectItem>
+                  <SelectItem value="family">가족</SelectItem>
+                  <SelectItem value="stranger">낯선 사람</SelectItem>
+                  <SelectItem value="future">미래의 나</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <Button
               onClick={handleUpload}
-              disabled={selectedFiles.length < 3 || uploading}
+              disabled={uploading || selectedFiles.length < 3}
               className="w-full"
             >
               {uploading ? (
@@ -383,12 +374,72 @@ export default function Upload() {
                   일기 작성 중...
                 </>
               ) : (
-                `일기 작성하기 (${selectedFiles.length}/3~6)`
+                "일기 작성하기"
               )}
             </Button>
           </CardContent>
         </Card>
       </div>
+
+      <Dialog open={showNotebookDialog} onOpenChange={setShowNotebookDialog}>
+        <DialogContent className="mx-4">
+          <DialogHeader>
+            <DialogTitle>일기장 선택</DialogTitle>
+            <DialogDescription>
+              이 일기를 저장할 일기장을 선택해주세요
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 max-h-60 overflow-y-auto">
+            {notebooks.map((notebook) => {
+              const isPrivate = notebook.visibility === "private" && notebook.is_default;
+              const isSelected = selectedNotebooks.has(notebook.id);
+              
+              return (
+                <div
+                  key={notebook.id}
+                  className={`flex items-center space-x-2 p-3 rounded-lg border ${
+                    isPrivate ? "bg-muted" : "hover:bg-secondary cursor-pointer"
+                  }`}
+                  onClick={() => !isPrivate && toggleNotebook(notebook.id, isPrivate)}
+                >
+                  <Checkbox
+                    checked={isSelected}
+                    disabled={isPrivate}
+                    onCheckedChange={() => toggleNotebook(notebook.id, isPrivate)}
+                  />
+                  <div className="flex-1">
+                    <div className="font-medium">{notebook.name}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {notebook.visibility === "private" ? "비공개" : "공개"}
+                      {isPrivate && " (기본)"}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowNotebookDialog(false);
+                if (createdDiaryId) {
+                  navigate(`/diary/${createdDiaryId}`);
+                }
+              }}
+              className="w-full sm:w-auto order-2 sm:order-1"
+            >
+              건너뛰기
+            </Button>
+            <Button
+              onClick={handleSaveToNotebooks}
+              className="w-full sm:w-auto order-1 sm:order-2"
+            >
+              저장
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
