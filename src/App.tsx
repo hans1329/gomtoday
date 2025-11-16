@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import Header from "./components/Header";
 import Home from "./pages/Home";
 import Auth from "./pages/Auth";
@@ -14,6 +14,29 @@ import Diaries from "./pages/Diaries";
 import Notebooks from "./pages/Notebooks";
 import NotFound from "./pages/NotFound";
 
+function AppContent() {
+  const location = useLocation();
+  const hideHeader = location.pathname === "/auth";
+
+  return (
+    <div className="min-h-screen flex flex-col w-full">
+      {!hideHeader && <Header />}
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/auth" element={<Auth />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/upload" element={<Upload />} />
+        <Route path="/upload/:id" element={<Upload />} />
+        <Route path="/diaries" element={<Diaries />} />
+        <Route path="/notebooks" element={<Notebooks />} />
+        <Route path="/diary/:id" element={<DiaryDetail />} />
+        <Route path="/diary-review/:id" element={<DiaryReview />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </div>
+  );
+}
+
 const queryClient = new QueryClient();
 
 function App() {
@@ -23,21 +46,7 @@ function App() {
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <div className="min-h-screen flex flex-col w-full">
-            <Header />
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/upload" element={<Upload />} />
-              <Route path="/upload/:id" element={<Upload />} />
-              <Route path="/diaries" element={<Diaries />} />
-              <Route path="/notebooks" element={<Notebooks />} />
-              <Route path="/diary/:id" element={<DiaryDetail />} />
-              <Route path="/diary-review/:id" element={<DiaryReview />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </div>
+          <AppContent />
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
