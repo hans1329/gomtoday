@@ -9,6 +9,7 @@ interface DiaryCardProps {
     created_at: string;
     emoji?: string | null;
     photos?: { photo_url: string }[];
+    photo?: { photo_url: string } | null;
   };
   onClick: () => void;
   showTime?: boolean;
@@ -30,6 +31,7 @@ export default function DiaryCard({
     : "text-2xl";
 
   const hasPhotos = diary.photos && diary.photos.length > 0;
+  const photoUrl = hasPhotos ? diary.photos[0].photo_url : diary.photo?.photo_url;
 
   return (
     <Card
@@ -40,10 +42,10 @@ export default function DiaryCard({
         <div className="flex gap-4">
           {/* 썸네일 또는 이모티콘 */}
           <div className={`flex-shrink-0 ${sizeClasses} rounded-lg overflow-hidden bg-muted relative flex items-center justify-center`}>
-            {hasPhotos ? (
+            {photoUrl ? (
               <>
                 <img
-                  src={diary.photos[0].photo_url}
+                  src={photoUrl}
                   alt="일기 사진"
                   className="w-full h-full object-cover"
                 />
