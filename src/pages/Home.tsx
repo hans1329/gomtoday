@@ -120,10 +120,13 @@ export default function Home() {
     }
 
     // 전체 공개 일기 가져오기
+    console.log('=== 공개 일기 조회 시작 ===');
     const { data: publicNotebooks } = await supabase
       .from("notebooks")
       .select("id")
       .eq("visibility", "public");
+
+    console.log('공개 노트북:', publicNotebooks);
 
     if (publicNotebooks && publicNotebooks.length > 0) {
       const publicNotebookIds = publicNotebooks.map(nb => nb.id);
@@ -132,6 +135,8 @@ export default function Home() {
         .from("diary_notebooks")
         .select("diary_id")
         .in("notebook_id", publicNotebookIds);
+
+      console.log('공개 노트북의 일기 연결:', publicDiaryIds);
 
       if (publicDiaryIds && publicDiaryIds.length > 0) {
         const diaryIds = publicDiaryIds.map(dn => dn.diary_id);
@@ -151,6 +156,8 @@ export default function Home() {
           `)
           .in("id", diaryIds)
           .order("created_at", { ascending: false });
+
+        console.log('공개 일기 데이터:', publicData);
 
         if (publicData) {
           // 작성자 정보 가져오기
