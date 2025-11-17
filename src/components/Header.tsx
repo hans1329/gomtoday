@@ -303,23 +303,23 @@ export default function Header() {
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <div className="p-2">
-                <Button
-                  onClick={() => {
-                    setDropdownOpen(false);
-                    navigate("/upload");
-                  }}
-                  className="w-full h-12 text-base font-semibold justify-between"
-                  size="lg"
-                >
-                  <div className="flex items-center">
+                <div className="flex items-center justify-between gap-2">
+                  <Button
+                    onClick={() => {
+                      setDropdownOpen(false);
+                      navigate("/upload");
+                    }}
+                    className="flex-1 h-12 text-base font-semibold"
+                    size="lg"
+                  >
                     <PenLine className="mr-2 h-5 w-5" />
                     일기 작성
-                  </div>
-                  <div className="flex items-center gap-1 text-sm">
+                  </Button>
+                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
                     <Pencil className="h-4 w-4" />
-                    <span>{pencilCount}</span>
+                    <span className="font-medium">{pencilCount}</span>
                   </div>
-                </Button>
+                </div>
               </div>
               <DropdownMenuSeparator />
               <DropdownMenuItem 
