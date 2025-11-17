@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ChevronLeft, ChevronRight, User, Globe, Calendar as CalendarIcon, Heart, MessageCircle, Clock, Users, Search, Smile, ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronLeft, ChevronRight, User, Globe, Calendar as CalendarIcon, Heart, MessageCircle, Clock, Users, Search, Smile, ChevronDown, ChevronUp, ArrowUpDown } from "lucide-react";
 import { format, startOfMonth, endOfMonth, isSameDay, addMonths, subMonths } from "date-fns";
 import { ko } from "date-fns/locale";
 import LoadingBar from "@/components/LoadingBar";
@@ -24,7 +24,7 @@ export default function Home() {
   const [currentUserId, setCurrentUserId] = useState<string>("");
   const [viewMode, setViewMode] = useState<"my" | "public">("my");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const [sortBy, setSortBy] = useState<"latest" | "oldest" | "likes" | "comments">("latest");
+  const [sortBy, setSortBy] = useState<"latest" | "oldest" | "likes" | "comments" | "friends">("latest");
   const [selectedEmoji, setSelectedEmoji] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
   const [isCalendarExpanded, setIsCalendarExpanded] = useState(true);
@@ -394,8 +394,8 @@ export default function Home() {
           </CardContent>
         </Card>
 
-        <div className="flex items-center gap-2 px-2 sm:px-0 flex-wrap">
-          <div className="relative flex-1 min-w-[200px]">
+        <div className="flex items-center gap-2 px-2 sm:px-0">
+          <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               type="text"
@@ -406,63 +406,88 @@ export default function Home() {
             />
           </div>
 
-          <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
-            <SelectTrigger className="w-[140px] rounded-full h-9">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="latest">
-                <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4" />
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="rounded-full h-9 w-9 p-0 hover:bg-transparent border-0 flex-shrink-0"
+              >
+                <div className="bg-background/90 rounded-full w-9 h-9 flex items-center justify-center shadow-sm border border-border">
+                  <ArrowUpDown className="h-4 w-4" />
+                </div>
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-2 bg-background" align="end">
+              <div className="flex flex-col gap-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSortBy("latest")}
+                  className={cn("justify-start", sortBy === "latest" && "bg-accent")}
+                >
+                  <Clock className="h-4 w-4 mr-2" />
                   최신순
-                </div>
-              </SelectItem>
-              <SelectItem value="oldest">
-                <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSortBy("oldest")}
+                  className={cn("justify-start", sortBy === "oldest" && "bg-accent")}
+                >
+                  <Clock className="h-4 w-4 mr-2" />
                   오래된순
-                </div>
-              </SelectItem>
-              <SelectItem value="likes">
-                <div className="flex items-center gap-2">
-                  <Heart className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSortBy("likes")}
+                  className={cn("justify-start", sortBy === "likes" && "bg-accent")}
+                >
+                  <Heart className="h-4 w-4 mr-2" />
                   좋아요순
-                </div>
-              </SelectItem>
-              <SelectItem value="comments">
-                <div className="flex items-center gap-2">
-                  <MessageCircle className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSortBy("comments")}
+                  className={cn("justify-start", sortBy === "comments" && "bg-accent")}
+                >
+                  <MessageCircle className="h-4 w-4 mr-2" />
                   댓글순
-                </div>
-              </SelectItem>
-              <SelectItem value="friends">
-                <div className="flex items-center gap-2">
-                  <Users className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSortBy("friends")}
+                  className={cn("justify-start", sortBy === "friends" && "bg-accent")}
+                >
+                  <Users className="h-4 w-4 mr-2" />
                   친구 우선
-                </div>
-              </SelectItem>
-            </SelectContent>
-          </Select>
+                </Button>
+              </div>
+            </PopoverContent>
+          </Popover>
 
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon"
-                className="rounded-full h-9 w-9 p-0 hover:bg-transparent border-0"
+                className="rounded-full h-9 w-9 p-0 hover:bg-transparent border-0 flex-shrink-0"
               >
                 {selectedEmoji ? (
-                  <div className="bg-background/90 rounded-full w-7 h-7 flex items-center justify-center text-base shadow-sm border border-border">
+                  <div className="bg-background/90 rounded-full w-9 h-9 flex items-center justify-center text-base shadow-sm border border-border">
                     {selectedEmoji}
                   </div>
                 ) : (
-                  <div className="bg-background/90 rounded-full w-7 h-7 flex items-center justify-center shadow-sm border border-border">
+                  <div className="bg-background/90 rounded-full w-9 h-9 flex items-center justify-center shadow-sm border border-border">
                     <Smile className="h-4 w-4" />
                   </div>
                 )}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-3" align="start">
+            <PopoverContent className="w-auto p-3 bg-background" align="end">
               <div className="grid grid-cols-6 gap-2">
                 {commonEmojis.map((emoji) => (
                   <Button
