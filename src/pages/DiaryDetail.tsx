@@ -392,11 +392,11 @@ export default function DiaryDetail() {
               {/* Edit/Delete Buttons - 본인의 일기일 경우에만 표시 */}
               {currentUserId && diary.user_id === currentUserId && (
                 <div className="flex gap-2 pt-2 justify-end">
-                  <Button variant="outline" size="icon" onClick={handleEdit} className="rounded-full">
+                  <Button variant="ghost" size="icon" onClick={handleEdit} className="rounded-full">
                     <Edit className="h-4 w-4" />
                   </Button>
                   <Button 
-                    variant="outline" 
+                    variant="ghost" 
                     size="icon" 
                     onClick={() => setDeleteDialogOpen(true)}
                     className="text-destructive hover:text-destructive rounded-full"
