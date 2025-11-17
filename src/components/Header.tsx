@@ -28,6 +28,7 @@ export default function Header() {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [notificationCount, setNotificationCount] = useState(0);
   const [viewMode, setViewMode] = useState<"my" | "public">("my");
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   useEffect(() => {
     fetchProfile();
@@ -221,7 +222,7 @@ export default function Header() {
             </Button>
           )}
 
-          <DropdownMenu>
+          <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
@@ -265,7 +266,10 @@ export default function Header() {
                     variant="ghost"
                     size="icon"
                     className="h-8 w-8"
-                    onClick={() => navigate("/profile")}
+                    onClick={() => {
+                      setDropdownOpen(false);
+                      navigate("/profile");
+                    }}
                   >
                     <Settings className="h-4 w-4" />
                   </Button>
@@ -274,7 +278,10 @@ export default function Header() {
               <DropdownMenuSeparator />
               <div className="p-2">
                 <Button
-                  onClick={() => navigate("/upload")}
+                  onClick={() => {
+                    setDropdownOpen(false);
+                    navigate("/upload");
+                  }}
                   className="w-full h-12 text-base font-semibold"
                   size="lg"
                 >
