@@ -365,7 +365,11 @@ export default function Home() {
       const prevDay = new Date(selectedDate);
       prevDay.setDate(prevDay.getDate() - 1);
       setSelectedDate(prevDay);
-      setCurrentMonth(prevDay);
+      
+      // 월이 바뀌는 경우에만 currentMonth 업데이트
+      if (prevDay.getMonth() !== selectedDate.getMonth()) {
+        setCurrentMonth(prevDay);
+      }
     }
   };
 
@@ -374,7 +378,11 @@ export default function Home() {
       const nextDay = new Date(selectedDate);
       nextDay.setDate(nextDay.getDate() + 1);
       setSelectedDate(nextDay);
-      setCurrentMonth(nextDay);
+      
+      // 월이 바뀌는 경우에만 currentMonth 업데이트
+      if (nextDay.getMonth() !== selectedDate.getMonth()) {
+        setCurrentMonth(nextDay);
+      }
     }
   };
 
