@@ -111,11 +111,21 @@ export default function Upload() {
       .order("created_at", { ascending: true });
 
     if (data) {
-      setNotebooks(data);
-      // 기본 일기장을 자동으로 선택
-      const defaultNotebook = data.find(nb => nb.is_default);
-      if (defaultNotebook && !selectedNotebook) {
-        setSelectedNotebook(defaultNotebook.id);
+      // "나만보기" 일기장을 제일 위로 정렬
+      const sorted = [...data].sort((a, b) => {
+        if (a.name === "나만보기") return -1;
+        if (b.name === "나만보기") return 1;
+        return 0;
+      });
+      
+      setNotebooks(sorted);
+      
+      // "나만보기" 일기장을 기본으로 선택 (edit 모드가 아닐 때만)
+      if (!isEditMode) {
+        const privateNotebook = sorted.find(nb => nb.name === "나만보기");
+        if (privateNotebook) {
+          setSelectedNotebook(privateNotebook.id);
+        }
       }
     }
   };
