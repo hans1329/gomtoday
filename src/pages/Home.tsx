@@ -716,77 +716,87 @@ export default function Home() {
               ) : null;
             })()
           ) : viewMode === "my" ? (
-            <div className="bg-card rounded-lg p-4 md:p-6">
-              {diaries[0].photos && diaries[0].photos.length > 0 && (
-                <div className="mb-6">
-                  <Carousel className="w-full">
-                    <CarouselContent>
-                      {diaries[0].photos.map((photo: any) => (
-                        <CarouselItem key={photo.id}>
-                          <img
-                            src={photo.photo_url}
-                            alt="Diary photo"
-                            className="w-full h-[400px] object-cover rounded-lg"
-                          />
-                        </CarouselItem>
-                      ))}
-                    </CarouselContent>
-                    {diaries[0].photos.length > 1 && (
-                      <>
-                        <CarouselPrevious className="left-2" />
-                        <CarouselNext className="right-2" />
-                      </>
-                    )}
-                  </Carousel>
-                </div>
-              )}
-
-              <div className="space-y-4">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <h1 className="text-2xl font-bold mb-2">
-                      {diaries[0].title || "제목 없음"}
-                    </h1>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <p className="text-sm text-muted-foreground">
-                        {format(new Date(diaries[0].created_at), "yyyy년 M월 d일 EEEE", { locale: ko })}
-                      </p>
-                      {diaries[0].perspective && (
-                        <span className="text-[10px] bg-muted px-2 py-1 rounded-full">
-                          {diaries[0].perspective === 'camera' && '📱 핸드폰'}
-                          {diaries[0].perspective === 'pet' && '🐾 애완동물'}
-                          {diaries[0].perspective === 'friend' && '👥 친구'}
-                          {diaries[0].perspective === 'family' && '👨‍👩‍👧 가족'}
-                          {diaries[0].perspective === 'stranger' && '🚶 낯선 사람'}
-                          {diaries[0].perspective === 'old_man' && '👴 동네 꼰대'}
-                          {diaries[0].perspective === 'future' && '🔮 미래의 나'}
-                        </span>
+            <Card className="shadow-medium overflow-hidden">
+              <CardContent className="p-0">
+                {/* Photos Carousel */}
+                {diaries[0].photos && diaries[0].photos.length > 0 && (
+                  <div className="aspect-[4/3] bg-muted relative">
+                    <Carousel className="w-full h-full" opts={{ loop: true }}>
+                      <CarouselContent>
+                        {diaries[0].photos.map((photo: any, index: number) => (
+                          <CarouselItem key={photo.id}>
+                            <div className="relative w-full h-full aspect-[4/3]">
+                              <img
+                                src={photo.photo_url}
+                                alt={`Photo ${index + 1}`}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                          </CarouselItem>
+                        ))}
+                      </CarouselContent>
+                      {diaries[0].photos.length > 1 && (
+                        <>
+                          <CarouselPrevious className="left-2" />
+                          <CarouselNext className="right-2" />
+                        </>
                       )}
-                    </div>
-                  </div>
-                  {currentUserId === diaries[0].user_id && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => navigate(`/upload/${diaries[0].id}`)}
-                      className="rounded-full"
-                    >
-                      <Edit className="h-5 w-5" />
-                    </Button>
-                  )}
-                </div>
-
-                {diaries[0].emoji && (
-                  <div className="flex items-center gap-3 text-4xl">
-                    {diaries[0].emoji}
+                    </Carousel>
                   </div>
                 )}
 
-                <div className="prose prose-sm max-w-none">
-                  <p className="whitespace-pre-wrap text-muted-foreground/60 leading-relaxed text-sm">
-                    {diaries[0].content}
-                  </p>
-                </div>
+                {/* Content */}
+                <div className="p-6 space-y-4">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <div className="text-sm text-muted-foreground">
+                        {format(new Date(diaries[0].created_at), "yyyy년 M월 d일 (EEE) a h:mm", { locale: ko })}
+                      </div>
+                      {diaries[0].emoji && (
+                        <span className="text-2xl">{diaries[0].emoji}</span>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {diaries[0].title && (
+                    <>
+                      <h2 className="text-xl font-bold text-foreground">
+                        {diaries[0].title}
+                      </h2>
+                      {diaries[0].perspective && (
+                        <div className="text-sm text-muted-foreground">
+                          #{(() => {
+                            const perspectiveMap: Record<string, string> = {
+                              camera: "내 핸드폰의 시점",
+                              pet: "애완동물의 시점",
+                              friend: "친구의 시점",
+                              family: "가족의 시점",
+                              stranger: "낯선 사람의 시점",
+                              old_man: "동네 꼰대의 시점",
+                              future: "미래의 나의 시점"
+                            };
+                            return perspectiveMap[diaries[0].perspective] || diaries[0].perspective;
+                          })()}
+                        </div>
+                      )}
+                    </>
+                  )}
+                  
+                  <div className="prose prose-sm max-w-none text-sm text-muted-foreground/80">
+                    <p className="whitespace-pre-wrap leading-relaxed">
+                      {diaries[0].content}
+                    </p>
+                  </div>
+
+                  {/* Edit Button - 본인의 일기일 경우에만 표시 */}
+                  {currentUserId === diaries[0].user_id && (
+                    <div className="flex gap-2 pt-2 md:justify-end">
+                      <Button variant="outline" size="sm" onClick={() => navigate(`/upload/${diaries[0].id}`)} className="flex-1 sm:flex-none rounded-full">
+                        <Edit className="h-4 w-4 mr-2" />
+                        수정
+                      </Button>
+                    </div>
+                  )}
 
                 <div className="flex items-center gap-4 pt-4 border-t">
                   <Button
@@ -863,7 +873,8 @@ export default function Home() {
                   </div>
                 </div>
               </div>
-            </div>
+            </CardContent>
+          </Card>
           ) : (
             <div className="space-y-3">
               {diaries.slice(0, 5).map((diary) => (
