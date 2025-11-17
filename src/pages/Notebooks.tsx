@@ -212,20 +212,30 @@ export default function Notebooks() {
   };
 
   const fetchMembers = async (notebookId: string) => {
-    const { data } = await supabase
+    const { data: memberData } = await supabase
       .from("notebook_members")
-      .select(`
-        id,
-        user_id,
-        role,
-        profiles!notebook_members_user_id_fkey (
-          name,
-          email
-        )
-      `)
+      .select("id, user_id, role")
       .eq("notebook_id", notebookId);
 
-    setMembers(data || []);
+    if (!memberData || memberData.length === 0) {
+      setMembers([]);
+      return;
+    }
+
+    // 각 멤버의 프로필 정보를 가져옴
+    const memberIds = memberData.map(m => m.user_id);
+    const { data: profileData } = await supabase
+      .from("profiles")
+      .select("user_id, name, email")
+      .in("user_id", memberIds);
+
+    // 멤버 데이터와 프로필 데이터를 결합
+    const membersWithProfiles = memberData.map(member => ({
+      ...member,
+      profiles: profileData?.find(p => p.user_id === member.user_id) || null
+    }));
+
+    setMembers(membersWithProfiles);
   };
 
   const searchUsers = async () => {
