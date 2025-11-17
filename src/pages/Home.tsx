@@ -23,7 +23,7 @@ export default function Home() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [currentUserId, setCurrentUserId] = useState<string>("");
   const [viewMode, setViewMode] = useState<"my" | "public">("my");
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [sortBy, setSortBy] = useState<"latest" | "oldest" | "likes" | "comments" | "friends">("latest");
   const [selectedEmoji, setSelectedEmoji] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -136,7 +136,8 @@ export default function Home() {
       if (publicDiaryIds && publicDiaryIds.length > 0) {
         const diaryIds = publicDiaryIds.map(dn => dn.diary_id);
         
-        let publicQuery = supabase
+        // 공개 일기는 항상 전체 기간의 일기를 가져옴 (날짜 필터 제거)
+        const { data: publicData } = await supabase
           .from("diaries")
           .select(`
             *,
@@ -148,16 +149,8 @@ export default function Home() {
               photo_url
             )
           `)
-          .in("id", diaryIds);
-        
-        // 전체 보기가 아닐 때만 날짜 필터 적용
-        if (!showAllDiaries) {
-          publicQuery = publicQuery
-            .gte("created_at", monthStart.toISOString())
-            .lte("created_at", monthEnd.toISOString());
-        }
-        
-        const { data: publicData } = await publicQuery;
+          .in("id", diaryIds)
+          .order("created_at", { ascending: false });
 
         if (publicData) {
           // 작성자 정보 가져오기
@@ -302,18 +295,14 @@ export default function Home() {
         <div
           key={currentDay.toISOString()}
           onClick={() => {
-            if (selectedDate && isSameDay(currentDay, selectedDate)) {
-              setSelectedDate(undefined);
-            } else {
-              setSelectedDate(currentDay);
-            }
+            setSelectedDate(currentDay);
           }}
           className={cn(
             "p-3 pt-2 text-center transition-all relative cursor-pointer min-h-[60px] flex flex-col items-center justify-start rounded-sm",
             dayDiaries.length > 0
               ? "hover:bg-muted/40 text-primary font-semibold"
               : "hover:bg-muted/40",
-            selectedDate && isSameDay(currentDay, selectedDate) && "bg-primary/20 ring-2 ring-primary"
+            selectedDate && isSameDay(currentDay, selectedDate) && "bg-muted/50"
           )}
         >
           <div className="text-sm">{format(currentDay, "d")}</div>
