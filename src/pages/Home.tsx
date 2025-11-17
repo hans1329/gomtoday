@@ -499,7 +499,7 @@ export default function Home() {
       <div className="max-w-4xl mx-auto p-2 sm:p-4 pb-8 space-y-4">
         <div className="p-6 md:max-w-2xl md:mx-auto">
           <div className={cn(
-            "flex items-center justify-between",
+            "flex items-center justify-center relative",
             isCalendarExpanded ? "mb-6" : "mb-0"
           )}>
             <div className="flex items-center gap-1">
@@ -507,7 +507,7 @@ export default function Home() {
                 variant="ghost"
                 size="icon"
                 onClick={handlePrevMonth}
-                className="h-8 w-8 text-muted-foreground relative"
+                className="h-8 w-8 text-muted-foreground opacity-30 relative"
               >
                 <ChevronLeft className="h-4 w-4 absolute left-2" />
                 <ChevronLeft className="h-4 w-4 absolute left-3.5" />
@@ -535,7 +535,7 @@ export default function Home() {
                 variant="ghost"
                 size="icon"
                 onClick={handleNextMonth}
-                className="h-8 w-8 text-muted-foreground relative"
+                className="h-8 w-8 text-muted-foreground opacity-30 relative"
               >
                 <ChevronRight className="h-4 w-4 absolute right-3.5" />
                 <ChevronRight className="h-4 w-4 absolute right-2" />
@@ -545,7 +545,7 @@ export default function Home() {
               variant="ghost"
               size="icon"
               onClick={() => setIsCalendarExpanded(!isCalendarExpanded)}
-              className="rounded-full"
+              className="rounded-full absolute right-0"
             >
               {isCalendarExpanded ? (
                 <ChevronUp className="h-5 w-5" />
