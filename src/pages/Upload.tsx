@@ -408,7 +408,7 @@ export default function Upload() {
           <p className="text-muted-foreground text-sm">
             {isEditMode 
               ? "사진과 감정, 길이를 수정할 수 있어요"
-              : "오늘을 대표하는 3장의 사진을 업로드하면 누군가가 자동으로 일기를 작성해드려요"
+              : "오늘을 대표하는 사진을 업로드하면 누군가가 자동으로 일기를 작성해드려요!"
             }
           </p>
         </div>
@@ -554,7 +554,7 @@ export default function Upload() {
                   </div>
                 </div> : <label className="flex flex-col items-center justify-center aspect-[4/3] rounded-lg border-2 border-dashed border-border hover:border-primary cursor-pointer transition-colors">
                   <UploadIcon className="w-12 h-12 text-muted-foreground mb-2" />
-                  <p className="text-sm text-muted-foreground">클릭하여 3~6장의 사진 선택</p>
+                  <p className="text-sm text-muted-foreground">클릭하여 1~6장의 사진선택</p>
                   <input type="file" accept="image/*" multiple onChange={handleFileSelect} className="hidden" />
                 </label>}
             </div>
