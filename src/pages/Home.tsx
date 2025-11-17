@@ -113,32 +113,23 @@ export default function Home() {
     }
 
     // 전체 공개 일기 가져오기
-    console.log('=== 공개 일기 조회 시작 ===');
-    console.log('현재 월:', monthStart, '~', monthEnd);
-    
-    const { data: publicNotebooks, error: notebookError } = await supabase
+    const { data: publicNotebooks } = await supabase
       .from("notebooks")
       .select("id")
       .eq("visibility", "public");
 
-    console.log('1단계 - 공개 노트북 조회:', publicNotebooks, '에러:', notebookError);
-
     if (publicNotebooks && publicNotebooks.length > 0) {
       const publicNotebookIds = publicNotebooks.map(nb => nb.id);
-      console.log('공개 노트북 ID들:', publicNotebookIds);
       
-      const { data: publicDiaryIds, error: diaryNotebookError } = await supabase
+      const { data: publicDiaryIds } = await supabase
         .from("diary_notebooks")
         .select("diary_id")
         .in("notebook_id", publicNotebookIds);
 
-      console.log('2단계 - 일기-노트북 연결:', publicDiaryIds, '에러:', diaryNotebookError);
-
       if (publicDiaryIds && publicDiaryIds.length > 0) {
         const diaryIds = publicDiaryIds.map(dn => dn.diary_id);
-        console.log('일기 ID들:', diaryIds);
         
-        const { data: publicData, error: diaryError } = await supabase
+        const { data: publicData } = await supabase
           .from("diaries")
           .select(`
             *,
@@ -153,8 +144,6 @@ export default function Home() {
           .in("id", diaryIds)
           .gte("created_at", monthStart.toISOString())
           .lte("created_at", monthEnd.toISOString());
-
-        console.log('3단계 - 공개 일기 데이터:', publicData, '에러:', diaryError);
 
         if (publicData) {
           // 작성자 정보 가져오기
