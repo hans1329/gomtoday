@@ -463,13 +463,13 @@ export default function Notebooks() {
                   </Button>}
               </CardContent>
             </Card>)}
-          {notebooks.length < 5 && <Card className="shadow-sm border-dashed border-2 cursor-pointer hover:border-primary hover:bg-accent/50 transition-colors" onClick={() => setIsDialogOpen(true)}>
+          {notebooks.length < 5 && <Card className="shadow-sm border-dashed border-2 cursor-pointer hover:border-primary hover:bg-accent/50 transition-colors group" onClick={() => setIsDialogOpen(true)}>
               <CardHeader className="p-4 sm:p-6">
                 <div className="flex items-center justify-center gap-3 min-h-[80px]">
-                  <Plus className="h-8 w-8 sm:h-10 sm:w-10 text-muted-foreground" />
+                  <Plus className="h-8 w-8 sm:h-10 sm:w-10 text-muted-foreground group-hover:text-white transition-colors" />
                   <div className="text-center">
-                    <CardTitle className="text-base sm:text-lg text-muted-foreground">새 일기장 만들기</CardTitle>
-                    <CardDescription className="text-xs sm:text-sm mt-1">
+                    <CardTitle className="text-base sm:text-lg text-muted-foreground group-hover:text-white transition-colors">새 일기장 만들기</CardTitle>
+                    <CardDescription className="text-xs sm:text-sm mt-1 group-hover:text-white transition-colors">
                       특정 멤버와의 일기장을 만드세요
                     </CardDescription>
                   </div>
