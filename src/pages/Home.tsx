@@ -507,16 +507,16 @@ export default function Home() {
                 variant="ghost"
                 size="icon"
                 onClick={handlePrevMonth}
-                className="h-8 w-8 text-muted-foreground opacity-30 relative p-0"
+                className="h-8 w-6 text-muted-foreground opacity-30 relative p-0"
               >
+                <ChevronLeft className="h-4 w-4 absolute left-0.5" />
                 <ChevronLeft className="h-4 w-4 absolute left-2" />
-                <ChevronLeft className="h-4 w-4 absolute left-3.5" />
               </Button>
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={handlePrevDay}
-                className="h-8 w-8 p-0"
+                className="h-8 w-7 p-0 -ml-1"
               >
                 <ChevronLeft className="h-5 w-5" />
               </Button>
@@ -527,7 +527,7 @@ export default function Home() {
                 variant="ghost"
                 size="icon"
                 onClick={handleNextDay}
-                className="h-8 w-8 p-0"
+                className="h-8 w-7 p-0 -mr-1"
               >
                 <ChevronRight className="h-5 w-5" />
               </Button>
@@ -535,10 +535,10 @@ export default function Home() {
                 variant="ghost"
                 size="icon"
                 onClick={handleNextMonth}
-                className="h-8 w-8 text-muted-foreground opacity-30 relative p-0"
+                className="h-8 w-6 text-muted-foreground opacity-30 relative p-0"
               >
-                <ChevronRight className="h-4 w-4 absolute right-3.5" />
                 <ChevronRight className="h-4 w-4 absolute right-2" />
+                <ChevronRight className="h-4 w-4 absolute right-0.5" />
               </Button>
             </div>
             <Button
