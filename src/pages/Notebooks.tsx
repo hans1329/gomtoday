@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { BookOpen, Plus, Trash2, Users, X, Pencil } from "lucide-react";
 import LoadingBar from "@/components/LoadingBar";
@@ -553,89 +554,108 @@ export default function Notebooks() {
           <DialogHeader>
             <DialogTitle className="text-base sm:text-lg">멤버 관리</DialogTitle>
             <DialogDescription className="text-xs sm:text-sm">
-              일기장을 공유할 사용자를 검색하고 추가하세요
+              일기장을 공유할 사용자를 관리하세요
             </DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>사용자 검색</Label>
-              <div className="flex gap-2">
-                <Input
-                  placeholder="이름 또는 이메일로 검색"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && searchUsers()}
-                />
-                <Button onClick={searchUsers} disabled={searching}>
-                  검색
-                </Button>
-              </div>
-            </div>
-
-            {searchResults.length > 0 && (
+          <Tabs defaultValue="add" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="add">멤버 추가</TabsTrigger>
+              <TabsTrigger value="current">현재 멤버 ({members.length})</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="add" className="space-y-4 mt-4">
               <div className="space-y-2">
-                <Label>검색 결과</Label>
-                <div className="space-y-2 max-h-40 overflow-y-auto">
-                  {searchResults.map((user) => (
-                    <div
-                      key={user.user_id}
-                      className="flex items-center justify-between p-2 rounded-lg border bg-card"
-                    >
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium truncate">{user.name}</p>
-                        <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-                      </div>
-                      <Button
-                        size="sm"
-                        onClick={() => addMember(user.user_id)}
-                      >
-                        추가
-                      </Button>
-                    </div>
-                  ))}
+                <Label>사용자 검색</Label>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="이름 또는 이메일로 검색"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && searchUsers()}
+                  />
+                  <Button onClick={searchUsers} disabled={searching}>
+                    검색
+                  </Button>
                 </div>
               </div>
-            )}
 
-            {members.length > 0 && (
-              <div className="space-y-2">
-                <Label>현재 멤버</Label>
-                <div className="space-y-2 max-h-60 overflow-y-auto">
-                  {members.map((member: any) => (
-                    <div
-                      key={member.id}
-                      className="flex items-center justify-between p-2 rounded-lg border bg-card"
-                    >
-                      <div className="min-w-0 flex-1 flex items-center gap-2">
-                        <div className="relative">
-                          <div className={`w-2 h-2 rounded-full ${
-                            onlineUsers.has(member.user_id) ? 'bg-green-500' : 'bg-gray-300'
-                          }`} />
-                          {onlineUsers.has(member.user_id) && (
-                            <div className="absolute inset-0 w-2 h-2 rounded-full bg-green-500 animate-ping" />
-                          )}
-                        </div>
+              {searchResults.length > 0 && (
+                <div className="space-y-2">
+                  <Label>검색 결과</Label>
+                  <div className="space-y-2 max-h-60 overflow-y-auto">
+                    {searchResults.map((user) => (
+                      <div
+                        key={user.user_id}
+                        className="flex items-center justify-between p-2 rounded-lg border bg-card"
+                      >
                         <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium truncate">{member.profiles?.name}</p>
-                          <p className="text-xs text-muted-foreground truncate">
-                            {member.profiles?.email} • {onlineUsers.has(member.user_id) ? '온라인' : '오프라인'}
-                          </p>
+                          <p className="text-sm font-medium truncate">{user.name}</p>
+                          <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                         </div>
+                        <Button
+                          size="sm"
+                          onClick={() => addMember(user.user_id)}
+                        >
+                          추가
+                        </Button>
                       </div>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => removeMember(member.id)}
-                      >
-                        <X className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+
+              {searchQuery && searchResults.length === 0 && !searching && (
+                <div className="text-center py-8 text-sm text-muted-foreground">
+                  검색 결과가 없습니다
+                </div>
+              )}
+            </TabsContent>
+            
+            <TabsContent value="current" className="space-y-4 mt-4">
+              {members.length > 0 ? (
+                <div className="space-y-2">
+                  <Label>멤버 목록</Label>
+                  <div className="space-y-2 max-h-80 overflow-y-auto">
+                    {members.map((member: any) => (
+                      <div
+                        key={member.id}
+                        className="flex items-center justify-between p-3 rounded-lg border bg-card"
+                      >
+                        <div className="min-w-0 flex-1 flex items-center gap-2">
+                          <div className="relative">
+                            <div className={`w-2 h-2 rounded-full ${
+                              onlineUsers.has(member.user_id) ? 'bg-green-500' : 'bg-gray-300'
+                            }`} />
+                            {onlineUsers.has(member.user_id) && (
+                              <div className="absolute inset-0 w-2 h-2 rounded-full bg-green-500 animate-ping" />
+                            )}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-medium truncate">{member.profiles?.name}</p>
+                            <p className="text-xs text-muted-foreground truncate">
+                              {member.profiles?.email} • {onlineUsers.has(member.user_id) ? '온라인' : '오프라인'}
+                            </p>
+                          </div>
+                        </div>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => removeMember(member.id)}
+                        >
+                          <X className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-8 text-sm text-muted-foreground">
+                  아직 추가된 멤버가 없습니다
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
 
           <DialogFooter>
             <Button 
