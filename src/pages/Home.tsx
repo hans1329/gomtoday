@@ -132,6 +132,41 @@ export default function Home() {
       }
       setLoading(false);
     } else {
+      // 캘린더용 내 일기 데이터 불러오기
+      const { data: myDiariesData } = await supabase
+        .from("diaries")
+        .select(`
+          *,
+          photos!photos_diary_id_fkey (
+            photo_url,
+            display_order
+          ),
+          photo:photos!diaries_photo_id_fkey (
+            photo_url
+          )
+        `)
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (myDiariesData) {
+        const myDiariesWithSortedPhotos = myDiariesData.map((diary: any) => {
+          let allPhotos = [];
+          
+          if (diary.photos && diary.photos.length > 0) {
+            allPhotos = diary.photos.sort((a: any, b: any) => a.display_order - b.display_order);
+          } else if (diary.photo) {
+            allPhotos = [diary.photo];
+          }
+          
+          return {
+            ...diary,
+            photos: allPhotos
+          };
+        });
+        
+        setAllDiaries(myDiariesWithSortedPhotos);
+      }
+
       let query = supabase
         .from("diaries")
         .select(`
@@ -193,8 +228,6 @@ export default function Home() {
             photos: allPhotos
           };
         });
-        
-        setAllDiaries(diariesWithSortedPhotos);
         
         if (selectedEmoji) {
           diariesWithSortedPhotos = diariesWithSortedPhotos.filter(diary => 
