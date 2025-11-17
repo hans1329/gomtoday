@@ -845,6 +845,89 @@ export default function Upload() {
       setUploadStatus("");
     }
   };
+
+  // 일기 다시 생성하기 (편집 모드)
+  const handleRegenerate = async () => {
+    if (!isEditMode || !id) return;
+    
+    setUploading(true);
+    setUploadProgress(10);
+    setUploadStatus("사진 분석 준비 중...");
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        navigate("/auth");
+        return;
+      }
+
+      // 기존 사진 URL들 가져오기
+      const photoUrls = existingPhotos.length > 0 
+        ? existingPhotos.map(p => p.photo_url)
+        : previewUrls;
+
+      if (photoUrls.length === 0) {
+        toast({
+          title: "사진이 필요해요",
+          description: "일기를 다시 생성하려면 사진이 필요해요.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      setUploadStatus("AI가 일기를 다시 작성하고 있어요...");
+      setUploadProgress(50);
+
+      const { data: aiResponse, error: aiError } = await supabase.functions.invoke("analyze-photo", {
+        body: {
+          photoUrls: photoUrls,
+          emotion,
+          length,
+          perspective
+        }
+      });
+
+      if (aiError) throw aiError;
+
+      setUploadProgress(90);
+      setUploadStatus("일기를 업데이트하고 있어요...");
+
+      // 일기 내용 업데이트
+      const { error: updateError } = await supabase
+        .from("diaries")
+        .update({
+          content: aiResponse.content,
+          title: aiResponse.title,
+          emoji: aiResponse.emoji,
+          tone: emotion,
+          length,
+          perspective
+        })
+        .eq("id", id);
+
+      if (updateError) throw updateError;
+
+      setContent(aiResponse.content);
+      setTitle(aiResponse.title);
+      setUploadProgress(100);
+
+      toast({
+        title: "일기를 다시 생성했어요!",
+        description: "내용을 확인하고 수정하세요."
+      });
+    } catch (error: any) {
+      console.error("일기 재생성 실패:", error);
+      toast({
+        title: "일기 재생성 실패",
+        description: error.message || "다시 시도해주세요.",
+        variant: "destructive"
+      });
+    } finally {
+      setUploading(false);
+      setUploadProgress(0);
+      setUploadStatus("");
+    }
+  };
   
   if (loading) {
     return (
@@ -873,6 +956,28 @@ export default function Upload() {
           <CardContent className="p-6 space-y-6">
             {isEditMode && (
               <>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold">일기 수정</h3>
+                  <Button
+                    onClick={handleRegenerate}
+                    disabled={uploading || (existingPhotos.length === 0 && previewUrls.length === 0)}
+                    variant="outline"
+                    size="sm"
+                  >
+                    {uploading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        재생성 중...
+                      </>
+                    ) : (
+                      <>
+                        <PenLine className="mr-2 h-4 w-4" />
+                        다시 생성하기
+                      </>
+                    )}
+                  </Button>
+                </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="title">제목</Label>
                   <Input
