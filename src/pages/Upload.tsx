@@ -15,7 +15,8 @@ import { Upload as UploadIcon, Loader2, ArrowLeft, Trash2, ChevronUp, ChevronDow
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 export default function Upload() {
   const { id } = useParams();
   const isEditMode = !!id;
@@ -36,9 +37,9 @@ export default function Upload() {
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [notebooks, setNotebooks] = useState<any[]>([]);
   const [selectedNotebook, setSelectedNotebook] = useState<string | null>(null);
-  const [participants, setParticipants] = useState<Array<{id: string, name: string}>>([]);
-  const [currentUser, setCurrentUser] = useState<{id: string, name: string} | null>(null);
-  const [notebookMembers, setNotebookMembers] = useState<Array<{id: string, name: string}>>([]);
+  const [participants, setParticipants] = useState<Array<{id: string, name: string, profile_photo_url?: string}>>([]);
+  const [currentUser, setCurrentUser] = useState<{id: string, name: string, profile_photo_url?: string} | null>(null);
+  const [notebookMembers, setNotebookMembers] = useState<Array<{id: string, name: string, profile_photo_url?: string}>>([]);
   const [showMemberDialog, setShowMemberDialog] = useState(false);
   const navigate = useNavigate();
   const {
@@ -60,13 +61,14 @@ export default function Upload() {
 
     const { data: profile } = await supabase
       .from("profiles")
-      .select("name")
+      .select("name, profile_photo_url")
       .eq("user_id", user.id)
       .single();
 
     const userData = {
       id: user.id,
-      name: profile?.name || "나"
+      name: profile?.name || "나",
+      profile_photo_url: profile?.profile_photo_url
     };
     setCurrentUser(userData);
     // 디폴트로 현재 사용자를 등장인물에 추가
@@ -170,7 +172,8 @@ export default function Upload() {
         user_id,
         profiles:user_id (
           name,
-          user_id
+          user_id,
+          profile_photo_url
         )
       `)
       .eq("notebook_id", notebookId);
@@ -179,7 +182,8 @@ export default function Upload() {
       const members = data
         .map((m: any) => ({
           id: m.profiles?.user_id || m.user_id,
-          name: m.profiles?.name || "사용자"
+          name: m.profiles?.name || "사용자",
+          profile_photo_url: m.profiles?.profile_photo_url
         }))
         .filter((m) => !participants.some(p => p.id === m.id)); // 이미 추가된 사람 제외
       
@@ -187,7 +191,7 @@ export default function Upload() {
     }
   };
 
-  const addParticipant = (member: {id: string, name: string}) => {
+  const addParticipant = (member: {id: string, name: string, profile_photo_url?: string}) => {
     if (!participants.some(p => p.id === member.id)) {
       setParticipants([...participants, member]);
     }
@@ -756,45 +760,54 @@ export default function Upload() {
 
             <div className="space-y-2">
               <Label>등장인물</Label>
-              <div className="flex flex-wrap gap-2 p-3 border rounded-md min-h-[48px]">
-                {participants.map((p) => (
-                  <Badge 
-                    key={p.id} 
-                    variant="secondary"
-                    className="flex items-center gap-1 pr-1"
+              <TooltipProvider>
+                <div className="flex flex-wrap gap-2 p-3 border rounded-md min-h-[48px] items-center">
+                  {participants.map((p) => (
+                    <div key={p.id} className="relative group">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="relative">
+                            <Avatar className="h-10 w-10 cursor-pointer border-2 border-border">
+                              <AvatarImage src={p.profile_photo_url} />
+                              <AvatarFallback>{p.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            {p.id !== currentUser?.id && (
+                              <button
+                                onClick={() => removeParticipant(p.id)}
+                                className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-destructive text-destructive-foreground opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            )}
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>{p.name}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                  ))}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-10 w-10 rounded-full p-0"
+                    onClick={() => {
+                      if (selectedNotebook) {
+                        fetchNotebookMembers(selectedNotebook);
+                        setShowMemberDialog(true);
+                      } else {
+                        toast({
+                          title: "먼저 일기장을 선택해주세요",
+                          variant: "destructive"
+                        });
+                      }
+                    }}
                   >
-                    {p.name}
-                    {p.id !== currentUser?.id && (
-                      <button
-                        onClick={() => removeParticipant(p.id)}
-                        className="ml-1 hover:bg-destructive/20 rounded-full p-0.5"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    )}
-                  </Badge>
-                ))}
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="h-6 px-2"
-                  onClick={() => {
-                    if (selectedNotebook) {
-                      fetchNotebookMembers(selectedNotebook);
-                      setShowMemberDialog(true);
-                    } else {
-                      toast({
-                        title: "먼저 일기장을 선택해주세요",
-                        variant: "destructive"
-                      });
-                    }
-                  }}
-                >
-                  <UserPlus className="h-3 w-3 mr-1" />
-                  추가
-                </Button>
-              </div>
+                    <UserPlus className="h-4 w-4" />
+                  </Button>
+                </div>
+              </TooltipProvider>
             </div>
 
             <div className="space-y-2">
@@ -867,9 +880,13 @@ export default function Upload() {
                 <Button
                   key={member.id}
                   variant="outline"
-                  className="w-full justify-start"
+                  className="w-full justify-start gap-3"
                   onClick={() => addParticipant(member)}
                 >
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={member.profile_photo_url} />
+                    <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
+                  </Avatar>
                   {member.name}
                 </Button>
               ))
