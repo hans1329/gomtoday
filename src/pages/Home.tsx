@@ -325,17 +325,12 @@ export default function Home() {
         >
           <div className="text-sm">{format(currentDay, "d")}</div>
           {isSameDay(currentDay, new Date()) && (
-            <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-primary rounded-full"></div>
+            <div className="absolute top-0.5 right-0.5 w-1.5 h-1.5 bg-primary rounded-full"></div>
           )}
-          {dayDiaries.length > 0 && (
-            <>
-              <div className="absolute top-1 right-1 w-1.5 h-1.5 bg-primary rounded-full"></div>
-              {dayDiaries[0].emoji && (
-                <div className="absolute bottom-1 left-1/2 -translate-x-1/2 text-base leading-none">
-                  {dayDiaries[0].emoji}
-                </div>
-              )}
-            </>
+          {dayDiaries.length > 0 && dayDiaries[0].emoji && (
+            <div className="absolute bottom-1 left-1/2 -translate-x-1/2 text-xl leading-none">
+              {dayDiaries[0].emoji}
+            </div>
           )}
         </div>
       );
