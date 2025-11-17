@@ -507,7 +507,7 @@ export default function Home() {
                 variant="ghost"
                 size="icon"
                 onClick={handlePrevMonth}
-                className="h-8 w-6 text-muted-foreground opacity-30 relative p-0 hover:bg-transparent"
+                className="h-8 w-6 text-muted-foreground opacity-30 relative p-0 hover:bg-transparent hover:text-primary hover:opacity-100 transition-all"
               >
                 <ChevronLeft className="h-4 w-4 absolute left-0.5" />
                 <ChevronLeft className="h-4 w-4 absolute left-2" />
@@ -516,7 +516,7 @@ export default function Home() {
                 variant="ghost"
                 size="icon"
                 onClick={handlePrevDay}
-                className="h-8 w-7 p-0 -ml-1 hover:bg-transparent"
+                className="h-8 w-7 p-0 -ml-1 hover:bg-transparent hover:text-primary transition-colors"
               >
                 <ChevronLeft className="h-5 w-5" />
               </Button>
@@ -527,7 +527,7 @@ export default function Home() {
                 variant="ghost"
                 size="icon"
                 onClick={handleNextDay}
-                className="h-8 w-7 p-0 -mr-1 hover:bg-transparent"
+                className="h-8 w-7 p-0 -mr-1 hover:bg-transparent hover:text-primary transition-colors"
               >
                 <ChevronRight className="h-5 w-5" />
               </Button>
@@ -535,7 +535,7 @@ export default function Home() {
                 variant="ghost"
                 size="icon"
                 onClick={handleNextMonth}
-                className="h-8 w-6 text-muted-foreground opacity-30 relative p-0 hover:bg-transparent"
+                className="h-8 w-6 text-muted-foreground opacity-30 relative p-0 hover:bg-transparent hover:text-primary hover:opacity-100 transition-all"
               >
                 <ChevronRight className="h-4 w-4 absolute right-2" />
                 <ChevronRight className="h-4 w-4 absolute right-0.5" />
@@ -548,9 +548,9 @@ export default function Home() {
               className="rounded-full absolute right-0 hover:bg-accent group"
             >
               {isCalendarExpanded ? (
-                <ChevronUp className="h-5 w-5 text-primary group-hover:text-primary transition-colors" />
+                <ChevronUp className="h-5 w-5 text-primary group-hover:text-primary-foreground transition-colors" />
               ) : (
-                <ChevronDown className="h-5 w-5 text-primary group-hover:text-primary transition-colors" />
+                <ChevronDown className="h-5 w-5 text-primary group-hover:text-primary-foreground transition-colors" />
               )}
             </Button>
           </div>
