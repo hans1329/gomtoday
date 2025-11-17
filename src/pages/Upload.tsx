@@ -1629,7 +1629,7 @@ export default function Upload() {
 
       {/* 일기 생성 연필 차감 확인 대화상자 */}
       <AlertDialog open={confirmGenerateDialogOpen} onOpenChange={setConfirmGenerateDialogOpen}>
-        <AlertDialogContent className="mx-4 max-w-sm rounded-lg">
+        <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
               <Pencil className="h-5 w-5" />
@@ -1662,7 +1662,7 @@ export default function Upload() {
 
       {/* 일기 다시 생성 연필 차감 확인 대화상자 */}
       <AlertDialog open={confirmRegenerateDialogOpen} onOpenChange={setConfirmRegenerateDialogOpen}>
-        <AlertDialogContent className="mx-4 max-w-sm rounded-lg">
+        <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
               <Pencil className="h-5 w-5" />
