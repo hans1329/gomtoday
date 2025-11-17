@@ -507,7 +507,7 @@ export default function Home() {
                 variant="ghost"
                 size="icon"
                 onClick={handlePrevMonth}
-                className="h-8 w-6 text-muted-foreground opacity-30 relative p-0"
+                className="h-8 w-6 text-muted-foreground opacity-30 relative p-0 hover:bg-transparent"
               >
                 <ChevronLeft className="h-4 w-4 absolute left-0.5" />
                 <ChevronLeft className="h-4 w-4 absolute left-2" />
@@ -516,7 +516,7 @@ export default function Home() {
                 variant="ghost"
                 size="icon"
                 onClick={handlePrevDay}
-                className="h-8 w-7 p-0 -ml-1"
+                className="h-8 w-7 p-0 -ml-1 hover:bg-transparent"
               >
                 <ChevronLeft className="h-5 w-5" />
               </Button>
@@ -527,7 +527,7 @@ export default function Home() {
                 variant="ghost"
                 size="icon"
                 onClick={handleNextDay}
-                className="h-8 w-7 p-0 -mr-1"
+                className="h-8 w-7 p-0 -mr-1 hover:bg-transparent"
               >
                 <ChevronRight className="h-5 w-5" />
               </Button>
@@ -535,7 +535,7 @@ export default function Home() {
                 variant="ghost"
                 size="icon"
                 onClick={handleNextMonth}
-                className="h-8 w-6 text-muted-foreground opacity-30 relative p-0"
+                className="h-8 w-6 text-muted-foreground opacity-30 relative p-0 hover:bg-transparent"
               >
                 <ChevronRight className="h-4 w-4 absolute right-2" />
                 <ChevronRight className="h-4 w-4 absolute right-0.5" />
@@ -545,12 +545,12 @@ export default function Home() {
               variant="ghost"
               size="icon"
               onClick={() => setIsCalendarExpanded(!isCalendarExpanded)}
-              className="rounded-full absolute right-0"
+              className="rounded-full absolute right-0 hover:bg-accent group"
             >
               {isCalendarExpanded ? (
-                <ChevronUp className="h-5 w-5 text-primary" />
+                <ChevronUp className="h-5 w-5 text-primary group-hover:text-primary-foreground transition-colors" />
               ) : (
-                <ChevronDown className="h-5 w-5 text-primary" />
+                <ChevronDown className="h-5 w-5 text-primary group-hover:text-primary-foreground transition-colors" />
               )}
             </Button>
           </div>
@@ -796,7 +796,7 @@ export default function Home() {
                     </div>
                   )}
 
-                <div className="flex items-center gap-4 pt-4 border-t">
+                <div className="flex items-center gap-4 pt-4">
                   <Button
                     variant="ghost"
                     size="sm"
@@ -816,7 +816,7 @@ export default function Home() {
                 </div>
 
                 {comments.length > 0 && (
-                  <div className="space-y-4 pt-4 border-t">
+                  <div className="space-y-4 pt-4">
                     <h3 className="font-semibold">댓글 {comments.length}개</h3>
                     <div className="space-y-3">
                       {comments.map((comment: any) => (
@@ -846,7 +846,7 @@ export default function Home() {
                   </div>
                 )}
 
-                <div className="pt-4 border-t">
+                <div className="pt-4">
                   <div className="relative">
                     <Input
                       placeholder="댓글을 입력하세요..."
