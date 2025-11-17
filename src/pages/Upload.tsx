@@ -11,10 +11,11 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Upload as UploadIcon, Loader2, ArrowLeft, Trash2, ChevronUp, ChevronDown, CalendarIcon } from "lucide-react";
+import { Upload as UploadIcon, Loader2, ArrowLeft, Trash2, ChevronUp, ChevronDown, CalendarIcon, UserPlus, X } from "lucide-react";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 export default function Upload() {
   const { id } = useParams();
   const isEditMode = !!id;
@@ -35,11 +36,16 @@ export default function Upload() {
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [notebooks, setNotebooks] = useState<any[]>([]);
   const [selectedNotebook, setSelectedNotebook] = useState<string | null>(null);
+  const [participants, setParticipants] = useState<Array<{id: string, name: string}>>([]);
+  const [currentUser, setCurrentUser] = useState<{id: string, name: string} | null>(null);
+  const [notebookMembers, setNotebookMembers] = useState<Array<{id: string, name: string}>>([]);
+  const [showMemberDialog, setShowMemberDialog] = useState(false);
   const navigate = useNavigate();
   const {
     toast
   } = useToast();
   useEffect(() => {
+    loadCurrentUser();
     if (isEditMode) {
       loadDiaryData();
       fetchNotebooks();
@@ -47,6 +53,25 @@ export default function Upload() {
       fetchNotebooks();
     }
   }, [id]);
+
+  const loadCurrentUser = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("name")
+      .eq("user_id", user.id)
+      .single();
+
+    const userData = {
+      id: user.id,
+      name: profile?.name || "나"
+    };
+    setCurrentUser(userData);
+    // 디폴트로 현재 사용자를 등장인물에 추가
+    setParticipants([userData]);
+  };
   const loadDiaryData = async () => {
     if (!id) return;
     
@@ -97,6 +122,11 @@ export default function Upload() {
     const notebookIds = diary.diary_notebooks?.map((dn: any) => dn.notebook_id) || [];
     setSelectedNotebook(notebookIds[0] || null);
     
+    // 등장인물 로드
+    if (diary.participants && Array.isArray(diary.participants)) {
+      setParticipants(diary.participants as Array<{id: string, name: string}>);
+    }
+    
     setLoading(false);
   };
 
@@ -131,6 +161,49 @@ export default function Upload() {
         }
       }
     }
+  };
+
+  const fetchNotebookMembers = async (notebookId: string) => {
+    const { data } = await supabase
+      .from("notebook_members")
+      .select(`
+        user_id,
+        profiles:user_id (
+          name,
+          user_id
+        )
+      `)
+      .eq("notebook_id", notebookId);
+
+    if (data) {
+      const members = data
+        .map((m: any) => ({
+          id: m.profiles?.user_id || m.user_id,
+          name: m.profiles?.name || "사용자"
+        }))
+        .filter((m) => !participants.some(p => p.id === m.id)); // 이미 추가된 사람 제외
+      
+      setNotebookMembers(members);
+    }
+  };
+
+  const addParticipant = (member: {id: string, name: string}) => {
+    if (!participants.some(p => p.id === member.id)) {
+      setParticipants([...participants, member]);
+    }
+    setShowMemberDialog(false);
+  };
+
+  const removeParticipant = (memberId: string) => {
+    // 현재 사용자는 제거할 수 없음
+    if (memberId === currentUser?.id) {
+      toast({
+        title: "자신은 제거할 수 없습니다",
+        variant: "destructive"
+      });
+      return;
+    }
+    setParticipants(participants.filter(p => p.id !== memberId));
   };
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -238,7 +311,9 @@ export default function Upload() {
             length,
             weather,
             content: content.trim(),
-            title: title.trim() || "무제"
+            title: title.trim() || "무제",
+            perspective,
+            participants: participants
           })
           .eq("id", id);
         
@@ -309,6 +384,7 @@ export default function Upload() {
           length,
           weather,
           perspective,
+          participants: participants,
           created_at: selectedDate.toISOString()
         }).select().single();
         if (diaryError) throw diaryError;
@@ -624,6 +700,49 @@ export default function Upload() {
             )}
 
             <div className="space-y-2">
+              <Label>등장인물</Label>
+              <div className="flex flex-wrap gap-2 p-3 border rounded-md min-h-[48px]">
+                {participants.map((p) => (
+                  <Badge 
+                    key={p.id} 
+                    variant="secondary"
+                    className="flex items-center gap-1 pr-1"
+                  >
+                    {p.name}
+                    {p.id !== currentUser?.id && (
+                      <button
+                        onClick={() => removeParticipant(p.id)}
+                        className="ml-1 hover:bg-destructive/20 rounded-full p-0.5"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    )}
+                  </Badge>
+                ))}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-6 px-2"
+                  onClick={() => {
+                    if (selectedNotebook) {
+                      fetchNotebookMembers(selectedNotebook);
+                      setShowMemberDialog(true);
+                    } else {
+                      toast({
+                        title: "먼저 일기장을 선택해주세요",
+                        variant: "destructive"
+                      });
+                    }
+                  }}
+                >
+                  <UserPlus className="h-3 w-3 mr-1" />
+                  추가
+                </Button>
+              </div>
+            </div>
+
+            <div className="space-y-2">
               <Label>일기장 선택</Label>
               <Select value={selectedNotebook || undefined} onValueChange={setSelectedNotebook}>
                 <SelectTrigger>
@@ -670,6 +789,44 @@ export default function Upload() {
           <DialogFooter className="flex-col-reverse sm:flex-row sm:justify-end gap-2">
             <Button variant="outline" onClick={cancelUpload} className="w-full sm:w-auto">
               취소
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showMemberDialog} onOpenChange={setShowMemberDialog}>
+        <DialogContent className="max-w-[calc(100%-2rem)] sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>등장인물 추가</DialogTitle>
+            <DialogDescription>
+              공유 일기장의 멤버를 선택하세요
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 max-h-[300px] overflow-y-auto">
+            {notebookMembers.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                추가할 수 있는 멤버가 없습니다
+              </p>
+            ) : (
+              notebookMembers.map((member) => (
+                <Button
+                  key={member.id}
+                  variant="outline"
+                  className="w-full justify-start"
+                  onClick={() => addParticipant(member)}
+                >
+                  {member.name}
+                </Button>
+              ))
+            )}
+          </div>
+          <DialogFooter className="flex-col-reverse sm:flex-row sm:justify-end gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowMemberDialog(false)}
+              className="w-full sm:w-auto"
+            >
+              닫기
             </Button>
           </DialogFooter>
         </DialogContent>
