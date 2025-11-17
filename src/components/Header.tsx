@@ -238,20 +238,14 @@ export default function Header() {
 
         <div className="flex-1 flex items-center justify-end space-x-2">
           {currentPath !== "/upload" && (
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => navigate("/upload")}
-                title="일기 작성"
-              >
-                <PenLine className="h-5 w-5" />
-              </Button>
-              <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                <Pencil className="h-4 w-4" />
-                <span className="font-medium">{pencilCount}</span>
-              </div>
-            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate("/upload")}
+              title="일기 작성"
+            >
+              <PenLine className="h-5 w-5" />
+            </Button>
           )}
 
           <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
@@ -314,11 +308,17 @@ export default function Header() {
                     setDropdownOpen(false);
                     navigate("/upload");
                   }}
-                  className="w-full h-12 text-base font-semibold"
+                  className="w-full h-12 text-base font-semibold justify-between"
                   size="lg"
                 >
-                  <PenLine className="mr-2 h-5 w-5" />
-                  일기 작성
+                  <div className="flex items-center">
+                    <PenLine className="mr-2 h-5 w-5" />
+                    일기 작성
+                  </div>
+                  <div className="flex items-center gap-1 text-sm">
+                    <Pencil className="h-4 w-4" />
+                    <span>{pencilCount}</span>
+                  </div>
                 </Button>
               </div>
               <DropdownMenuSeparator />
