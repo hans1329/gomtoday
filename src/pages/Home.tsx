@@ -21,7 +21,7 @@ export default function Home() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [currentUserId, setCurrentUserId] = useState<string>("");
   const [viewMode, setViewMode] = useState<"my" | "public">("my");
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [sortBy, setSortBy] = useState<"latest" | "oldest" | "likes" | "comments" | "friends">("latest");
   const [selectedEmoji, setSelectedEmoji] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -312,12 +312,10 @@ export default function Home() {
         <div
           key={currentDay.toISOString()}
           onClick={() => {
-            if (dayDiaries.length > 0) {
-              navigate(`/diary/${dayDiaries[0].id}`);
-            }
+            setSelectedDate(currentDay);
           }}
           className={cn(
-            "p-3 pt-2 text-center transition-all relative cursor-pointer min-h-[60px] flex flex-col items-center justify-start rounded-md",
+            "p-3 pt-2 text-center transition-all relative cursor-pointer min-h-[60px] flex flex-col items-center justify-start rounded-sm",
             dayDiaries.length > 0
               ? "hover:bg-muted/40 text-primary font-semibold"
               : "hover:bg-muted/40",
