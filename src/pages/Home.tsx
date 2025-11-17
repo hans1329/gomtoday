@@ -775,79 +775,78 @@ export default function Home() {
                   </p>
                 </div>
 
-                  <div className="flex items-center gap-4 pt-4 border-t">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleLike}
-                      className={cn(
-                        "gap-2 rounded-full",
-                        isLiked && "text-red-500 hover:text-red-600"
-                      )}
-                    >
-                      <Heart className={cn("h-5 w-5", isLiked && "fill-current")} />
-                      <span>{likes.length}</span>
-                    </Button>
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <MessageCircle className="h-5 w-5" />
-                      <span className="text-sm">{comments.length}</span>
+                <div className="flex items-center gap-4 pt-4 border-t">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleLike}
+                    className={cn(
+                      "gap-2 rounded-full",
+                      isLiked && "text-red-500 hover:text-red-600"
+                    )}
+                  >
+                    <Heart className={cn("h-5 w-5", isLiked && "fill-current")} />
+                    <span>{likes.length}</span>
+                  </Button>
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <MessageCircle className="h-5 w-5" />
+                    <span className="text-sm">{comments.length}</span>
+                  </div>
+                </div>
+
+                {comments.length > 0 && (
+                  <div className="space-y-4 pt-4 border-t">
+                    <h3 className="font-semibold">댓글 {comments.length}개</h3>
+                    <div className="space-y-3">
+                      {comments.map((comment: any) => (
+                        <div key={comment.id} className="flex gap-3">
+                          <Avatar className="h-8 w-8 flex-shrink-0">
+                            <AvatarImage src={comment.profiles?.profile_photo_url} />
+                            <AvatarFallback>
+                              {comment.profiles?.name?.[0] || "?"}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="font-semibold text-sm">
+                                {comment.profiles?.name || "익명"}
+                              </span>
+                              <span className="text-xs text-muted-foreground">
+                                {format(new Date(comment.created_at), "M월 d일 HH:mm", { locale: ko })}
+                              </span>
+                            </div>
+                            <p className="text-sm text-foreground break-words">
+                              {comment.content}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
+                )}
 
-                  {comments.length > 0 && (
-                    <div className="space-y-4 pt-4 border-t">
-                      <h3 className="font-semibold">댓글 {comments.length}개</h3>
-                      <div className="space-y-3">
-                        {comments.map((comment: any) => (
-                          <div key={comment.id} className="flex gap-3">
-                            <Avatar className="h-8 w-8 flex-shrink-0">
-                              <AvatarImage src={comment.profiles?.profile_photo_url} />
-                              <AvatarFallback>
-                                {comment.profiles?.name?.[0] || "?"}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className="font-semibold text-sm">
-                                  {comment.profiles?.name || "익명"}
-                                </span>
-                                <span className="text-xs text-muted-foreground">
-                                  {format(new Date(comment.created_at), "M월 d일 HH:mm", { locale: ko })}
-                                </span>
-                              </div>
-                              <p className="text-sm text-foreground break-words">
-                                {comment.content}
-                              </p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="pt-4 border-t">
-                    <div className="relative">
-                      <Input
-                        placeholder="댓글을 입력하세요..."
-                        value={newComment}
-                        onChange={(e) => setNewComment(e.target.value)}
-                        className="pr-12 h-11"
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" && !e.shiftKey) {
-                            e.preventDefault();
-                            handleCommentSubmit();
-                          }
-                        }}
-                      />
-                      <Button
-                        onClick={handleCommentSubmit}
-                        disabled={!newComment.trim()}
-                        size="icon"
-                        className="absolute right-1 top-1 h-9 w-9 rounded-full"
-                      >
-                        <Send className="h-4 w-4" />
-                      </Button>
-                    </div>
+                <div className="pt-4 border-t">
+                  <div className="relative">
+                    <Input
+                      placeholder="댓글을 입력하세요..."
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      className="pr-12 h-11"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                          e.preventDefault();
+                          handleCommentSubmit();
+                        }
+                      }}
+                    />
+                    <Button
+                      onClick={handleCommentSubmit}
+                      disabled={!newComment.trim()}
+                      size="icon"
+                      className="absolute right-1 top-1 h-9 w-9 rounded-full"
+                    >
+                      <Send className="h-4 w-4" />
+                    </Button>
                   </div>
                 </div>
               </div>
