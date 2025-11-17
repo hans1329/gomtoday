@@ -78,11 +78,16 @@ export default function Header() {
 
     setUserEmail(user.email || "");
 
-    const { data: profile } = await supabase
+    const { data: profile, error } = await supabase
       .from("profiles")
       .select("profile_photo_url, name")
       .eq("user_id", user.id)
-      .single();
+      .maybeSingle();
+
+    if (error) {
+      console.error("프로필 로드 에러:", error);
+      return;
+    }
 
     if (profile?.profile_photo_url) {
       setProfilePhotoUrl(profile.profile_photo_url);
