@@ -139,10 +139,6 @@ export default function Home() {
             ),
             photo:photos!diaries_photo_id_fkey (
               photo_url
-            ),
-            profiles (
-              name,
-              profile_photo_url
             )
           `)
           .in("id", diaryIds)
@@ -150,6 +146,17 @@ export default function Home() {
           .lte("created_at", monthEnd.toISOString());
 
         if (publicData) {
+          // 작성자 정보 가져오기
+          const userIds = [...new Set(publicData.map(d => d.user_id))];
+          const { data: profilesData } = await supabase
+            .from("profiles")
+            .select("user_id, name, profile_photo_url")
+            .in("user_id", userIds);
+
+          const profilesMap = new Map(
+            profilesData?.map(p => [p.user_id, p]) || []
+          );
+
           const processedPublicData = publicData.map((diary: any) => {
             let allPhotos = [];
             if (diary.photos && diary.photos.length > 0) {
@@ -157,11 +164,12 @@ export default function Home() {
             } else if (diary.photo) {
               allPhotos = [diary.photo];
             }
+            const profile = profilesMap.get(diary.user_id);
             return { 
               ...diary, 
               photos: allPhotos,
-              author_name: diary.profiles?.name,
-              author_photo: diary.profiles?.profile_photo_url
+              author_name: profile?.name,
+              author_photo: profile?.profile_photo_url
             };
           });
 
