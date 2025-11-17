@@ -438,26 +438,26 @@ export default function Upload() {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label>일기장 선택</Label>
-                  <Select value={selectedNotebook || undefined} onValueChange={setSelectedNotebook}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="일기장을 선택하세요" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {notebooks.map((notebook) => (
-                        <SelectItem key={notebook.id} value={notebook.id}>
-                          {notebook.name}
-                          {notebook.is_default && " (기본)"}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
                 <div className="border-t pt-6 mt-6" />
               </>
             )}
+
+            <div className="space-y-2">
+              <Label>일기장 선택</Label>
+              <Select value={selectedNotebook || undefined} onValueChange={setSelectedNotebook}>
+                <SelectTrigger>
+                  <SelectValue placeholder="일기장을 선택하세요" />
+                </SelectTrigger>
+                <SelectContent>
+                  {notebooks.map((notebook) => (
+                    <SelectItem key={notebook.id} value={notebook.id}>
+                      {notebook.name}
+                      {notebook.is_default && " (기본)"}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
             <div className="space-y-2">
               <Label>일기 날짜</Label>
