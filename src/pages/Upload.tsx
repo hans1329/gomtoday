@@ -954,33 +954,6 @@ export default function Upload() {
         </div>
         
         <div className="space-y-6">
-            {isEditMode && (
-              <>
-                <div className="space-y-2">
-                  <Label htmlFor="title" className="px-2">제목</Label>
-                  <Input
-                    id="title"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    placeholder="제목을 입력하세요"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="content" className="px-2">일기 내용</Label>
-                  <Textarea
-                    id="content"
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
-                    placeholder="일기 내용을 입력하세요"
-                    className="min-h-[200px]"
-                  />
-                </div>
-
-                <div className="border-t pt-6 mt-6" />
-              </>
-            )}
-
             <div className="space-y-2">
               <Label className="px-2">일기 날짜</Label>
               <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
