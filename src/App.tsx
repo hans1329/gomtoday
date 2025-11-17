@@ -19,7 +19,10 @@ import Diaries from "./pages/Diaries";
 import Notebooks from "./pages/Notebooks";
 import Friends from "./pages/Friends";
 import NotFound from "./pages/NotFound";
-import Admin from "./pages/Admin";
+import AdminDashboard from "./pages/AdminDashboard";
+import AdminBrandAssets from "./pages/AdminBrandAssets";
+import AdminUsers from "./pages/AdminUsers";
+import AdminPencilSettings from "./pages/AdminPencilSettings";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 
@@ -27,7 +30,7 @@ function AppContent() {
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const hideHeader = location.pathname === "/auth";
+  const hideHeader = location.pathname === "/auth" || location.pathname.startsWith("/admin");
 
   useEffect(() => {
     // 밴된 사용자 체크
@@ -72,7 +75,10 @@ function AppContent() {
         <Route path="/friends" element={<Friends />} />
         <Route path="/diary/:id" element={<DiaryDetail />} />
         <Route path="/diary-review/:id" element={<DiaryReview />} />
-        <Route path="/admin" element={<Admin />} />
+        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin/brand-assets" element={<AdminBrandAssets />} />
+        <Route path="/admin/users" element={<AdminUsers />} />
+        <Route path="/admin/pencil-settings" element={<AdminPencilSettings />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="*" element={<NotFound />} />

@@ -2,12 +2,10 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Users, Shield, UserCircle, Ban, CheckCircle, Trash2, Pencil, Save } from "lucide-react";
-import LoadingBar from "@/components/LoadingBar";
+import { ArrowLeft, Users, UserCircle, Ban, CheckCircle, Trash2, Shield } from "lucide-react";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 import {
   Select,
   SelectContent,
@@ -46,40 +44,20 @@ interface UserWithRole {
   banned_reason: string | null;
 }
 
-interface PencilSetting {
-  id: string;
-  setting_key: string;
-  setting_value: number;
-  description: string | null;
-}
-
-export default function Admin() {
-  const [isAdmin, setIsAdmin] = useState(false);
+export default function AdminUsers() {
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const [loading, setLoading] = useState(true);
-  const [uploading, setUploading] = useState(false);
-  const [logoUrl, setLogoUrl] = useState<string>("");
   const [users, setUsers] = useState<UserWithRole[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [stats, setStats] = useState({ totalUsers: 0, totalDiaries: 0, totalNotebooks: 0 });
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
-  const [pencilSettings, setPencilSettings] = useState<PencilSetting[]>([]);
-  const [savingPencilSettings, setSavingPencilSettings] = useState(false);
-  const navigate = useNavigate();
-  const { toast } = useToast();
 
   useEffect(() => {
     checkAdminRole();
   }, []);
-
-  useEffect(() => {
-    if (isAdmin) {
-      fetchUsers();
-      fetchStats();
-      fetchPencilSettings();
-    }
-  }, [isAdmin]);
 
   const checkAdminRole = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -98,7 +76,7 @@ export default function Admin() {
 
     if (!roles) {
       toast({
-        title: "권한 없음",
+        title: "접근 권한 없음",
         description: "관리자만 접근할 수 있습니다.",
         variant: "destructive",
       });
@@ -106,8 +84,8 @@ export default function Admin() {
       return;
     }
 
-    setIsAdmin(true);
-    fetchCurrentLogo();
+    fetchUsers();
+    fetchStats();
     setLoading(false);
   };
 
@@ -125,67 +103,9 @@ export default function Admin() {
     });
   };
 
-  const fetchPencilSettings = async () => {
-    const { data, error } = await supabase
-      .from("pencil_settings")
-      .select("*")
-      .order("setting_key");
-
-    if (error) {
-      console.error("설정 로드 에러:", error);
-      toast({
-        title: "설정 로드 실패",
-        description: "연필 설정을 불러오는데 실패했습니다.",
-        variant: "destructive",
-      });
-    } else {
-      setPencilSettings(data || []);
-    }
-  };
-
-  const handlePencilSettingChange = (settingKey: string, value: string) => {
-    const numValue = parseInt(value) || 0;
-    setPencilSettings(prev =>
-      prev.map(s =>
-        s.setting_key === settingKey
-          ? { ...s, setting_value: numValue }
-          : s
-      )
-    );
-  };
-
-  const handleSavePencilSettings = async () => {
-    setSavingPencilSettings(true);
-    
-    for (const setting of pencilSettings) {
-      const { error } = await supabase
-        .from("pencil_settings")
-        .update({ setting_value: setting.setting_value })
-        .eq("id", setting.id);
-
-      if (error) {
-        console.error("설정 저장 에러:", error);
-        toast({
-          title: "저장 실패",
-          description: `${setting.description || setting.setting_key} 저장에 실패했습니다.`,
-          variant: "destructive",
-        });
-        setSavingPencilSettings(false);
-        return;
-      }
-    }
-
-    toast({
-      title: "저장 완료",
-      description: "연필 설정이 저장되었습니다.",
-    });
-    setSavingPencilSettings(false);
-  };
-
   const fetchUsers = async () => {
     setLoadingUsers(true);
     
-    // 모든 프로필 가져오기
     const { data: profiles, error: profilesError } = await supabase
       .from("profiles")
       .select("user_id, name, email, profile_photo_url, created_at, banned, banned_at, banned_reason")
@@ -201,7 +121,6 @@ export default function Admin() {
       return;
     }
 
-    // 모든 유저의 롤 가져오기
     const { data: roles, error: rolesError } = await supabase
       .from("user_roles")
       .select("user_id, role");
@@ -216,12 +135,11 @@ export default function Admin() {
       return;
     }
 
-    // 프로필과 롤 정보 병합
-    const usersWithRoles: UserWithRole[] = profiles.map(profile => {
-      const userRole = roles.find(r => r.user_id === profile.user_id);
+    const usersWithRoles: UserWithRole[] = (profiles || []).map((profile) => {
+      const userRole = roles?.find((r) => r.user_id === profile.user_id);
       return {
         ...profile,
-        role: userRole?.role || "user"
+        role: userRole?.role || "user",
       };
     });
 
@@ -230,42 +148,15 @@ export default function Admin() {
   };
 
   const handleRoleChange = async (userId: string, newRole: "admin" | "user") => {
-    const { data: existingRole } = await supabase
+    const { error } = await supabase
       .from("user_roles")
-      .select("id")
-      .eq("user_id", userId)
-      .eq("role", newRole)
-      .maybeSingle();
-
-    if (existingRole) {
-      // 이미 해당 롤이 있으면 아무것도 하지 않음
-      return;
-    }
-
-    // 기존 롤 삭제
-    const { error: deleteError } = await supabase
-      .from("user_roles")
-      .delete()
+      .update({ role: newRole })
       .eq("user_id", userId);
 
-    if (deleteError) {
+    if (error) {
       toast({
         title: "역할 변경 실패",
-        description: deleteError.message,
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // 새 롤 추가
-    const { error: insertError } = await supabase
-      .from("user_roles")
-      .insert({ user_id: userId, role: newRole });
-
-    if (insertError) {
-      toast({
-        title: "역할 변경 실패",
-        description: insertError.message,
+        description: error.message,
         variant: "destructive",
       });
       return;
@@ -316,8 +207,6 @@ export default function Admin() {
     try {
       console.log('=== 사용자 삭제 시작 ===', userId);
       
-      // 1. 사용자의 모든 사진 가져오기
-      console.log('1. 사진 조회 중...');
       const { data: photos, error: photosError } = await supabase
         .from("photos")
         .select("photo_url")
@@ -329,9 +218,8 @@ export default function Admin() {
         console.log('조회된 사진 수:', photos?.length || 0);
       }
 
-      // 2. 스토리지에서 사진 삭제
       if (photos && photos.length > 0) {
-        console.log('2. 스토리지에서 사진 삭제 중...');
+        console.log('스토리지에서 사진 삭제 중...');
         for (const photo of photos) {
           const urlParts = photo.photo_url.split('/');
           const bucketIndex = urlParts.findIndex(part => part === 'photos');
@@ -345,18 +233,13 @@ export default function Admin() {
             }
           }
         }
-        console.log('스토리지 사진 삭제 완료');
       }
 
-      // 3. 데이터베이스에서 사용자 데이터 삭제
-      console.log('3. 프로필 삭제 시도 중...');
       const { data: deletedData, error: profileError } = await supabase
         .from("profiles")
         .delete()
         .eq("user_id", userId)
         .select();
-
-      console.log('프로필 삭제 결과:', { deletedData, profileError });
 
       if (profileError) {
         console.error('프로필 삭제 에러:', profileError);
@@ -364,7 +247,6 @@ export default function Admin() {
       }
 
       if (!deletedData || deletedData.length === 0) {
-        console.warn('삭제된 프로필이 없습니다');
         toast({
           title: "삭제 실패",
           description: "삭제할 사용자를 찾을 수 없습니다.",
@@ -373,7 +255,6 @@ export default function Admin() {
         return;
       }
 
-      console.log('=== 사용자 삭제 완료 ===');
       toast({
         title: "사용자 삭제 완료",
         description: "해당 사용자와 모든 데이터가 삭제되었습니다.",
@@ -386,7 +267,7 @@ export default function Admin() {
       console.error('=== 사용자 삭제 실패 ===', error);
       toast({
         title: "삭제 실패",
-        description: error.message || "알 수 없는 오류가 발생했습니다.",
+        description: error.message || "사용자 삭제 중 오류가 발생했습니다.",
         variant: "destructive",
       });
     } finally {
@@ -394,66 +275,30 @@ export default function Admin() {
     }
   };
 
-  const fetchCurrentLogo = () => {
-    const { data } = supabase.storage
-      .from("brand-assets")
-      .getPublicUrl("3rdme-logo.png");
-    
-    setLogoUrl(data.publicUrl);
-  };
-
-  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // 이미지 파일만 허용
-    if (!file.type.startsWith("image/")) {
-      toast({
-        title: "업로드 실패",
-        description: "이미지 파일만 업로드할 수 있습니다.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setUploading(true);
-
-    const { error: uploadError } = await supabase.storage
-      .from("brand-assets")
-      .upload("3rdme-logo.png", file, { upsert: true });
-
-    setUploading(false);
-
-    if (uploadError) {
-      toast({
-        title: "업로드 실패",
-        description: uploadError.message,
-        variant: "destructive",
-      });
-    } else {
-      toast({
-        title: "업로드 완료!",
-        description: "브랜드 로고가 업데이트되었습니다.",
-      });
-      fetchCurrentLogo();
-      // 페이지 새로고침하여 로고 반영
-      setTimeout(() => window.location.reload(), 1000);
-    }
-  };
-
   if (loading) {
-    return <LoadingBar />;
-  }
-
-  if (!isAdmin) {
-    return null;
+    return <LoadingSpinner />;
   }
 
   return (
-    <div className="min-h-screen gradient-soft p-4">
-      <div className="max-w-6xl mx-auto pt-8 space-y-6">
+    <div className="min-h-screen gradient-soft">
+      <div className="container max-w-6xl mx-auto px-4 py-8">
+        <div className="flex items-center gap-4 mb-8">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate(-1)}
+            className="shrink-0 rounded-full"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold">사용자 관리</h1>
+            <p className="text-muted-foreground mt-1">모든 사용자와 역할을 관리합니다</p>
+          </div>
+        </div>
+
         {/* 통계 카드 */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <Card className="shadow-medium">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-lg">
@@ -469,7 +314,7 @@ export default function Admin() {
           <Card className="shadow-medium">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-lg">
-                <Upload className="w-5 h-5" />
+                <Shield className="w-5 h-5" />
                 전체 일기수
               </CardTitle>
             </CardHeader>
@@ -495,7 +340,7 @@ export default function Admin() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Users className="w-5 h-5" />
-              사용자 관리
+              사용자 목록
             </CardTitle>
             <CardDescription>
               모든 사용자와 역할을 관리합니다
@@ -504,9 +349,7 @@ export default function Admin() {
           <CardContent>
             {loadingUsers ? (
               <div className="flex justify-center py-8">
-                <div className="w-32 h-1.5 bg-muted rounded-full overflow-hidden">
-                  <div className="h-full bg-gradient-to-r from-primary via-primary/60 to-primary animate-shimmer bg-[length:200%_100%]" />
-                </div>
+                <LoadingSpinner />
               </div>
             ) : (
               <div className="rounded-md border">
@@ -543,24 +386,22 @@ export default function Admin() {
                         <TableCell className="font-medium">
                           {user.name || "이름 없음"}
                         </TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {user.email || "-"}
-                        </TableCell>
-                        <TableCell className="text-muted-foreground">
+                        <TableCell>{user.email}</TableCell>
+                        <TableCell>
                           {user.created_at 
-                            ? new Date(user.created_at).toLocaleDateString("ko-KR")
+                            ? new Date(user.created_at).toLocaleDateString('ko-KR')
                             : "-"}
                         </TableCell>
                         <TableCell className="text-center">
                           {user.banned ? (
-                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-destructive/10 text-destructive">
-                              <Ban className="w-3 h-3" />
-                              밴
+                            <span className="inline-flex items-center gap-1 text-destructive">
+                              <Ban className="h-4 w-4" />
+                              <span className="text-sm">제한됨</span>
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-500/10 text-green-600">
-                              <CheckCircle className="w-3 h-3" />
-                              활성
+                            <span className="inline-flex items-center gap-1 text-green-600">
+                              <CheckCircle className="h-4 w-4" />
+                              <span className="text-sm">정상</span>
                             </span>
                           )}
                         </TableCell>
@@ -571,26 +412,16 @@ export default function Admin() {
                               handleRoleChange(user.user_id, value)
                             }
                           >
-                            <SelectTrigger className="w-32 mx-auto">
+                            <SelectTrigger className="w-[120px] mx-auto">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="user">
-                                <div className="flex items-center gap-2">
-                                  <UserCircle className="w-4 h-4" />
-                                  User
-                                </div>
-                              </SelectItem>
-                              <SelectItem value="admin">
-                                <div className="flex items-center gap-2">
-                                  <Shield className="w-4 h-4" />
-                                  Admin
-                                </div>
-                              </SelectItem>
+                              <SelectItem value="user">일반 사용자</SelectItem>
+                              <SelectItem value="admin">관리자</SelectItem>
                             </SelectContent>
                           </Select>
                         </TableCell>
-                        <TableCell className="text-center">
+                        <TableCell>
                           <div className="flex items-center justify-center gap-2">
                             <Button
                               variant={user.banned ? "outline" : "destructive"}
@@ -621,132 +452,11 @@ export default function Admin() {
             )}
           </CardContent>
         </Card>
-
-        {/* 연필 설정 카드 */}
-        <Card className="shadow-medium">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Pencil className="w-5 h-5" />
-              연필 시스템 설정
-            </CardTitle>
-            <CardDescription>
-              각 항목별 연필 개수를 설정할 수 있습니다
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {pencilSettings.map((setting) => (
-              <div key={setting.id} className="space-y-2">
-                <Label htmlFor={setting.setting_key} className="text-base font-medium pl-1">
-                  {setting.description || setting.setting_key}
-                </Label>
-                <div className="flex items-center gap-2">
-                  <Input
-                    id={setting.setting_key}
-                    type="number"
-                    min="0"
-                    value={setting.setting_value}
-                    onChange={(e) => handlePencilSettingChange(setting.setting_key, e.target.value)}
-                    className="max-w-[200px]"
-                  />
-                  <span className="text-sm text-muted-foreground">개</span>
-                </div>
-                {setting.setting_key === "signup_initial_pencils" && (
-                  <p className="text-sm text-muted-foreground pl-1">
-                    새로 가입한 사용자에게 지급되는 초기 연필 개수입니다.
-                  </p>
-                )}
-                {setting.setting_key === "diary_write_cost" && (
-                  <p className="text-sm text-muted-foreground pl-1">
-                    일기를 작성할 때마다 차감되는 연필 개수입니다.
-                  </p>
-                )}
-                {setting.setting_key === "photo_upload_cost" && (
-                  <p className="text-sm text-muted-foreground pl-1">
-                    사진을 업로드할 때마다 차감되는 연필 개수입니다.
-                  </p>
-                )}
-              </div>
-            ))}
-
-            <div className="pt-4 flex justify-end">
-              <Button
-                onClick={handleSavePencilSettings}
-                disabled={savingPencilSettings}
-                className="rounded-full"
-              >
-                {savingPencilSettings ? (
-                  <>저장 중...</>
-                ) : (
-                  <>
-                    <Save className="mr-2 h-4 w-4" />
-                    저장
-                  </>
-                )}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="shadow-medium">
-          <CardHeader>
-            <CardTitle>관리자 페이지</CardTitle>
-            <CardDescription>
-              브랜드 자산 및 시스템 설정을 관리합니다
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">브랜드 로고</h3>
-              
-              {logoUrl && (
-                <div className="flex items-center justify-center p-8 bg-muted rounded-lg">
-                  <img 
-                    src={`${logoUrl}?t=${Date.now()}`} 
-                    alt="현재 로고" 
-                    className="max-w-[200px] max-h-[200px] object-contain"
-                  />
-                </div>
-              )}
-
-              <div className="flex flex-col gap-4">
-                <label
-                  htmlFor="logo-upload"
-                  className="cursor-pointer"
-                >
-                  <div className="flex items-center justify-center gap-2 p-4 border-2 border-dashed border-border rounded-lg hover:bg-muted/50 transition-colors">
-                    {uploading ? (
-                      <p className="text-sm text-muted-foreground">업로드 중...</p>
-                    ) : (
-                      <>
-                        <Upload className="w-5 h-5 text-muted-foreground" />
-                        <span className="text-sm text-muted-foreground">
-                          클릭하여 새 로고 업로드
-                        </span>
-                      </>
-                    )}
-                  </div>
-                  <input
-                    id="logo-upload"
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleLogoUpload}
-                    disabled={uploading}
-                  />
-                </label>
-                
-                <p className="text-xs text-muted-foreground">
-                  * PNG 형식 권장, 파일명은 자동으로 3rdme-logo.png로 저장됩니다
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       {/* 사용자 삭제 확인 다이얼로그 */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="mx-4">
           <AlertDialogHeader>
             <AlertDialogTitle>사용자를 정말 삭제하시겠습니까?</AlertDialogTitle>
             <AlertDialogDescription>
@@ -760,7 +470,7 @@ export default function Admin() {
             <AlertDialogAction
               onClick={() => userToDelete && handleDeleteUser(userToDelete)}
               disabled={deleting}
-              className="rounded-full bg-destructive hover:bg-destructive/90"
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-full"
             >
               {deleting ? "삭제 중..." : "삭제"}
             </AlertDialogAction>
