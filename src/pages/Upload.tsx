@@ -219,14 +219,6 @@ export default function Upload() {
   };
 
   const removeParticipant = (memberId: string) => {
-    // 현재 사용자는 제거할 수 없음
-    if (memberId === currentUser?.id) {
-      toast({
-        title: "자신은 제거할 수 없습니다",
-        variant: "destructive"
-      });
-      return;
-    }
     setParticipants(participants.filter(p => p.id !== memberId));
   };
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -791,14 +783,12 @@ export default function Upload() {
                               <AvatarImage src={p.profile_photo_url} />
                               <AvatarFallback>{p.name.charAt(0)}</AvatarFallback>
                             </Avatar>
-                            {p.id !== currentUser?.id && (
-                              <button
-                                onClick={() => removeParticipant(p.id)}
-                                className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-destructive text-destructive-foreground opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
-                              >
-                                <X className="h-3 w-3" />
-                              </button>
-                            )}
+                            <button
+                              onClick={() => removeParticipant(p.id)}
+                              className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-destructive text-destructive-foreground opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
                           </div>
                         </TooltipTrigger>
                         <TooltipContent>
