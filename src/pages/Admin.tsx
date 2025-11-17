@@ -245,39 +245,66 @@ export default function Admin() {
     setDeleting(true);
 
     try {
+      console.log('=== 사용자 삭제 시작 ===', userId);
+      
       // 1. 사용자의 모든 사진 가져오기
-      const { data: photos } = await supabase
+      console.log('1. 사진 조회 중...');
+      const { data: photos, error: photosError } = await supabase
         .from("photos")
         .select("photo_url")
         .eq("user_id", userId);
 
+      if (photosError) {
+        console.error('사진 조회 에러:', photosError);
+      } else {
+        console.log('조회된 사진 수:', photos?.length || 0);
+      }
+
       // 2. 스토리지에서 사진 삭제
       if (photos && photos.length > 0) {
+        console.log('2. 스토리지에서 사진 삭제 중...');
         for (const photo of photos) {
-          // photo_url에서 파일 경로 추출
           const urlParts = photo.photo_url.split('/');
           const bucketIndex = urlParts.findIndex(part => part === 'photos');
           if (bucketIndex !== -1) {
             const filePath = urlParts.slice(bucketIndex + 1).join('/');
-            await supabase.storage.from('photos').remove([filePath]);
+            const { error: storageError } = await supabase.storage
+              .from('photos')
+              .remove([filePath]);
+            if (storageError) {
+              console.error('스토리지 삭제 에러:', storageError);
+            }
           }
         }
+        console.log('스토리지 사진 삭제 완료');
       }
 
-      // 3. 데이터베이스에서 사용자 데이터 삭제 (CASCADE로 자동 삭제됨)
-      const { error: profileError } = await supabase
+      // 3. 데이터베이스에서 사용자 데이터 삭제
+      console.log('3. 프로필 삭제 시도 중...');
+      const { data: deletedData, error: profileError } = await supabase
         .from("profiles")
         .delete()
-        .eq("user_id", userId);
+        .eq("user_id", userId)
+        .select();
+
+      console.log('프로필 삭제 결과:', { deletedData, profileError });
 
       if (profileError) {
+        console.error('프로필 삭제 에러:', profileError);
         throw profileError;
       }
 
-      // 4. Auth 사용자 삭제 (관리자 권한 필요 - service role key 사용)
-      // 참고: 클라이언트에서는 auth.admin.deleteUser를 사용할 수 없으므로
-      // profiles 삭제만으로 처리 (auth.users는 CASCADE 설정으로 자동 삭제 안됨)
+      if (!deletedData || deletedData.length === 0) {
+        console.warn('삭제된 프로필이 없습니다');
+        toast({
+          title: "삭제 실패",
+          description: "삭제할 사용자를 찾을 수 없습니다.",
+          variant: "destructive",
+        });
+        return;
+      }
 
+      console.log('=== 사용자 삭제 완료 ===');
       toast({
         title: "사용자 삭제 완료",
         description: "해당 사용자와 모든 데이터가 삭제되었습니다.",
@@ -287,9 +314,10 @@ export default function Admin() {
       setDeleteDialogOpen(false);
       setUserToDelete(null);
     } catch (error: any) {
+      console.error('=== 사용자 삭제 실패 ===', error);
       toast({
         title: "삭제 실패",
-        description: error.message,
+        description: error.message || "알 수 없는 오류가 발생했습니다.",
         variant: "destructive",
       });
     } finally {
