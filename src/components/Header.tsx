@@ -182,7 +182,7 @@ export default function Header() {
 
         {currentPath === "/" && (
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 bg-background rounded-full p-1 shadow-sm">
               <Button
                 variant="ghost"
                 size="icon"
@@ -190,7 +190,7 @@ export default function Header() {
                   setViewMode("my");
                   window.dispatchEvent(new CustomEvent('viewModeChange', { detail: 'my' }));
                 }}
-                className="rounded-full hover:bg-transparent h-9 w-9"
+                className="rounded-full h-9 w-9"
               >
                 <User className={cn("h-5 w-5", viewMode === "my" ? "text-primary" : "text-muted-foreground")} />
               </Button>
@@ -202,7 +202,7 @@ export default function Header() {
                   setViewMode("public");
                   window.dispatchEvent(new CustomEvent('viewModeChange', { detail: 'public' }));
                 }}
-                className="rounded-full hover:bg-transparent h-9 w-9"
+                className="rounded-full h-9 w-9"
               >
                 <Globe className={cn("h-5 w-5", viewMode === "public" ? "text-primary" : "text-muted-foreground")} />
               </Button>
