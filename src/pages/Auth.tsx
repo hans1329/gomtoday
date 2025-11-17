@@ -127,7 +127,7 @@ export default function Auth() {
                 </div>
                 <Button 
                   type="submit" 
-                  className="w-full"
+                  className="w-full h-12"
                   size="lg"
                   disabled={loading}
                 >
@@ -180,7 +180,7 @@ export default function Auth() {
                 </div>
                 <Button 
                   type="submit" 
-                  className="w-full"
+                  className="w-full h-12"
                   size="lg"
                   disabled={loading}
                 >
