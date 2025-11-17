@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 
 export default function Home() {
   const [diaries, setDiaries] = useState<any[]>([]);
+  const [allDiaries, setAllDiaries] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [currentUserId, setCurrentUserId] = useState<string>("");
@@ -106,6 +107,8 @@ export default function Home() {
           };
         });
         
+        setAllDiaries(diariesWithSortedPhotos);
+        
         if (selectedEmoji) {
           diariesWithSortedPhotos = diariesWithSortedPhotos.filter(diary => 
             diary.emoji === selectedEmoji
@@ -190,6 +193,8 @@ export default function Home() {
             photos: allPhotos
           };
         });
+        
+        setAllDiaries(diariesWithSortedPhotos);
         
         if (selectedEmoji) {
           diariesWithSortedPhotos = diariesWithSortedPhotos.filter(diary => 
@@ -304,7 +309,7 @@ export default function Home() {
 
     while (day <= endDate) {
       const currentDay = day;
-      const dayDiaries = diaries.filter((diary) =>
+      const dayDiaries = allDiaries.filter((diary) =>
         isSameDay(new Date(diary.created_at), currentDay)
       );
       
