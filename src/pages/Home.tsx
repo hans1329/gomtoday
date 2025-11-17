@@ -319,8 +319,8 @@ export default function Home() {
           className={cn(
             "p-3 pt-2 text-center transition-all relative cursor-pointer min-h-[60px] flex flex-col items-center justify-start",
             dayDiaries.length > 0
-              ? "hover:bg-muted/20 text-primary font-semibold"
-              : "hover:bg-muted/20"
+              ? "hover:bg-muted/40 text-primary font-semibold"
+              : "hover:bg-muted/40"
           )}
         >
           <div className="text-sm">{format(currentDay, "d")}</div>
