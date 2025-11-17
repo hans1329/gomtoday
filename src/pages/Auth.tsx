@@ -128,6 +128,7 @@ export default function Auth() {
                 <Button 
                   type="submit" 
                   className="w-full"
+                  size="lg"
                   disabled={loading}
                 >
                   {loading ? "로그인 중..." : "로그인"}
@@ -180,6 +181,7 @@ export default function Auth() {
                 <Button 
                   type="submit" 
                   className="w-full"
+                  size="lg"
                   disabled={loading}
                 >
                   {loading ? "가입 중..." : "회원가입"}
