@@ -326,7 +326,14 @@ export default function Home() {
         >
           <div className="text-sm">{format(currentDay, "d")}</div>
           {dayDiaries.length > 0 && (
-            <div className="absolute top-1 right-1 w-1.5 h-1.5 bg-primary rounded-full"></div>
+            <>
+              <div className="absolute top-1 right-1 w-1.5 h-1.5 bg-primary rounded-full"></div>
+              {dayDiaries[0].emoji && (
+                <div className="absolute bottom-0.5 left-1/2 -translate-x-1/2 text-[10px] leading-none">
+                  {dayDiaries[0].emoji}
+                </div>
+              )}
+            </>
           )}
         </div>
       );
