@@ -39,7 +39,7 @@ export default function Upload() {
   const [selectedNotebook, setSelectedNotebook] = useState<string | null>(null);
   const [participants, setParticipants] = useState<Array<{id: string, name: string, profile_photo_url?: string}>>([]);
   const [currentUser, setCurrentUser] = useState<{id: string, name: string, profile_photo_url?: string} | null>(null);
-  const [notebookMembers, setNotebookMembers] = useState<Array<{id: string, name: string, profile_photo_url?: string}>>([]);
+  const [friends, setFriends] = useState<Array<{id: string, name: string, profile_photo_url?: string}>>([]);
   const [showMemberDialog, setShowMemberDialog] = useState(false);
   const navigate = useNavigate();
   const {
@@ -183,31 +183,40 @@ export default function Upload() {
         }
       }
     }
+
+    // 일기 친구 목록 가져오기
+    await fetchFriends(user.id);
   };
 
-  const fetchNotebookMembers = async (notebookId: string) => {
-    const { data } = await supabase
-      .from("notebook_members")
+  const fetchFriends = async (userId: string) => {
+    // 친구 요청이 수락된 사용자들 가져오기
+    const { data: acceptedRequests } = await supabase
+      .from("friend_requests")
       .select(`
-        user_id,
-        profiles:user_id (
-          name,
-          user_id,
-          profile_photo_url
-        )
+        from_user_id,
+        to_user_id,
+        from_profile:profiles!friend_requests_from_user_id_fkey(user_id, name, profile_photo_url),
+        to_profile:profiles!friend_requests_to_user_id_fkey(user_id, name, profile_photo_url)
       `)
-      .eq("notebook_id", notebookId);
+      .eq("status", "accepted")
+      .or(`from_user_id.eq.${userId},to_user_id.eq.${userId}`);
 
-    if (data) {
-      const members = data
-        .map((m: any) => ({
-          id: m.profiles?.user_id || m.user_id,
-          name: m.profiles?.name || "사용자",
-          profile_photo_url: m.profiles?.profile_photo_url
-        }))
-        .filter((m) => !participants.some(p => p.id === m.id)); // 이미 추가된 사람 제외
-      
-      setNotebookMembers(members);
+    if (acceptedRequests) {
+      const friendsList = acceptedRequests
+        .map((req: any) => {
+          // 현재 사용자가 from_user면 to_user가 친구, 반대도 마찬가지
+          const isSender = req.from_user_id === userId;
+          const friendProfile = isSender ? req.to_profile : req.from_profile;
+          
+          return {
+            id: friendProfile?.user_id,
+            name: friendProfile?.name || "사용자",
+            profile_photo_url: friendProfile?.profile_photo_url
+          };
+        })
+        .filter((friend: any) => friend.id && !participants.some(p => p.id === friend.id)); // ID가 있고 이미 추가되지 않은 친구만
+
+      setFriends(friendsList);
     }
   };
 
@@ -802,17 +811,7 @@ export default function Upload() {
                     variant="outline"
                     size="sm"
                     className="h-10 w-10 rounded-full p-0"
-                    onClick={() => {
-                      if (selectedNotebook) {
-                        fetchNotebookMembers(selectedNotebook);
-                        setShowMemberDialog(true);
-                      } else {
-                        toast({
-                          title: "먼저 일기장을 선택해주세요",
-                          variant: "destructive"
-                        });
-                      }
-                    }}
+                    onClick={() => setShowMemberDialog(true)}
                   >
                     <UserPlus className="h-4 w-4" />
                   </Button>
@@ -877,27 +876,27 @@ export default function Upload() {
           <DialogHeader>
             <DialogTitle>등장인물 추가</DialogTitle>
             <DialogDescription>
-              공유 일기장의 멤버를 선택하세요
+              일기 친구를 선택하세요
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2 max-h-[300px] overflow-y-auto">
-            {notebookMembers.length === 0 ? (
+            {friends.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-4">
-                추가할 수 있는 멤버가 없습니다
+                추가할 수 있는 일기 친구가 없습니다
               </p>
             ) : (
-              notebookMembers.map((member) => (
+              friends.map((friend) => (
                 <Button
-                  key={member.id}
+                  key={friend.id}
                   variant="outline"
                   className="w-full justify-start gap-3"
-                  onClick={() => addParticipant(member)}
+                  onClick={() => addParticipant(friend)}
                 >
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={member.profile_photo_url} />
-                    <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
+                    <AvatarImage src={friend.profile_photo_url} />
+                    <AvatarFallback>{friend.name.charAt(0)}</AvatarFallback>
                   </Avatar>
-                  {member.name}
+                  {friend.name}
                 </Button>
               ))
             )}
