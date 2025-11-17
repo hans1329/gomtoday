@@ -140,7 +140,7 @@ export default function Home() {
             photo:photos!diaries_photo_id_fkey (
               photo_url
             ),
-            profiles!diaries_user_id_fkey (
+            profiles (
               name,
               profile_photo_url
             )
@@ -343,7 +343,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen gradient-soft">
-      <div className="max-w-4xl mx-auto p-2 sm:p-4 space-y-4">
+      <div className="max-w-4xl mx-auto p-2 sm:p-4 pb-8 space-y-4">
         <Card className="shadow-medium md:max-w-2xl md:mx-auto">
           <CardContent className="p-6">
             <div className={cn(
