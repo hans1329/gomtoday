@@ -548,9 +548,9 @@ export default function Home() {
               className="rounded-full absolute right-0"
             >
               {isCalendarExpanded ? (
-                <ChevronUp className="h-5 w-5" />
+                <ChevronUp className="h-5 w-5 text-primary" />
               ) : (
-                <ChevronDown className="h-5 w-5" />
+                <ChevronDown className="h-5 w-5 text-primary" />
               )}
             </Button>
           </div>
