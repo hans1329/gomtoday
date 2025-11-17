@@ -642,7 +642,7 @@ export default function Upload() {
               </div>
             )}
 
-            <Button onClick={handleUpload} disabled={uploading || (existingPhotos.length + selectedFiles.length) < 1} className="w-full">
+            <Button onClick={handleUpload} disabled={uploading || (existingPhotos.length + selectedFiles.length) < 1} className="w-full h-12">
               {uploading ? <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   {isEditMode ? "일기 수정 중..." : "일기 작성 중..."}
