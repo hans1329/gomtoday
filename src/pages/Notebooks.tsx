@@ -248,7 +248,9 @@ export default function Notebooks() {
       <div className="max-w-4xl mx-auto pt-4 sm:pt-8 space-y-4 sm:space-y-6">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4">
           <div>
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">내 일기장</h1>
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">
+              내 일기장 <span className="text-base sm:text-lg text-muted-foreground">({notebooks.length}/5)</span>
+            </h1>
             <p className="text-xs sm:text-sm md:text-base text-muted-foreground">일기장을 관리하고 공유하세요</p>
           </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -321,6 +323,24 @@ export default function Notebooks() {
         )}
 
         <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
+          {notebooks.length < 5 && (
+            <Card 
+              className="shadow-sm border-dashed border-2 cursor-pointer hover:border-primary hover:bg-accent/50 transition-colors"
+              onClick={() => setIsDialogOpen(true)}
+            >
+              <CardHeader className="p-4 sm:p-6">
+                <div className="flex items-center justify-center gap-3 min-h-[80px]">
+                  <Plus className="h-8 w-8 sm:h-10 sm:w-10 text-muted-foreground" />
+                  <div className="text-center">
+                    <CardTitle className="text-base sm:text-lg text-muted-foreground">새 일기장 만들기</CardTitle>
+                    <CardDescription className="text-xs sm:text-sm mt-1">
+                      특정 멤버와의 일기장을 만드세요
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+            </Card>
+          )}
           {notebooks.map((notebook) => (
             <Card key={notebook.id} className="shadow-sm">
               <CardHeader className="p-4 sm:p-6">
