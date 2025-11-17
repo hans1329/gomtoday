@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -941,8 +941,8 @@ export default function Upload() {
     );
   }
   
-  return <div className="min-h-screen gradient-soft p-4">
-      <div className="max-w-2xl mx-auto pt-6 space-y-4">
+  return <div className="min-h-screen gradient-soft">
+      <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
         <div className="space-y-2">
           <h1 className="text-2xl font-bold">{isEditMode ? "일기 수정" : "일기 작성"}</h1>
           <p className="text-muted-foreground text-sm">
@@ -953,8 +953,7 @@ export default function Upload() {
           </p>
         </div>
         
-        <Card className="shadow-medium">
-          <CardContent className="p-6 space-y-6">
+        <div className="space-y-6">
             {isEditMode && (
               <>
                 <div className="space-y-2">
@@ -1308,8 +1307,7 @@ export default function Upload() {
                 </Button>
               </>
             )}
-          </CardContent>
-        </Card>
+        </div>
         <div className="h-20" />
       </div>
 
