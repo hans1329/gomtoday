@@ -790,10 +790,9 @@ export default function Home() {
 
                   {/* Edit Button - 본인의 일기일 경우에만 표시 */}
                   {currentUserId === diaries[0].user_id && (
-                    <div className="flex gap-2 pt-2 md:justify-end">
-                      <Button variant="outline" size="sm" onClick={() => navigate(`/upload/${diaries[0].id}`)} className="flex-1 sm:flex-none rounded-full">
-                        <Edit className="h-4 w-4 mr-2" />
-                        수정
+                    <div className="flex gap-2 pt-2 justify-end">
+                      <Button variant="ghost" size="icon" onClick={() => navigate(`/upload/${diaries[0].id}`)} className="rounded-full">
+                        <Edit className="h-4 w-4" />
                       </Button>
                     </div>
                   )}
