@@ -111,10 +111,14 @@ export default function Upload() {
       .order("created_at", { ascending: true });
 
     if (data) {
-      // "나만보기" 일기장을 제일 위로 정렬
+      // "나만보기" 일기장을 제일 위로 정렬 (visibility가 private이거나 is_default인 것)
       const sorted = [...data].sort((a, b) => {
-        if (a.name === "나만보기") return -1;
-        if (b.name === "나만보기") return 1;
+        // "나만보기" 이름이거나 visibility가 private이면 최상위
+        const aIsPrivate = a.name === "나만보기" || a.visibility === "private" || a.is_default;
+        const bIsPrivate = b.name === "나만보기" || b.visibility === "private" || b.is_default;
+        
+        if (aIsPrivate && !bIsPrivate) return -1;
+        if (!aIsPrivate && bIsPrivate) return 1;
         return 0;
       });
       
@@ -122,7 +126,9 @@ export default function Upload() {
       
       // "나만보기" 일기장을 기본으로 선택 (edit 모드가 아닐 때만)
       if (!isEditMode) {
-        const privateNotebook = sorted.find(nb => nb.name === "나만보기");
+        const privateNotebook = sorted.find(nb => 
+          nb.name === "나만보기" || nb.visibility === "private" || nb.is_default
+        );
         if (privateNotebook) {
           setSelectedNotebook(privateNotebook.id);
         }
