@@ -2,9 +2,11 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Users, Shield, UserCircle, Ban, CheckCircle, Trash2 } from "lucide-react";
+import { Upload, Users, Shield, UserCircle, Ban, CheckCircle, Trash2, Pencil, Save } from "lucide-react";
 import LoadingBar from "@/components/LoadingBar";
 import {
   Select,
@@ -44,6 +46,13 @@ interface UserWithRole {
   banned_reason: string | null;
 }
 
+interface PencilSetting {
+  id: string;
+  setting_key: string;
+  setting_value: number;
+  description: string | null;
+}
+
 export default function Admin() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -55,6 +64,8 @@ export default function Admin() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [pencilSettings, setPencilSettings] = useState<PencilSetting[]>([]);
+  const [savingPencilSettings, setSavingPencilSettings] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -66,6 +77,7 @@ export default function Admin() {
     if (isAdmin) {
       fetchUsers();
       fetchStats();
+      fetchPencilSettings();
     }
   }, [isAdmin]);
 
@@ -111,6 +123,63 @@ export default function Admin() {
       totalDiaries: diariesRes.count || 0,
       totalNotebooks: notebooksRes.count || 0
     });
+  };
+
+  const fetchPencilSettings = async () => {
+    const { data, error } = await supabase
+      .from("pencil_settings")
+      .select("*")
+      .order("setting_key");
+
+    if (error) {
+      console.error("설정 로드 에러:", error);
+      toast({
+        title: "설정 로드 실패",
+        description: "연필 설정을 불러오는데 실패했습니다.",
+        variant: "destructive",
+      });
+    } else {
+      setPencilSettings(data || []);
+    }
+  };
+
+  const handlePencilSettingChange = (settingKey: string, value: string) => {
+    const numValue = parseInt(value) || 0;
+    setPencilSettings(prev =>
+      prev.map(s =>
+        s.setting_key === settingKey
+          ? { ...s, setting_value: numValue }
+          : s
+      )
+    );
+  };
+
+  const handleSavePencilSettings = async () => {
+    setSavingPencilSettings(true);
+    
+    for (const setting of pencilSettings) {
+      const { error } = await supabase
+        .from("pencil_settings")
+        .update({ setting_value: setting.setting_value })
+        .eq("id", setting.id);
+
+      if (error) {
+        console.error("설정 저장 에러:", error);
+        toast({
+          title: "저장 실패",
+          description: `${setting.description || setting.setting_key} 저장에 실패했습니다.`,
+          variant: "destructive",
+        });
+        setSavingPencilSettings(false);
+        return;
+      }
+    }
+
+    toast({
+      title: "저장 완료",
+      description: "연필 설정이 저장되었습니다.",
+    });
+    setSavingPencilSettings(false);
   };
 
   const fetchUsers = async () => {
@@ -550,6 +619,71 @@ export default function Admin() {
                 </Table>
               </div>
             )}
+          </CardContent>
+        </Card>
+
+        {/* 연필 설정 카드 */}
+        <Card className="shadow-medium">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Pencil className="w-5 h-5" />
+              연필 시스템 설정
+            </CardTitle>
+            <CardDescription>
+              각 항목별 연필 개수를 설정할 수 있습니다
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {pencilSettings.map((setting) => (
+              <div key={setting.id} className="space-y-2">
+                <Label htmlFor={setting.setting_key} className="text-base font-medium pl-1">
+                  {setting.description || setting.setting_key}
+                </Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    id={setting.setting_key}
+                    type="number"
+                    min="0"
+                    value={setting.setting_value}
+                    onChange={(e) => handlePencilSettingChange(setting.setting_key, e.target.value)}
+                    className="max-w-[200px]"
+                  />
+                  <span className="text-sm text-muted-foreground">개</span>
+                </div>
+                {setting.setting_key === "signup_initial_pencils" && (
+                  <p className="text-sm text-muted-foreground pl-1">
+                    새로 가입한 사용자에게 지급되는 초기 연필 개수입니다.
+                  </p>
+                )}
+                {setting.setting_key === "diary_write_cost" && (
+                  <p className="text-sm text-muted-foreground pl-1">
+                    일기를 작성할 때마다 차감되는 연필 개수입니다.
+                  </p>
+                )}
+                {setting.setting_key === "photo_upload_cost" && (
+                  <p className="text-sm text-muted-foreground pl-1">
+                    사진을 업로드할 때마다 차감되는 연필 개수입니다.
+                  </p>
+                )}
+              </div>
+            ))}
+
+            <div className="pt-4 flex justify-end">
+              <Button
+                onClick={handleSavePencilSettings}
+                disabled={savingPencilSettings}
+                className="rounded-full"
+              >
+                {savingPencilSettings ? (
+                  <>저장 중...</>
+                ) : (
+                  <>
+                    <Save className="mr-2 h-4 w-4" />
+                    저장
+                  </>
+                )}
+              </Button>
+            </div>
           </CardContent>
         </Card>
 
