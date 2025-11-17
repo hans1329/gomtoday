@@ -341,9 +341,26 @@ export default function DiaryDetail() {
               </div>
               
               {diary.title && (
-                <h2 className="text-xl font-bold text-foreground">
-                  {diary.title}
-                </h2>
+                <>
+                  <h2 className="text-xl font-bold text-foreground">
+                    {diary.title}
+                  </h2>
+                  {diary.perspective && (
+                    <div className="text-sm text-muted-foreground">
+                      #{(() => {
+                        const perspectiveMap: Record<string, string> = {
+                          camera: "내 핸드폰의 시점",
+                          pet: "애완동물의 시점",
+                          friend: "친구의 시점",
+                          family: "가족의 시점",
+                          stranger: "낯선 사람의 시점",
+                          future: "미래의 나의 시점"
+                        };
+                        return perspectiveMap[diary.perspective] || diary.perspective;
+                      })()}
+                    </div>
+                  )}
+                </>
               )}
               
               <div className="prose prose-sm max-w-none text-sm text-muted-foreground/80">

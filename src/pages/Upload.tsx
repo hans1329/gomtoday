@@ -308,6 +308,7 @@ export default function Upload() {
           tone: emotion,
           length,
           weather,
+          perspective,
           created_at: selectedDate.toISOString()
         }).select().single();
         if (diaryError) throw diaryError;
