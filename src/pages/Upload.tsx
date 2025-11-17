@@ -60,6 +60,8 @@ export default function Upload() {
   const [confirmGenerateDialogOpen, setConfirmGenerateDialogOpen] = useState(false);
   const [pencilCount, setPencilCount] = useState(0);
   const [generationCost, setGenerationCost] = useState(0);
+  const [regenerationCost, setRegenerationCost] = useState(0);
+  const [confirmRegenerateDialogOpen, setConfirmRegenerateDialogOpen] = useState(false);
   const navigate = useNavigate();
   const {
     toast
@@ -120,14 +122,25 @@ export default function Upload() {
     }
 
     // 일기 생성 비용 가져오기
-    const { data: setting } = await supabase
+    const { data: generationSetting } = await supabase
       .from("pencil_settings")
       .select("setting_value")
       .eq("setting_key", "diary_generation_cost")
       .single();
 
-    if (setting) {
-      setGenerationCost(setting.setting_value);
+    if (generationSetting) {
+      setGenerationCost(generationSetting.setting_value);
+    }
+
+    // 일기 다시 생성 비용 가져오기
+    const { data: regenerationSetting } = await supabase
+      .from("pencil_settings")
+      .select("setting_value")
+      .eq("setting_key", "diary_regeneration_cost")
+      .single();
+
+    if (regenerationSetting) {
+      setRegenerationCost(regenerationSetting.setting_value);
     }
   };
 
@@ -930,6 +943,45 @@ export default function Upload() {
     }
   };
 
+  // 다시 생성하기 확인
+  const handleRegenerateClick = () => {
+    if (pencilCount < regenerationCost) {
+      toast({
+        title: "연필이 부족해요",
+        description: `일기 다시 생성에는 연필 ${regenerationCost}개가 필요합니다. (현재: ${pencilCount}개)`,
+        variant: "destructive",
+      });
+      return;
+    }
+    setConfirmRegenerateDialogOpen(true);
+  };
+
+  // 연필 차감 후 다시 생성
+  const handleConfirmRegenerate = async () => {
+    setConfirmRegenerateDialogOpen(false);
+    
+    // 연필 차감
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { error: deductError } = await supabase
+      .from("profiles")
+      .update({ pencil_count: pencilCount - regenerationCost })
+      .eq("user_id", user.id);
+
+    if (deductError) {
+      toast({
+        title: "연필 차감 실패",
+        description: "다시 시도해주세요.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setPencilCount(pencilCount - regenerationCost);
+    handleRegenerate();
+  };
+
   // 일기 다시 생성하기
   const handleRegenerate = async () => {
     const diaryId = id || currentDiaryId;
@@ -1263,7 +1315,7 @@ export default function Upload() {
             {isGenerated && (
               <div className="flex items-center justify-end mb-4">
                 <Button
-                  onClick={handleRegenerate}
+                  onClick={handleRegenerateClick}
                   disabled={uploading || (existingPhotos.length === 0 && previewUrls.length === 0)}
                   variant="outline"
                   size="sm"
@@ -1567,6 +1619,39 @@ export default function Upload() {
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmGenerate}
+              className="rounded-full"
+            >
+              확인
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* 일기 다시 생성 연필 차감 확인 대화상자 */}
+      <AlertDialog open={confirmRegenerateDialogOpen} onOpenChange={setConfirmRegenerateDialogOpen}>
+        <AlertDialogContent className="mx-4">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Pencil className="h-5 w-5" />
+              일기를 다시 생성하시겠습니까?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              일기 다시 생성에는 연필 {regenerationCost}개가 차감됩니다.
+              <div className="mt-2 p-3 rounded-lg bg-muted">
+                <p className="text-sm">
+                  현재 연필: <span className="font-bold">{pencilCount}개</span>
+                  {" → "}
+                  <span className="font-bold">{pencilCount - regenerationCost}개</span>
+                </p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+            <AlertDialogCancel className="rounded-full">
+              취소
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmRegenerate}
               className="rounded-full"
             >
               확인
