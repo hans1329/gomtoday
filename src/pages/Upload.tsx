@@ -20,6 +20,7 @@ export default function Upload() {
   const [emotion, setEmotion] = useState("happy");
   const [length, setLength] = useState("medium");
   const [perspective, setPerspective] = useState("camera");
+  const [weather, setWeather] = useState("sunny");
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadStatus, setUploadStatus] = useState("");
@@ -106,6 +107,7 @@ export default function Upload() {
     // 기존 데이터로 초기화
     setEmotion(diary.tone || "happy");
     setLength(diary.length || "medium");
+    setWeather(diary.weather || "sunny");
     setExistingPhotos(diary.photos || []);
     setPreviewUrls((diary.photos || []).map((p: any) => p.photo_url));
     setContent(diary.content || "");
@@ -241,6 +243,7 @@ export default function Upload() {
           .update({
             tone: emotion,
             length,
+            weather,
             content: content.trim(),
             title: title.trim() || "무제"
           })
@@ -310,7 +313,8 @@ export default function Upload() {
           user_id: user.id,
           content: "",
           tone: emotion,
-          length
+          length,
+          weather
         }).select().single();
         if (diaryError) throw diaryError;
         
@@ -544,6 +548,23 @@ export default function Upload() {
                   <SelectItem value="calm">평온 😇</SelectItem>
                   <SelectItem value="excited">신남 🎉</SelectItem>
                   <SelectItem value="anxious">불안 😰</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>날씨 선택</Label>
+              <Select value={weather} onValueChange={setWeather}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-background">
+                  <SelectItem value="sunny">☀️ 맑음</SelectItem>
+                  <SelectItem value="partly_cloudy">⛅ 구름 조금</SelectItem>
+                  <SelectItem value="cloudy">☁️ 흐림</SelectItem>
+                  <SelectItem value="rainy">🌧️ 비</SelectItem>
+                  <SelectItem value="stormy">⛈️ 천둥번개</SelectItem>
+                  <SelectItem value="snowy">🌨️ 눈</SelectItem>
                 </SelectContent>
               </Select>
             </div>

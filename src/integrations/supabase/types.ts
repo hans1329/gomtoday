@@ -25,6 +25,7 @@ export type Database = {
           title: string | null
           tone: string | null
           user_id: string
+          weather: string | null
         }
         Insert: {
           content: string
@@ -36,6 +37,7 @@ export type Database = {
           title?: string | null
           tone?: string | null
           user_id: string
+          weather?: string | null
         }
         Update: {
           content?: string
@@ -47,6 +49,7 @@ export type Database = {
           title?: string | null
           tone?: string | null
           user_id?: string
+          weather?: string | null
         }
         Relationships: [
           {
