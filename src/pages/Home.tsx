@@ -317,7 +317,7 @@ export default function Home() {
             }
           }}
           className={cn(
-            "p-3 text-center rounded-lg transition-all relative cursor-pointer min-h-[60px] flex flex-col items-center justify-center",
+            "p-3 text-center transition-all relative cursor-pointer min-h-[60px] flex flex-col items-center justify-center",
             dayDiaries.length > 0
               ? "hover:bg-accent/50 text-primary font-semibold"
               : "hover:bg-accent",
@@ -329,7 +329,7 @@ export default function Home() {
             <>
               <div className="absolute top-1 right-1 w-1.5 h-1.5 bg-primary rounded-full"></div>
               {dayDiaries[0].emoji && (
-                <div className="absolute bottom-0.5 left-1/2 -translate-x-1/2 text-[10px] leading-none">
+                <div className="absolute bottom-1 left-1/2 -translate-x-1/2 text-base leading-none">
                   {dayDiaries[0].emoji}
                 </div>
               )}
