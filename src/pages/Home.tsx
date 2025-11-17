@@ -496,7 +496,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen gradient-soft">
-      <div className="max-w-4xl mx-auto p-2 sm:p-4 pb-8 space-y-4">
+      <div className="max-w-4xl mx-auto p-2 sm:p-4 pb-24 space-y-4">
         <div className="p-6 md:max-w-2xl md:mx-auto">
           <div className={cn(
             "flex items-center justify-center relative",
