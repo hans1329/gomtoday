@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Users, Image, Pencil } from "lucide-react";
@@ -71,9 +72,18 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen gradient-soft">
       <div className="container max-w-6xl mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold pl-1">관리자 페이지</h1>
-          <p className="text-muted-foreground mt-2 pl-1">시스템 관리 및 설정</p>
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold pl-1">관리자 페이지</h1>
+            <p className="text-muted-foreground mt-2 pl-1">시스템 관리 및 설정</p>
+          </div>
+          <Button
+            variant="outline"
+            onClick={() => navigate("/")}
+            className="rounded-full"
+          >
+            메인 페이지로 이동
+          </Button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
