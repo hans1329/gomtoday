@@ -11,6 +11,7 @@ interface DiaryCardProps {
     created_at: string;
     title?: string | null;
     emoji?: string | null;
+    weather?: string | null;
     photos?: { photo_url: string }[];
     user_id?: string;
     author_name?: string | null;
@@ -40,6 +41,15 @@ export default function DiaryCard({
     : "text-2xl";
 
   const photoUrl = diary.photos && diary.photos.length > 0 ? diary.photos[0].photo_url : null;
+
+  const weatherEmojis: { [key: string]: string } = {
+    'sunny': '☀️',
+    'partly_cloudy': '⛅',
+    'cloudy': '☁️',
+    'rainy': '🌧️',
+    'stormy': '⛈️',
+    'snowy': '🌨️'
+  };
 
   return (
     <Card
@@ -86,6 +96,11 @@ export default function DiaryCard({
                     ? format(new Date(diary.created_at), "yyyy년 M월 d일 (E) a h:mm", { locale: ko })
                     : format(new Date(diary.created_at), "yyyy년 M월 d일 (E)", { locale: ko })
                   }
+                  {diary.weather && (
+                    <span className="ml-2">
+                      {weatherEmojis[diary.weather] || diary.weather}
+                    </span>
+                  )}
                 </p>
                 {currentUserId && diary.user_id !== currentUserId && (
                   <div className="flex items-center gap-2 mt-1">
