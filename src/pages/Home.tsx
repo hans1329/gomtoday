@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ChevronLeft, ChevronRight, User, Globe, Calendar as CalendarIcon, Heart, MessageCircle, Clock, Users, Search, Smile, ChevronDown, ChevronUp, ArrowUpDown, Send, Edit } from "lucide-react";
+import { ChevronLeft, ChevronRight, User, Globe, Calendar as CalendarIcon, Heart, MessageCircle, Clock, Users, Search, Smile, ChevronDown, ChevronUp, ArrowUpDown, Send, Edit, Pencil } from "lucide-react";
 import { format, startOfMonth, endOfMonth, isSameDay, addMonths, subMonths } from "date-fns";
 import { ko } from "date-fns/locale";
 import LoadingBar from "@/components/LoadingBar";
@@ -694,19 +694,25 @@ export default function Home() {
 
         <div className="space-y-3 px-2 sm:px-0">
           {diaries.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground mb-4">
-                {viewMode === "my" ? "아직 작성한 일기가 없습니다." : "공개된 일기가 없습니다."}
-              </p>
-              {viewMode === "my" && (
-                <Button
-                  onClick={() => navigate("/upload")}
-                  className="rounded-full"
-                >
-                  일기 쓰기
-                </Button>
-              )}
-            </div>
+            (() => {
+              const isFutureDate = selectedDate && selectedDate > new Date();
+              return !isFutureDate ? (
+                <div className="text-center py-12">
+                  <p className="text-muted-foreground mb-4">
+                    {viewMode === "my" ? "아직 작성한 일기가 없습니다." : "공개된 일기가 없습니다."}
+                  </p>
+                  {viewMode === "my" && (
+                    <Button
+                      onClick={() => navigate("/upload")}
+                      className="rounded-full gap-2"
+                    >
+                      <Pencil className="h-4 w-4" />
+                      일기 쓰기
+                    </Button>
+                  )}
+                </div>
+              ) : null;
+            })()
           ) : viewMode === "my" ? (
             <Card className="shadow-medium">
               <CardContent className="p-6">
