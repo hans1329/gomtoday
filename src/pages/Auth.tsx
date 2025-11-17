@@ -90,7 +90,7 @@ export default function Auth() {
           </p>
         </div>
 
-        <div className="bg-card rounded-lg shadow-medium p-6">
+        <div>
           <Tabs defaultValue="signin" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="signin">로그인</TabsTrigger>
@@ -189,7 +189,7 @@ export default function Auth() {
           </Tabs>
         </div>
         
-        <div className="mt-8 pt-6 border-t border-border">
+        <div className="mt-8 pt-6">
           <div className="flex flex-wrap justify-center gap-4 text-xs text-muted-foreground">
             <Link to="/terms" className="hover:text-foreground transition-colors">
               이용약관
