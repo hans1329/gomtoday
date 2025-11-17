@@ -852,7 +852,7 @@ export default function Home() {
                       placeholder="댓글을 입력하세요..."
                       value={newComment}
                       onChange={(e) => setNewComment(e.target.value)}
-                      className="pr-12 h-11 placeholder:text-xs"
+                      className="pr-12 h-11 text-sm placeholder:text-sm"
                       onKeyDown={(e) => {
                         if (e.key === "Enter" && !e.shiftKey) {
                           e.preventDefault();
