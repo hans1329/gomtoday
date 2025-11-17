@@ -37,11 +37,22 @@ export default function Profile() {
       return;
     }
 
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("profiles")
       .select("*")
       .eq("user_id", user.id)
-      .single();
+      .maybeSingle();
+
+    if (error) {
+      console.error("프로필 로드 에러:", error);
+      toast({
+        title: "프로필 로드 실패",
+        description: error.message,
+        variant: "destructive",
+      });
+      setLoading(false);
+      return;
+    }
 
     if (data) {
       setProfile(data);
