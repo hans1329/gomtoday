@@ -346,7 +346,7 @@ export default function Notebooks() {
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4">
           <div>
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">
-              내 일기장 <span className="text-base sm:text-lg text-muted-foreground">({notebooks.length}/5)</span>
+              내 일기장 관리 (3/5) <span className="text-base sm:text-lg text-muted-foreground">({notebooks.length}/5)</span>
             </h1>
             <p className="text-xs sm:text-sm md:text-base text-muted-foreground">일기장의 공유권한을 관리하세요</p>
           </div>
