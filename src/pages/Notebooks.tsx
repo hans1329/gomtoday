@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { BookOpen, Plus, Trash2, Users, X, Pencil, MoreVertical } from "lucide-react";
+import { Plus, Trash2, Users, X, Pencil, MoreVertical, Lock, Globe } from "lucide-react";
 import LoadingBar from "@/components/LoadingBar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 export default function Notebooks() {
@@ -409,7 +409,6 @@ export default function Notebooks() {
               <CardHeader className="p-4 sm:p-6">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
-                    <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 mt-0.5 sm:mt-0.5 text-primary flex-shrink-0" />
                     <div className="min-w-0 flex-1">
                       {editingNotebookId === notebook.id ? <div className="flex gap-2 items-center">
                           <Input value={editingName} onChange={e => setEditingName(e.target.value)} className="h-8 text-sm" autoFocus onKeyDown={e => {
@@ -423,11 +422,13 @@ export default function Notebooks() {
                             취소
                           </Button>
                         </div> : <>
-                          <CardTitle className="text-base sm:text-lg truncate">{notebook.name}</CardTitle>
-                          <CardDescription className="text-xs sm:text-sm">
-                            {getVisibilityLabel(notebook.visibility)}
-                            {notebook.is_default && " • 기본"}
-                          </CardDescription>
+                          <div className="flex items-center gap-2">
+                            <CardTitle className="text-base sm:text-lg truncate">{notebook.name}</CardTitle>
+                            {notebook.visibility === "private" && <Lock className="h-4 w-4 text-muted-foreground flex-shrink-0" />}
+                            {notebook.visibility === "shared" && <Users className="h-4 w-4 text-muted-foreground flex-shrink-0" />}
+                            {notebook.visibility === "public" && <Globe className="h-4 w-4 text-muted-foreground flex-shrink-0" />}
+                          </div>
+                          {notebook.is_default && <CardDescription className="text-xs sm:text-sm">기본</CardDescription>}
                         </>}
                     </div>
                   </div>
