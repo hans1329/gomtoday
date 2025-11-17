@@ -21,6 +21,7 @@ export type Database = {
           emoji: string | null
           id: string
           length: string | null
+          perspective: string | null
           photo_id: string | null
           title: string | null
           tone: string | null
@@ -33,6 +34,7 @@ export type Database = {
           emoji?: string | null
           id?: string
           length?: string | null
+          perspective?: string | null
           photo_id?: string | null
           title?: string | null
           tone?: string | null
@@ -45,6 +47,7 @@ export type Database = {
           emoji?: string | null
           id?: string
           length?: string | null
+          perspective?: string | null
           photo_id?: string | null
           title?: string | null
           tone?: string | null
