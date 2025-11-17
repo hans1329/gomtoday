@@ -267,16 +267,30 @@ export default function Header() {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate("/")} className="py-3">
-                <List className="mr-2 h-4 w-4" />
-                <span>전체 일기</span>
+              <DropdownMenuItem 
+                onClick={() => {
+                  setViewMode("my");
+                  window.dispatchEvent(new CustomEvent('viewModeChange', { detail: 'my' }));
+                  navigate("/");
+                }} 
+                className="py-3"
+              >
+                <User className="mr-2 h-4 w-4" />
+                <span>내 일기</span>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate("/diaries")} className="py-3">
-                <BookOpen className="mr-2 h-4 w-4" />
-                <span>나의 일기</span>
+              <DropdownMenuItem 
+                onClick={() => {
+                  setViewMode("public");
+                  window.dispatchEvent(new CustomEvent('viewModeChange', { detail: 'public' }));
+                  navigate("/");
+                }} 
+                className="py-3"
+              >
+                <Globe className="mr-2 h-4 w-4" />
+                <span>전체 공개 일기</span>
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => navigate("/notebooks")} className="py-3">
-                <User className="mr-2 h-4 w-4" />
+                <BookOpen className="mr-2 h-4 w-4" />
                 <span>일기장 관리</span>
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => navigate("/friends")} className="py-3">
