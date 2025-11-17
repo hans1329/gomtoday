@@ -139,6 +139,10 @@ export default function Home() {
             ),
             photo:photos!diaries_photo_id_fkey (
               photo_url
+            ),
+            profiles!diaries_user_id_fkey (
+              name,
+              profile_photo_url
             )
           `)
           .in("id", diaryIds)
@@ -153,7 +157,12 @@ export default function Home() {
             } else if (diary.photo) {
               allPhotos = [diary.photo];
             }
-            return { ...diary, photos: allPhotos };
+            return { 
+              ...diary, 
+              photos: allPhotos,
+              author_name: diary.profiles?.name,
+              author_photo: diary.profiles?.profile_photo_url
+            };
           });
 
           // 좋아요와 댓글 수 가져오기
