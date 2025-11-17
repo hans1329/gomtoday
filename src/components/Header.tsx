@@ -38,12 +38,20 @@ export default function Header() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [pencilCount, setPencilCount] = useState(0);
   const [purchaseDialogOpen, setPurchaseDialogOpen] = useState(false);
+  const [products, setProducts] = useState<Array<{
+    id: string;
+    name: string;
+    pencil_count: number;
+    price: number;
+    display_order: number;
+  }>>([]);
 
   useEffect(() => {
     fetchProfile();
     checkAdminRole();
     fetchNotificationCount();
     fetchPencilCount();
+    fetchProducts();
     
     // 프로필 업데이트 이벤트 리스너
     const handleProfileUpdate = () => {
@@ -123,6 +131,21 @@ export default function Header() {
 
     if (profile?.pencil_count !== undefined) {
       setPencilCount(profile.pencil_count);
+    }
+  };
+
+  const fetchProducts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("pencil_products")
+        .select("id, name, pencil_count, price, display_order")
+        .eq("is_active", true)
+        .order("display_order", { ascending: true });
+
+      if (error) throw error;
+      setProducts(data || []);
+    } catch (error) {
+      console.error("Error fetching products:", error);
     }
   };
 
@@ -405,40 +428,33 @@ export default function Header() {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
-            <div className="grid grid-cols-2 gap-3">
-              <Button
-                variant="outline"
-                className="h-24 flex flex-col items-center justify-center gap-2 rounded-2xl hover:bg-primary/10 hover:text-primary hover:border-primary transition-colors"
-              >
-                <Pencil className="h-6 w-6" />
-                <span className="font-bold text-lg">10개</span>
-                <span className="text-sm text-muted-foreground">₩1,000</span>
-              </Button>
-              <Button
-                variant="outline"
-                className="h-24 flex flex-col items-center justify-center gap-2 rounded-2xl hover:bg-primary/10 hover:text-primary hover:border-primary transition-colors"
-              >
-                <Pencil className="h-6 w-6" />
-                <span className="font-bold text-lg">50개</span>
-                <span className="text-sm text-muted-foreground">₩4,500</span>
-              </Button>
-              <Button
-                variant="outline"
-                className="h-24 flex flex-col items-center justify-center gap-2 rounded-2xl hover:bg-primary/10 hover:text-primary hover:border-primary transition-colors"
-              >
-                <Pencil className="h-6 w-6" />
-                <span className="font-bold text-lg">100개</span>
-                <span className="text-sm text-muted-foreground">₩8,000</span>
-              </Button>
-              <Button
-                variant="outline"
-                className="h-24 flex flex-col items-center justify-center gap-2 rounded-2xl hover:bg-primary/10 hover:text-primary hover:border-primary transition-colors"
-              >
-                <Pencil className="h-6 w-6" />
-                <span className="font-bold text-lg">300개</span>
-                <span className="text-sm text-muted-foreground">₩20,000</span>
-              </Button>
-            </div>
+            {products.length === 0 ? (
+              <p className="text-center text-muted-foreground">
+                판매 중인 상품이 없습니다
+              </p>
+            ) : (
+              <div className="grid grid-cols-2 gap-3">
+                {products.map((product) => (
+                  <Button
+                    key={product.id}
+                    variant="outline"
+                    onClick={() => {
+                      toast({
+                        title: "준비 중",
+                        description: "토스 페이 연동이 준비 중입니다.",
+                      });
+                    }}
+                    className="h-24 flex flex-col items-center justify-center gap-2 rounded-2xl hover:bg-primary/10 hover:text-primary hover:border-primary transition-colors"
+                  >
+                    <Pencil className="h-6 w-6" />
+                    <span className="font-bold text-lg">{product.pencil_count}개</span>
+                    <span className="text-sm text-muted-foreground">
+                      ₩{product.price.toLocaleString()}
+                    </span>
+                  </Button>
+                ))}
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>
