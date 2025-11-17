@@ -1281,11 +1281,11 @@ export default function Upload() {
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-80 p-0 bg-background z-50 max-h-[400px] overflow-y-auto pointer-events-auto" align="start">
-                        <div className="p-4 space-y-3">
+                        <div className="p-4 space-y-4">
                           <div>
-                            <p className="text-sm font-medium mb-2">감정</p>
+                            <p className="text-sm font-medium mb-2 sticky top-0 bg-background py-1">감정</p>
                             <div className="grid grid-cols-6 gap-2">
-                              {["😊", "😢", "😠", "😴", "😍", "😎", "🤔", "😱", "🥳", "😌", "🤗", "😏"].map((emoji) => (
+                              {["😊", "😢", "😠", "😴", "😍", "😎", "🤔", "😱", "🥳", "😌", "🤗", "😏", "😆", "😂", "🤣", "😅", "😇", "🙃", "😉", "😋", "😛", "😝", "🤪", "🤭"].map((emoji) => (
                                 <Button
                                   key={emoji}
                                   variant="ghost"
@@ -1298,9 +1298,9 @@ export default function Upload() {
                             </div>
                           </div>
                           <div>
-                            <p className="text-sm font-medium mb-2">활동</p>
+                            <p className="text-sm font-medium mb-2 sticky top-0 bg-background py-1">음식</p>
                             <div className="grid grid-cols-6 gap-2">
-                              {["🍕", "☕", "✈️", "🏖️", "💪", "📚", "💻", "🎵", "🎮", "🏃", "🚗", "🎸"].map((emoji) => (
+                              {["🍕", "🍔", "🍟", "🌭", "🍿", "🧈", "🥐", "🥖", "🥨", "🥯", "🧇", "🥞", "🧀", "🍖", "🍗", "🥩", "🥓", "🍔", "🍟", "🍕", "🌮", "🌯", "🥙", "🧆", "🥚", "🍳", "🥘", "🍲", "🥣", "🥗", "🍿", "🧈", "🧂", "🥫", "🍱", "🍘", "🍙", "🍚", "🍛", "🍜", "🍝", "🍠", "🍢", "🍣", "🍤", "🍥", "🥮", "🍡", "🥟", "🥠", "🥡", "🦀", "🦞", "🦐", "🦑", "🦪"].map((emoji) => (
                                 <Button
                                   key={emoji}
                                   variant="ghost"
@@ -1313,9 +1313,114 @@ export default function Upload() {
                             </div>
                           </div>
                           <div>
-                            <p className="text-sm font-medium mb-2">자연/기타</p>
+                            <p className="text-sm font-medium mb-2 sticky top-0 bg-background py-1">음료</p>
                             <div className="grid grid-cols-6 gap-2">
-                              {["🌺", "🌻", "🌈", "☀️", "🌙", "⭐", "🐱", "🐶", "💕", "❤️", "🎂", "🎁"].map((emoji) => (
+                              {["☕", "🍵", "🧃", "🥤", "🧋", "🍶", "🍾", "🍷", "🍸", "🍹", "🍺", "🍻", "🥂", "🥃", "🧉", "🧊"].map((emoji) => (
+                                <Button
+                                  key={emoji}
+                                  variant="ghost"
+                                  className="h-10 w-10 p-0 text-2xl hover:bg-accent"
+                                  onClick={() => setGeneratedEmoji(emoji)}
+                                >
+                                  {emoji}
+                                </Button>
+                              ))}
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium mb-2 sticky top-0 bg-background py-1">과일</p>
+                            <div className="grid grid-cols-6 gap-2">
+                              {["🍎", "🍏", "🍊", "🍋", "🍌", "🍉", "🍇", "🍓", "🫐", "🍈", "🍒", "🍑", "🥭", "🍍", "🥥", "🥝", "🍅", "🍆", "🥑", "🥦", "🥬", "🥒", "🌶️", "🫑"].map((emoji) => (
+                                <Button
+                                  key={emoji}
+                                  variant="ghost"
+                                  className="h-10 w-10 p-0 text-2xl hover:bg-accent"
+                                  onClick={() => setGeneratedEmoji(emoji)}
+                                >
+                                  {emoji}
+                                </Button>
+                              ))}
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium mb-2 sticky top-0 bg-background py-1">활동</p>
+                            <div className="grid grid-cols-6 gap-2">
+                              {["⚽", "🏀", "🏈", "⚾", "🥎", "🎾", "🏐", "🏉", "🥏", "🎱", "🪀", "🏓", "🏸", "🏒", "🏑", "🥍", "🏏", "🪃", "🥅", "⛳", "🪁", "🏹", "🎣", "🤿", "🥊", "🥋", "🎽", "🛹", "🛼", "🛷", "⛸️", "🥌", "🎿", "⛷️", "🏂", "🪂", "🏋️", "🤼", "🤸", "🤺", "⛹️", "🤾", "🏌️", "🏇", "🧘", "🏄", "🏊", "🤽", "🚣", "🧗", "🚵", "🚴", "🏆", "🥇", "🥈", "🥉", "🏅", "🎖️", "🎗️"].map((emoji) => (
+                                <Button
+                                  key={emoji}
+                                  variant="ghost"
+                                  className="h-10 w-10 p-0 text-2xl hover:bg-accent"
+                                  onClick={() => setGeneratedEmoji(emoji)}
+                                >
+                                  {emoji}
+                                </Button>
+                              ))}
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium mb-2 sticky top-0 bg-background py-1">여행</p>
+                            <div className="grid grid-cols-6 gap-2">
+                              {["✈️", "🛫", "🛬", "🪂", "💺", "🚁", "🚟", "🚠", "🚡", "🛰️", "🚀", "🛸", "🚂", "🚃", "🚄", "🚅", "🚆", "🚇", "🚈", "🚉", "🚊", "🚝", "🚞", "🚋", "🚌", "🚍", "🚎", "🚐", "🚑", "🚒", "🚓", "🚔", "🚕", "🚖", "🚗", "🚘", "🚙", "🛻", "🚚", "🚛", "🚜", "🏎️", "🏍️", "🛵", "🦽", "🦼", "🛺", "🚲", "🛴", "🛹", "🛼", "🚏", "🛣️", "🛤️", "🛢️", "⛽", "🛞", "🚨", "🚥", "🚦", "🛑", "🚧", "⚓", "🛟", "⛵", "🛶", "🚤", "🛳️", "⛴️", "🛥️", "🚢", "🗿", "⛲", "⛱️", "🏖️", "🏝️", "🏜️", "🌋", "⛰️", "🏔️", "🗻", "🏕️", "⛺", "🛖", "🏠", "🏡", "🏘️", "🏚️", "🏗️", "🏭", "🏢", "🏬", "🏣", "🏤", "🏥", "🏦", "🏨", "🏪", "🏫", "🏩", "💒", "🏛️", "⛪", "🕌", "🕍", "🛕", "🕋", "⛩️", "🛤️", "🗼", "🗽", "⛲", "⛱️", "🎠", "🎡", "🎢", "💈", "🎪"].map((emoji) => (
+                                <Button
+                                  key={emoji}
+                                  variant="ghost"
+                                  className="h-10 w-10 p-0 text-2xl hover:bg-accent"
+                                  onClick={() => setGeneratedEmoji(emoji)}
+                                >
+                                  {emoji}
+                                </Button>
+                              ))}
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium mb-2 sticky top-0 bg-background py-1">날씨</p>
+                            <div className="grid grid-cols-6 gap-2">
+                              {["☀️", "🌤️", "⛅", "🌥️", "☁️", "🌦️", "🌧️", "⛈️", "🌩️", "🌨️", "❄️", "☃️", "⛄", "🌬️", "💨", "🌪️", "🌫️", "🌈", "🌅", "🌄", "🌠", "🌌", "⭐", "🌟", "✨", "⚡", "🔥", "💧", "🌊"].map((emoji) => (
+                                <Button
+                                  key={emoji}
+                                  variant="ghost"
+                                  className="h-10 w-10 p-0 text-2xl hover:bg-accent"
+                                  onClick={() => setGeneratedEmoji(emoji)}
+                                >
+                                  {emoji}
+                                </Button>
+                              ))}
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium mb-2 sticky top-0 bg-background py-1">동물</p>
+                            <div className="grid grid-cols-6 gap-2">
+                              {["🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼", "🐻‍❄️", "🐨", "🐯", "🦁", "🐮", "🐷", "🐽", "🐸", "🐵", "🙈", "🙉", "🙊", "🐒", "🐔", "🐧", "🐦", "🐤", "🐣", "🐥", "🦆", "🦅", "🦉", "🦇", "🐺", "🐗", "🐴", "🦄", "🐝", "🪱", "🐛", "🦋", "🐌", "🐞", "🐜", "🪰", "🪲", "🪳", "🦟", "🦗", "🕷️", "🕸️", "🦂", "🐢", "🐍", "🦎", "🦖", "🦕", "🐙", "🦑", "🦐", "🦞", "🦀", "🐡", "🐠", "🐟", "🐬", "🐳", "🐋", "🦈", "🐊", "🐅", "🐆", "🦓", "🦍", "🦧", "🦣", "🐘", "🦛", "🦏", "🐪", "🐫", "🦒", "🦘", "🦬", "🐃", "🐂", "🐄", "🐎", "🐖", "🐏", "🐑", "🦙", "🐐", "🦌", "🐕", "🐩", "🦮", "🐕‍🦺", "🐈", "🐈‍⬛", "🪶", "🐓", "🦃", "🦤", "🦚", "🦜", "🦢", "🦩", "🕊️", "🐇", "🦝", "🦨", "🦡", "🦫", "🦦", "🦥", "🐁", "🐀", "🐿️", "🦔"].map((emoji) => (
+                                <Button
+                                  key={emoji}
+                                  variant="ghost"
+                                  className="h-10 w-10 p-0 text-2xl hover:bg-accent"
+                                  onClick={() => setGeneratedEmoji(emoji)}
+                                >
+                                  {emoji}
+                                </Button>
+                              ))}
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium mb-2 sticky top-0 bg-background py-1">자연</p>
+                            <div className="grid grid-cols-6 gap-2">
+                              {["🌺", "🌻", "🌷", "🌹", "🥀", "🏵️", "🌸", "💐", "🌼", "🌱", "🪴", "🌲", "🌳", "🌴", "🌵", "🌾", "🌿", "☘️", "🍀", "🍁", "🍂", "🍃", "🪹", "🪺", "🍄"].map((emoji) => (
+                                <Button
+                                  key={emoji}
+                                  variant="ghost"
+                                  className="h-10 w-10 p-0 text-2xl hover:bg-accent"
+                                  onClick={() => setGeneratedEmoji(emoji)}
+                                >
+                                  {emoji}
+                                </Button>
+                              ))}
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium mb-2 sticky top-0 bg-background py-1">물건/기타</p>
+                            <div className="grid grid-cols-6 gap-2">
+                              {["📚", "📖", "📝", "✏️", "✒️", "🖊️", "🖋️", "🖍️", "📕", "📗", "📘", "📙", "📔", "📒", "📓", "📃", "📄", "📰", "🗞️", "📑", "🔖", "🏷️", "💰", "🪙", "💴", "💵", "💶", "💷", "💸", "💳", "🧾", "💹", "📧", "📨", "📩", "📤", "📥", "📦", "📫", "📪", "📬", "📭", "📮", "🗳️", "✉️", "📧", "💌", "💻", "⌨️", "🖥️", "🖨️", "🖱️", "🖲️", "💾", "💿", "📀", "📼", "📷", "📸", "📹", "🎥", "📽️", "🎞️", "📞", "☎️", "📟", "📠", "📺", "📻", "🎙️", "🎚️", "🎛️", "🧭", "⏱️", "⏲️", "⏰", "🕰️", "⌛", "⏳", "📡", "🔋", "🪫", "🔌", "💡", "🔦", "🕯️", "🪔", "🧯", "🛢️", "💸", "💵", "💴", "💶", "💷", "🪙", "💰", "💳", "💎", "⚖️", "🪜", "🧰", "🪛", "🔧", "🔨", "⚒️", "🛠️", "⛏️", "🪚", "🔩", "⚙️", "🪤", "🧱", "⛓️", "🧲", "🔫", "💣", "🧨", "🪓", "🔪", "🗡️", "⚔️", "🛡️", "🎵", "🎶", "🎼", "🎹", "🥁", "🪘", "🎷", "🎺", "🪗", "🎸", "🪕", "🎻", "🎬", "🎮", "👾", "🎯", "🎲", "🎰", "🎳", "🎗️", "🎟️", "🎫", "🎖️", "🏆", "🏅", "🥇", "🥈", "🥉", "💕", "💖", "💗", "💘", "💝", "💞", "💟", "❤️", "🧡", "💛", "💚", "💙", "💜", "🤎", "🖤", "🤍", "❤️‍🔥", "❤️‍🩹", "💔", "❣️", "💕", "💞", "💓", "💗", "💖", "💘", "💝", "🎂", "🎁", "🎈", "🎉", "🎊", "🎀", "🪅", "🪆"].map((emoji) => (
                                 <Button
                                   key={emoji}
                                   variant="ghost"
