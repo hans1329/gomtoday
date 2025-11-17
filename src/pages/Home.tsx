@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function Home() {
   const [diaries, setDiaries] = useState<any[]>([]);
@@ -36,6 +37,7 @@ export default function Home() {
   const [isLiked, setIsLiked] = useState(false);
   const [newComment, setNewComment] = useState("");
   const isLikingRef = useRef(false);
+  const isMobile = useIsMobile();
   const navigate = useNavigate();
   const { toast } = useToast();
   
@@ -519,8 +521,8 @@ export default function Home() {
                 >
                   <ChevronLeft className="h-5 w-5" />
                 </Button>
-                <h2 className="text-xl font-bold mx-2">
-                  {format(selectedDate || new Date(), "M월 d일 EEEE", { locale: ko })}
+                <h2 className="text-base sm:text-xl font-bold mx-2">
+                  {format(selectedDate || new Date(), isMobile ? "M월 d일 EEEEE" : "M월 d일 EEEE", { locale: ko })}
                 </h2>
                 <Button
                   variant="ghost"
