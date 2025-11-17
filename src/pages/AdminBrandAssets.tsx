@@ -1,0 +1,169 @@
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
+import { ArrowLeft, Upload } from "lucide-react";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
+
+export default function AdminBrandAssets() {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
+  const [logoUrl, setLogoUrl] = useState<string>("");
+
+  useEffect(() => {
+    checkAdminRole();
+  }, []);
+
+  const checkAdminRole = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      navigate("/auth");
+      return;
+    }
+
+    const { data: roles } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id)
+      .eq("role", "admin")
+      .single();
+
+    if (!roles) {
+      toast({
+        title: "접근 권한 없음",
+        description: "관리자만 접근할 수 있습니다.",
+        variant: "destructive",
+      });
+      navigate("/");
+      return;
+    }
+
+    fetchCurrentLogo();
+    setLoading(false);
+  };
+
+  const fetchCurrentLogo = async () => {
+    const { data } = supabase.storage
+      .from("brand-assets")
+      .getPublicUrl("3rdme-logo.png");
+
+    if (data) {
+      setLogoUrl(data.publicUrl);
+    }
+  };
+
+  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+
+    try {
+      const { error: uploadError } = await supabase.storage
+        .from("brand-assets")
+        .upload("3rdme-logo.png", file, {
+          cacheControl: "3600",
+          upsert: true,
+        });
+
+      if (uploadError) throw uploadError;
+
+      toast({
+        title: "로고 업로드 완료",
+        description: "브랜드 로고가 성공적으로 업데이트되었습니다.",
+      });
+
+      fetchCurrentLogo();
+    } catch (error: any) {
+      toast({
+        title: "업로드 실패",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  if (loading) {
+    return <LoadingSpinner />;
+  }
+
+  return (
+    <div className="min-h-screen gradient-soft">
+      <div className="container max-w-4xl mx-auto px-4 py-8">
+        <div className="flex items-center gap-4 mb-8">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate(-1)}
+            className="shrink-0 rounded-full"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold">브랜드 애셋 관리</h1>
+            <p className="text-muted-foreground mt-1">로고 및 브랜드 이미지를 관리합니다</p>
+          </div>
+        </div>
+
+        <Card className="shadow-medium">
+          <CardHeader>
+            <CardTitle>브랜드 로고</CardTitle>
+            <CardDescription>
+              앱에서 사용되는 브랜드 로고를 관리합니다
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {logoUrl && (
+              <div className="flex items-center justify-center p-8 bg-muted rounded-lg">
+                <img 
+                  src={`${logoUrl}?t=${Date.now()}`} 
+                  alt="현재 로고" 
+                  className="max-w-[200px] max-h-[200px] object-contain"
+                />
+              </div>
+            )}
+
+            <div className="flex flex-col gap-4">
+              <label
+                htmlFor="logo-upload"
+                className="cursor-pointer"
+              >
+                <div className="flex items-center justify-center gap-2 p-4 border-2 border-dashed border-border rounded-lg hover:bg-muted/50 transition-colors">
+                  {uploading ? (
+                    <p className="text-sm text-muted-foreground">업로드 중...</p>
+                  ) : (
+                    <>
+                      <Upload className="w-5 h-5 text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">
+                        클릭하여 새 로고 업로드
+                      </span>
+                    </>
+                  )}
+                </div>
+                <input
+                  id="logo-upload"
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleLogoUpload}
+                  disabled={uploading}
+                />
+              </label>
+              
+              <p className="text-xs text-muted-foreground pl-1">
+                * PNG 형식 권장, 파일명은 자동으로 3rdme-logo.png로 저장됩니다
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
