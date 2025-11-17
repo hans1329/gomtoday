@@ -502,12 +502,12 @@ export default function Home() {
             "flex items-center justify-center relative",
             isCalendarExpanded ? "mb-6" : "mb-0"
           )}>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-0">
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={handlePrevMonth}
-                className="h-8 w-8 text-muted-foreground opacity-30 relative"
+                className="h-8 w-8 text-muted-foreground opacity-30 relative p-0"
               >
                 <ChevronLeft className="h-4 w-4 absolute left-2" />
                 <ChevronLeft className="h-4 w-4 absolute left-3.5" />
@@ -516,7 +516,7 @@ export default function Home() {
                 variant="ghost"
                 size="icon"
                 onClick={handlePrevDay}
-                className="h-8 w-8"
+                className="h-8 w-8 p-0"
               >
                 <ChevronLeft className="h-5 w-5" />
               </Button>
@@ -527,7 +527,7 @@ export default function Home() {
                 variant="ghost"
                 size="icon"
                 onClick={handleNextDay}
-                className="h-8 w-8"
+                className="h-8 w-8 p-0"
               >
                 <ChevronRight className="h-5 w-5" />
               </Button>
@@ -535,7 +535,7 @@ export default function Home() {
                 variant="ghost"
                 size="icon"
                 onClick={handleNextMonth}
-                className="h-8 w-8 text-muted-foreground opacity-30 relative"
+                className="h-8 w-8 text-muted-foreground opacity-30 relative p-0"
               >
                 <ChevronRight className="h-4 w-4 absolute right-3.5" />
                 <ChevronRight className="h-4 w-4 absolute right-2" />
