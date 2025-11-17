@@ -846,9 +846,10 @@ export default function Upload() {
     }
   };
 
-  // 일기 다시 생성하기 (편집 모드)
+  // 일기 다시 생성하기
   const handleRegenerate = async () => {
-    if (!isEditMode || !id) return;
+    const diaryId = id || currentDiaryId;
+    if (!isGenerated || !diaryId) return;
     
     setUploading(true);
     setUploadProgress(10);
@@ -903,7 +904,7 @@ export default function Upload() {
           length,
           perspective
         })
-        .eq("id", id);
+        .eq("id", diaryId);
 
       if (updateError) throw updateError;
 
@@ -1203,7 +1204,7 @@ export default function Upload() {
               </>
             )}
 
-            {isEditMode && (
+            {isGenerated && (
               <div className="flex items-center justify-end mb-4">
                 <Button
                   onClick={handleRegenerate}
