@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ChevronLeft, ChevronRight, User, Globe, Calendar as CalendarIcon, Heart, MessageCircle, Clock, Users, Search, Smile, ChevronDown, ChevronUp, ArrowUpDown } from "lucide-react";
+import { ChevronLeft, ChevronRight, User, Globe, Calendar as CalendarIcon, Heart, MessageCircle, Clock, Users, Search, Smile, ChevronDown, ChevronUp, ArrowUpDown, Send, Edit } from "lucide-react";
 import { format, startOfMonth, endOfMonth, isSameDay, addMonths, subMonths } from "date-fns";
 import { ko } from "date-fns/locale";
 import LoadingBar from "@/components/LoadingBar";
@@ -14,6 +14,9 @@ import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 
 export default function Home() {
   const [diaries, setDiaries] = useState<any[]>([]);
@@ -28,6 +31,11 @@ export default function Home() {
   const [selectedEmoji, setSelectedEmoji] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
   const [isCalendarExpanded, setIsCalendarExpanded] = useState(true);
+  const [likes, setLikes] = useState<any[]>([]);
+  const [comments, setComments] = useState<any[]>([]);
+  const [isLiked, setIsLiked] = useState(false);
+  const [newComment, setNewComment] = useState("");
+  const isLikingRef = useRef(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   
@@ -63,6 +71,13 @@ export default function Home() {
       filterAndSetDiaries();
     }
   }, [selectedDate, sortBy, selectedEmoji, searchQuery, allDiaries, publicDiaries, viewMode]);
+
+  useEffect(() => {
+    if (viewMode === "my" && diaries.length > 0) {
+      fetchLikes();
+      fetchComments();
+    }
+  }, [diaries, viewMode]);
 
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -345,6 +360,108 @@ export default function Home() {
     setCurrentMonth(addMonths(currentMonth, 1));
   };
 
+  const fetchLikes = async () => {
+    if (diaries.length === 0) return;
+    const diaryId = diaries[0].id;
+    const { data } = await supabase
+      .from("diary_likes")
+      .select("*")
+      .eq("diary_id", diaryId);
+    
+    if (data) {
+      setLikes(data);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setIsLiked(data.some(like => like.user_id === user.id));
+      }
+    }
+  };
+
+  const fetchComments = async () => {
+    if (diaries.length === 0) return;
+    const diaryId = diaries[0].id;
+    const { data } = await supabase
+      .from("diary_comments")
+      .select(`
+        *,
+        profiles:user_id (
+          name,
+          profile_photo_url
+        )
+      `)
+      .eq("diary_id", diaryId)
+      .order("created_at", { ascending: true });
+
+    if (data) {
+      setComments(data);
+    }
+  };
+
+  const handleLike = async () => {
+    if (diaries.length === 0 || isLikingRef.current) return;
+    
+    isLikingRef.current = true;
+    const diaryId = diaries[0].id;
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      navigate("/auth");
+      isLikingRef.current = false;
+      return;
+    }
+
+    setIsLiked(!isLiked);
+    setLikes(prev => 
+      isLiked 
+        ? prev.filter(like => like.user_id !== user.id)
+        : [...prev, { user_id: user.id }]
+    );
+
+    try {
+      if (isLiked) {
+        await supabase
+          .from("diary_likes")
+          .delete()
+          .eq("diary_id", diaryId)
+          .eq("user_id", user.id);
+      } else {
+        await supabase
+          .from("diary_likes")
+          .insert({ diary_id: diaryId, user_id: user.id });
+      }
+    } finally {
+      isLikingRef.current = false;
+    }
+  };
+
+  const handleCommentSubmit = async () => {
+    if (diaries.length === 0 || !newComment.trim()) return;
+    
+    const diaryId = diaries[0].id;
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      navigate("/auth");
+      return;
+    }
+
+    const { error } = await supabase
+      .from("diary_comments")
+      .insert({
+        diary_id: diaryId,
+        user_id: user.id,
+        content: newComment.trim()
+      });
+
+    if (!error) {
+      setNewComment("");
+      fetchComments();
+      toast({
+        title: "댓글이 작성되었습니다",
+      });
+    }
+  };
+
   if (loading) {
     return <LoadingBar />;
   }
@@ -394,144 +511,282 @@ export default function Home() {
           </CardContent>
         </Card>
 
-        <div className="flex items-center gap-2 px-2 sm:px-0">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder="검색"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 rounded-full h-9 text-sm"
-            />
-          </div>
+        {viewMode === "public" && (
+          <div className="flex items-center gap-2 px-2 sm:px-0">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="검색"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 rounded-full h-9 text-sm"
+              />
+            </div>
 
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="rounded-full h-9 w-9 p-0 hover:bg-transparent border-0 flex-shrink-0"
-              >
-                <div className="bg-background/90 rounded-full w-9 h-9 flex items-center justify-center shadow-sm border border-border">
-                  <ArrowUpDown className="h-4 w-4" />
-                </div>
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-2 bg-background" align="end">
-              <div className="flex flex-col gap-1">
+            <Popover>
+              <PopoverTrigger asChild>
                 <Button
                   variant="ghost"
-                  size="sm"
-                  onClick={() => setSortBy("latest")}
-                  className={cn("justify-start", sortBy === "latest" && "bg-accent")}
+                  size="icon"
+                  className="rounded-full h-9 w-9 p-0 hover:bg-transparent border-0 flex-shrink-0"
                 >
-                  <Clock className="h-4 w-4 mr-2" />
-                  최신순
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setSortBy("oldest")}
-                  className={cn("justify-start", sortBy === "oldest" && "bg-accent")}
-                >
-                  <Clock className="h-4 w-4 mr-2" />
-                  오래된순
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setSortBy("likes")}
-                  className={cn("justify-start", sortBy === "likes" && "bg-accent")}
-                >
-                  <Heart className="h-4 w-4 mr-2" />
-                  좋아요순
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setSortBy("comments")}
-                  className={cn("justify-start", sortBy === "comments" && "bg-accent")}
-                >
-                  <MessageCircle className="h-4 w-4 mr-2" />
-                  댓글순
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setSortBy("friends")}
-                  className={cn("justify-start", sortBy === "friends" && "bg-accent")}
-                >
-                  <Users className="h-4 w-4 mr-2" />
-                  친구 우선
-                </Button>
-              </div>
-            </PopoverContent>
-          </Popover>
-
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="rounded-full h-9 w-9 p-0 hover:bg-transparent border-0 flex-shrink-0"
-              >
-                {selectedEmoji ? (
-                  <div className="bg-background/90 rounded-full w-9 h-9 flex items-center justify-center text-base shadow-sm border border-border">
-                    {selectedEmoji}
-                  </div>
-                ) : (
                   <div className="bg-background/90 rounded-full w-9 h-9 flex items-center justify-center shadow-sm border border-border">
-                    <Smile className="h-4 w-4" />
+                    <ArrowUpDown className="h-4 w-4" />
                   </div>
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-3 bg-background" align="end">
-              <div className="grid grid-cols-6 gap-2">
-                {commonEmojis.map((emoji) => (
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-2 bg-background" align="end">
+                <div className="flex flex-col gap-1">
                   <Button
-                    key={emoji}
                     variant="ghost"
                     size="sm"
-                    className="h-10 w-10 p-0 hover:bg-accent text-xl"
-                    onClick={() => {
-                      setSelectedEmoji(emoji);
-                      toast({
-                        title: `${emoji} 감정으로 필터링`,
-                      });
-                    }}
+                    onClick={() => setSortBy("latest")}
+                    className={cn("justify-start", sortBy === "latest" && "bg-accent")}
                   >
-                    {emoji}
+                    <Clock className="h-4 w-4 mr-2" />
+                    최신순
                   </Button>
-                ))}
-              </div>
-              {selectedEmoji && (
-                <div className="mt-3 pt-3 border-t">
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
-                    className="w-full rounded-full"
-                    onClick={() => {
-                      setSelectedEmoji("");
-                      toast({
-                        title: "감정 필터 해제",
-                      });
-                    }}
+                    onClick={() => setSortBy("oldest")}
+                    className={cn("justify-start", sortBy === "oldest" && "bg-accent")}
                   >
-                    필터 해제
+                    <Clock className="h-4 w-4 mr-2" />
+                    오래된순
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSortBy("likes")}
+                    className={cn("justify-start", sortBy === "likes" && "bg-accent")}
+                  >
+                    <Heart className="h-4 w-4 mr-2" />
+                    좋아요순
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSortBy("comments")}
+                    className={cn("justify-start", sortBy === "comments" && "bg-accent")}
+                  >
+                    <MessageCircle className="h-4 w-4 mr-2" />
+                    댓글순
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSortBy("friends")}
+                    className={cn("justify-start", sortBy === "friends" && "bg-accent")}
+                  >
+                    <Users className="h-4 w-4 mr-2" />
+                    친구 우선
                   </Button>
                 </div>
-              )}
-            </PopoverContent>
-          </Popover>
-        </div>
+              </PopoverContent>
+            </Popover>
+
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="rounded-full h-9 w-9 p-0 hover:bg-transparent border-0 flex-shrink-0"
+                >
+                  {selectedEmoji ? (
+                    <div className="bg-background/90 rounded-full w-9 h-9 flex items-center justify-center text-base shadow-sm border border-border">
+                      {selectedEmoji}
+                    </div>
+                  ) : (
+                    <div className="bg-background/90 rounded-full w-9 h-9 flex items-center justify-center shadow-sm border border-border">
+                      <Smile className="h-4 w-4" />
+                    </div>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-3 bg-background" align="end">
+                <div className="grid grid-cols-6 gap-2">
+                  {commonEmojis.map((emoji) => (
+                    <Button
+                      key={emoji}
+                      variant="ghost"
+                      size="sm"
+                      className="h-10 w-10 p-0 hover:bg-accent text-xl"
+                      onClick={() => {
+                        setSelectedEmoji(emoji);
+                        toast({
+                          title: `${emoji} 감정으로 필터링`,
+                        });
+                      }}
+                    >
+                      {emoji}
+                    </Button>
+                  ))}
+                </div>
+                {selectedEmoji && (
+                  <div className="mt-3 pt-3 border-t">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full rounded-full"
+                      onClick={() => {
+                        setSelectedEmoji("");
+                        toast({
+                          title: "감정 필터 해제",
+                        });
+                      }}
+                    >
+                      필터 해제
+                    </Button>
+                  </div>
+                )}
+              </PopoverContent>
+            </Popover>
+          </div>
+        )}
 
         <div className="space-y-3 px-2 sm:px-0">
           {diaries.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               {viewMode === "my" ? "아직 작성한 일기가 없습니다." : "공개된 일기가 없습니다."}
             </div>
+          ) : viewMode === "my" ? (
+            <Card className="shadow-medium">
+              <CardContent className="p-6">
+                {diaries[0].photos && diaries[0].photos.length > 0 && (
+                  <div className="mb-6">
+                    <Carousel className="w-full">
+                      <CarouselContent>
+                        {diaries[0].photos.map((photo: any) => (
+                          <CarouselItem key={photo.id}>
+                            <img
+                              src={photo.photo_url}
+                              alt="Diary photo"
+                              className="w-full h-[400px] object-cover rounded-lg"
+                            />
+                          </CarouselItem>
+                        ))}
+                      </CarouselContent>
+                      {diaries[0].photos.length > 1 && (
+                        <>
+                          <CarouselPrevious className="left-2" />
+                          <CarouselNext className="right-2" />
+                        </>
+                      )}
+                    </Carousel>
+                  </div>
+                )}
+
+                <div className="space-y-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h1 className="text-2xl font-bold mb-2">
+                        {diaries[0].title || "제목 없음"}
+                      </h1>
+                      <p className="text-sm text-muted-foreground">
+                        {format(new Date(diaries[0].created_at), "yyyy년 M월 d일 EEEE", { locale: ko })}
+                      </p>
+                    </div>
+                    {currentUserId === diaries[0].user_id && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => navigate(`/upload/${diaries[0].id}`)}
+                        className="rounded-full"
+                      >
+                        <Edit className="h-5 w-5" />
+                      </Button>
+                    )}
+                  </div>
+
+                  {diaries[0].emoji && (
+                    <div className="flex items-center gap-3 text-4xl">
+                      {diaries[0].emoji}
+                    </div>
+                  )}
+
+                  <div className="prose prose-sm max-w-none">
+                    <p className="whitespace-pre-wrap text-foreground leading-relaxed">
+                      {diaries[0].content}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-4 pt-4 border-t">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleLike}
+                      className={cn(
+                        "gap-2 rounded-full",
+                        isLiked && "text-red-500 hover:text-red-600"
+                      )}
+                    >
+                      <Heart className={cn("h-5 w-5", isLiked && "fill-current")} />
+                      <span>{likes.length}</span>
+                    </Button>
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <MessageCircle className="h-5 w-5" />
+                      <span className="text-sm">{comments.length}</span>
+                    </div>
+                  </div>
+
+                  {comments.length > 0 && (
+                    <div className="space-y-4 pt-4 border-t">
+                      <h3 className="font-semibold">댓글 {comments.length}개</h3>
+                      <div className="space-y-3">
+                        {comments.map((comment: any) => (
+                          <div key={comment.id} className="flex gap-3">
+                            <Avatar className="h-8 w-8 flex-shrink-0">
+                              <AvatarImage src={comment.profiles?.profile_photo_url} />
+                              <AvatarFallback>
+                                {comment.profiles?.name?.[0] || "?"}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="font-semibold text-sm">
+                                  {comment.profiles?.name || "익명"}
+                                </span>
+                                <span className="text-xs text-muted-foreground">
+                                  {format(new Date(comment.created_at), "M월 d일 HH:mm", { locale: ko })}
+                                </span>
+                              </div>
+                              <p className="text-sm text-foreground break-words">
+                                {comment.content}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex gap-2 pt-4 border-t">
+                    <Textarea
+                      placeholder="댓글을 입력하세요..."
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      className="min-h-[80px] resize-none rounded-full px-4 py-3"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                          e.preventDefault();
+                          handleCommentSubmit();
+                        }
+                      }}
+                    />
+                    <Button
+                      onClick={handleCommentSubmit}
+                      disabled={!newComment.trim()}
+                      size="icon"
+                      className="rounded-full h-auto aspect-square self-end"
+                    >
+                      <Send className="h-5 w-5" />
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           ) : (
             <div className="space-y-3">
               {diaries.slice(0, 5).map((diary) => (
