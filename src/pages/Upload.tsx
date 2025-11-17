@@ -10,8 +10,18 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Upload as UploadIcon, Loader2, ArrowLeft, Trash2, ChevronUp, ChevronDown, CalendarIcon, UserPlus, X, PenLine } from "lucide-react";
+import { Upload as UploadIcon, Loader2, ArrowLeft, Trash2, ChevronUp, ChevronDown, CalendarIcon, UserPlus, X, PenLine, Pencil } from "lucide-react";
 import { format } from "date-fns";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { ko } from "date-fns/locale";
@@ -47,12 +57,16 @@ export default function Upload() {
   const [generatedTitle, setGeneratedTitle] = useState("");
   const [generatedEmoji, setGeneratedEmoji] = useState("");
   const [currentDiaryId, setCurrentDiaryId] = useState<string | null>(null);
+  const [confirmGenerateDialogOpen, setConfirmGenerateDialogOpen] = useState(false);
+  const [pencilCount, setPencilCount] = useState(0);
+  const [generationCost, setGenerationCost] = useState(0);
   const navigate = useNavigate();
   const {
     toast
   } = useToast();
   useEffect(() => {
     loadCurrentUser();
+    fetchPencilInfo();
     if (isEditMode) {
       loadDiaryData();
       fetchNotebooks();
@@ -87,6 +101,73 @@ export default function Upload() {
     setCurrentUser(userData);
     // 디폴트로 현재 사용자를 등장인물에 추가
     setParticipants([userData]);
+  };
+
+  // 연필 정보 가져오기
+  const fetchPencilInfo = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    // 사용자의 연필 개수 가져오기
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("pencil_count")
+      .eq("user_id", user.id)
+      .single();
+
+    if (profile) {
+      setPencilCount(profile.pencil_count);
+    }
+
+    // 일기 생성 비용 가져오기
+    const { data: setting } = await supabase
+      .from("pencil_settings")
+      .select("setting_value")
+      .eq("setting_key", "diary_generation_cost")
+      .single();
+
+    if (setting) {
+      setGenerationCost(setting.setting_value);
+    }
+  };
+
+  // 일기 생성하기 확인
+  const handleGenerateClick = () => {
+    if (pencilCount < generationCost) {
+      toast({
+        title: "연필이 부족해요",
+        description: `일기 생성에는 연필 ${generationCost}개가 필요합니다. (현재: ${pencilCount}개)`,
+        variant: "destructive",
+      });
+      return;
+    }
+    setConfirmGenerateDialogOpen(true);
+  };
+
+  // 연필 차감 후 일기 생성
+  const handleConfirmGenerate = async () => {
+    setConfirmGenerateDialogOpen(false);
+    
+    // 연필 차감
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { error: deductError } = await supabase
+      .from("profiles")
+      .update({ pencil_count: pencilCount - generationCost })
+      .eq("user_id", user.id);
+
+    if (deductError) {
+      toast({
+        title: "연필 차감 실패",
+        description: "다시 시도해주세요.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setPencilCount(pencilCount - generationCost);
+    handleGenerateDiary();
   };
 
   // 임시 저장된 일기 확인
@@ -1127,7 +1208,7 @@ export default function Upload() {
             {!isEditMode && !isGenerated && (
               <div className="pt-4">
                 <Button
-                  onClick={handleGenerateDiary}
+                  onClick={handleGenerateClick}
                   disabled={selectedFiles.length < 1 || uploading}
                   className="w-full h-14 text-lg font-semibold"
                   size="lg"
@@ -1460,6 +1541,39 @@ export default function Upload() {
         </div>
         <div className="h-20" />
       </div>
+
+      {/* 일기 생성 연필 차감 확인 대화상자 */}
+      <AlertDialog open={confirmGenerateDialogOpen} onOpenChange={setConfirmGenerateDialogOpen}>
+        <AlertDialogContent className="mx-4">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Pencil className="h-5 w-5" />
+              일기를 생성하시겠습니까?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              일기 생성에는 연필 {generationCost}개가 차감됩니다.
+              <div className="mt-2 p-3 rounded-lg bg-muted">
+                <p className="text-sm">
+                  현재 연필: <span className="font-bold">{pencilCount}개</span>
+                  {" → "}
+                  <span className="font-bold">{pencilCount - generationCost}개</span>
+                </p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+            <AlertDialogCancel className="rounded-full">
+              취소
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmGenerate}
+              className="rounded-full"
+            >
+              확인
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <Dialog open={uploading} onOpenChange={() => {}}>
         <DialogContent className="max-w-[calc(100%-2rem)] sm:max-w-md" onPointerDownOutside={(e) => e.preventDefault()}>
