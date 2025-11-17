@@ -319,9 +319,9 @@ export default function Home() {
           className={cn(
             "p-2 text-center rounded-lg transition-all relative cursor-pointer",
             dayDiaries.length > 0
-              ? "bg-primary/10 hover:bg-primary/20 text-primary font-semibold"
+              ? "hover:bg-accent/50 text-primary font-semibold"
               : "hover:bg-accent",
-            isSameDay(currentDay, new Date()) && "border-2 border-primary"
+            isSameDay(currentDay, new Date()) && "border-b-2 border-primary"
           )}
         >
           <div className="text-sm">{format(currentDay, "d")}</div>
