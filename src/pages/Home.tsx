@@ -704,7 +704,7 @@ export default function Home() {
                   {viewMode === "my" && (
                     <Button
                       onClick={() => navigate("/upload")}
-                      className="rounded-full gap-2"
+                      className="rounded-full gap-2 shadow-medium"
                     >
                       <Pencil className="h-4 w-4" />
                       일기 쓰기
