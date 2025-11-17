@@ -378,6 +378,24 @@ export default function Upload() {
         }).eq("id", diaryData.id);
         if (updateError) throw updateError;
         
+        // 기본 공개 노트북에 일기 연결
+        const { data: publicNotebook } = await supabase
+          .from("notebooks")
+          .select("id")
+          .eq("user_id", user.id)
+          .eq("visibility", "public")
+          .eq("is_default", true)
+          .single();
+        
+        if (publicNotebook) {
+          await supabase
+            .from("diary_notebooks")
+            .insert({
+              diary_id: diaryData.id,
+              notebook_id: publicNotebook.id
+            });
+        }
+        
         setUploadProgress(100);
         
         // 작성 완료 후 상세 페이지로 이동
