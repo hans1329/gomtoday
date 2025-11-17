@@ -111,11 +111,10 @@ export default function Upload() {
       .order("created_at", { ascending: true });
 
     if (data) {
-      // "나만보기" 일기장을 제일 위로 정렬 (visibility가 private이거나 is_default인 것)
+      // visibility가 private인 일기장을 제일 위로 정렬
       const sorted = [...data].sort((a, b) => {
-        // "나만보기" 이름이거나 visibility가 private이면 최상위
-        const aIsPrivate = a.name === "나만보기" || a.visibility === "private" || a.is_default;
-        const bIsPrivate = b.name === "나만보기" || b.visibility === "private" || b.is_default;
+        const aIsPrivate = a.visibility === "private";
+        const bIsPrivate = b.visibility === "private";
         
         if (aIsPrivate && !bIsPrivate) return -1;
         if (!aIsPrivate && bIsPrivate) return 1;
@@ -124,11 +123,9 @@ export default function Upload() {
       
       setNotebooks(sorted);
       
-      // "나만보기" 일기장을 기본으로 선택 (edit 모드가 아닐 때만)
+      // private 일기장을 기본으로 선택 (edit 모드가 아닐 때만)
       if (!isEditMode) {
-        const privateNotebook = sorted.find(nb => 
-          nb.name === "나만보기" || nb.visibility === "private" || nb.is_default
-        );
+        const privateNotebook = sorted.find(nb => nb.visibility === "private");
         if (privateNotebook) {
           setSelectedNotebook(privateNotebook.id);
         }
@@ -459,23 +456,6 @@ export default function Upload() {
             )}
 
             <div className="space-y-2">
-              <Label>일기장 선택</Label>
-              <Select value={selectedNotebook || undefined} onValueChange={setSelectedNotebook}>
-                <SelectTrigger>
-                  <SelectValue placeholder="일기장을 선택하세요" />
-                </SelectTrigger>
-                <SelectContent>
-                  {notebooks.map((notebook) => (
-                    <SelectItem key={notebook.id} value={notebook.id}>
-                      {notebook.name}
-                      {notebook.is_default && " (기본)"}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
               <Label>일기 날짜</Label>
               <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
                 <PopoverTrigger asChild>
@@ -641,6 +621,23 @@ export default function Upload() {
                 </Select>
               </div>
             )}
+
+            <div className="space-y-2">
+              <Label>일기장 선택</Label>
+              <Select value={selectedNotebook || undefined} onValueChange={setSelectedNotebook}>
+                <SelectTrigger>
+                  <SelectValue placeholder="일기장을 선택하세요" />
+                </SelectTrigger>
+                <SelectContent className="bg-background z-50">
+                  {notebooks.map((notebook) => (
+                    <SelectItem key={notebook.id} value={notebook.id}>
+                      {notebook.name}
+                      {notebook.is_default && " (기본)"}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
             <Button onClick={handleUpload} disabled={uploading || (existingPhotos.length + selectedFiles.length) < 1} className="w-full h-12">
               {uploading ? <>
