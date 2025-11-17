@@ -208,6 +208,8 @@ export default function Notebooks() {
 
   const openMemberDialog = async (notebookId: string) => {
     setSelectedNotebookId(notebookId);
+    setSearchQuery("");
+    setSearchResults([]);
     setMemberDialogOpen(true);
     await fetchMembers(notebookId);
   };
