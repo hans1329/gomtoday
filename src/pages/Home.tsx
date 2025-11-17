@@ -14,7 +14,6 @@ import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -827,27 +826,29 @@ export default function Home() {
                     </div>
                   )}
 
-                  <div className="flex gap-2 pt-4 border-t">
-                    <Textarea
-                      placeholder="댓글을 입력하세요..."
-                      value={newComment}
-                      onChange={(e) => setNewComment(e.target.value)}
-                      className="min-h-[80px] resize-none rounded-full px-4 py-3"
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" && !e.shiftKey) {
-                          e.preventDefault();
-                          handleCommentSubmit();
-                        }
-                      }}
-                    />
-                    <Button
-                      onClick={handleCommentSubmit}
-                      disabled={!newComment.trim()}
-                      size="icon"
-                      className="rounded-full h-auto aspect-square self-end"
-                    >
-                      <Send className="h-5 w-5" />
-                    </Button>
+                  <div className="pt-4 border-t">
+                    <div className="relative">
+                      <Input
+                        placeholder="댓글을 입력하세요..."
+                        value={newComment}
+                        onChange={(e) => setNewComment(e.target.value)}
+                        className="pr-12 h-11"
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && !e.shiftKey) {
+                            e.preventDefault();
+                            handleCommentSubmit();
+                          }
+                        }}
+                      />
+                      <Button
+                        onClick={handleCommentSubmit}
+                        disabled={!newComment.trim()}
+                        size="icon"
+                        className="absolute right-1 top-1 h-9 w-9 rounded-full"
+                      >
+                        <Send className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </CardContent>

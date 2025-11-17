@@ -12,6 +12,7 @@ interface DiaryCardProps {
     title?: string | null;
     emoji?: string | null;
     weather?: string | null;
+    perspective?: string | null;
     photos?: { photo_url: string }[];
     user_id?: string;
     author_name?: string | null;
@@ -49,6 +50,16 @@ export default function DiaryCard({
     'rainy': '🌧️',
     'stormy': '⛈️',
     'snowy': '🌨️'
+  };
+
+  const perspectiveLabels: { [key: string]: string } = {
+    'camera': '📱 핸드폰',
+    'pet': '🐾 애완동물',
+    'friend': '👥 친구',
+    'family': '👨‍👩‍👧 가족',
+    'stranger': '🚶 낯선 사람',
+    'old_man': '👴 동네 꼰대',
+    'future': '🔮 미래의 나'
   };
 
   return (
@@ -99,6 +110,11 @@ export default function DiaryCard({
                   {diary.weather && (
                     <span className="ml-2">
                       {weatherEmojis[diary.weather] || diary.weather}
+                    </span>
+                  )}
+                  {diary.perspective && (
+                    <span className="ml-2 text-[10px] bg-muted px-2 py-0.5 rounded-full">
+                      {perspectiveLabels[diary.perspective] || diary.perspective}
                     </span>
                   )}
                 </p>
