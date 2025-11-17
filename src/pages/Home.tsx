@@ -803,7 +803,7 @@ export default function Home() {
                     onClick={handleLike}
                     className={cn(
                       "gap-2 rounded-full h-9 px-3",
-                      isLiked && "text-red-500 hover:text-red-600"
+                      isLiked ? "text-red-500 hover:text-red-600" : "text-muted-foreground"
                     )}
                   >
                     <Heart className={cn("h-4 w-4", isLiked && "fill-current")} />
