@@ -57,6 +57,7 @@ export default function Upload() {
       fetchNotebooks();
     } else {
       fetchNotebooks();
+      checkDraftDiary();
     }
   }, [id]);
 
@@ -86,6 +87,70 @@ export default function Upload() {
     // 디폴트로 현재 사용자를 등장인물에 추가
     setParticipants([userData]);
   };
+
+  // 임시 저장된 일기 확인
+  const checkDraftDiary = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    // 일기장에 연결되지 않은 일기 중 가장 최근 것 찾기
+    const { data: diaries } = await supabase
+      .from("diaries")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+
+    if (!diaries || diaries.length === 0) return;
+
+    // 일기장에 연결되지 않은 일기 찾기
+    for (const diary of diaries) {
+      const { data: notebooks } = await supabase
+        .from("diary_notebooks")
+        .select("*")
+        .eq("diary_id", diary.id)
+        .maybeSingle();
+
+      if (!notebooks) {
+        // 임시 저장된 일기 발견
+        setCurrentDiaryId(diary.id);
+        setContent(diary.content || "");
+        setTitle(diary.title || "");
+        setGeneratedContent(diary.content || "");
+        setGeneratedTitle(diary.title || "");
+        setGeneratedEmoji(diary.emoji || "");
+        setIsGenerated(true);
+        setEmotion(diary.tone || "happy");
+        setLength(diary.length || "medium");
+        setWeather(diary.weather || "sunny");
+        setPerspective(diary.perspective || "camera");
+        setSelectedDate(new Date(diary.created_at || new Date()));
+        
+        if (diary.participants) {
+          setParticipants(diary.participants as Array<{id: string, name: string, profile_photo_url?: string}>);
+        }
+
+        // 연결된 사진들 불러오기
+        const { data: photos } = await supabase
+          .from("photos")
+          .select("*")
+          .eq("diary_id", diary.id)
+          .order("display_order");
+
+        if (photos && photos.length > 0) {
+          setExistingPhotos(photos);
+          setPreviewUrls(photos.map(p => p.photo_url));
+        }
+
+        toast({
+          title: "임시 저장된 일기가 있어요",
+          description: "계속 작성하거나 수정할 수 있어요."
+        });
+        
+        break;
+      }
+    }
+  };
+
   const loadDiaryData = async () => {
     if (!id) return;
     
