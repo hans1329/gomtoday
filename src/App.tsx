@@ -2,7 +2,10 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import Header from "./components/Header";
 import ScrollToTop from "./components/ScrollToTop";
 import Home from "./pages/Home";
@@ -22,7 +25,36 @@ import Terms from "./pages/Terms";
 
 function AppContent() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const hideHeader = location.pathname === "/auth";
+
+  useEffect(() => {
+    // 밴된 사용자 체크
+    const checkBannedStatus = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user && location.pathname !== "/auth") {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("banned, banned_reason")
+          .eq("user_id", user.id)
+          .single();
+
+        if (profile?.banned) {
+          await supabase.auth.signOut();
+          toast({
+            title: "계정이 제한되었습니다",
+            description: profile.banned_reason || "관리자에게 문의하세요.",
+            variant: "destructive",
+          });
+          navigate("/auth");
+        }
+      }
+    };
+
+    checkBannedStatus();
+  }, [location.pathname, navigate, toast]);
 
   return (
     <div className="min-h-screen flex flex-col w-full">
