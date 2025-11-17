@@ -6,11 +6,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Upload as UploadIcon, Loader2, ArrowLeft, Trash2, ChevronUp, ChevronDown } from "lucide-react";
+import { Upload as UploadIcon, Loader2, ArrowLeft, Trash2, ChevronUp, ChevronDown, CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+import { ko } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 export default function Upload() {
   const { id } = useParams();
   const isEditMode = !!id;
@@ -27,6 +31,7 @@ export default function Upload() {
   const [loading, setLoading] = useState(false);
   const [content, setContent] = useState("");
   const [title, setTitle] = useState("");
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [notebooks, setNotebooks] = useState<any[]>([]);
   const [selectedNotebook, setSelectedNotebook] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -38,36 +43,9 @@ export default function Upload() {
       loadDiaryData();
       fetchNotebooks();
     } else {
-      checkTodayDiary();
+      fetchNotebooks();
     }
   }, [id]);
-  const checkTodayDiary = async () => {
-    const {
-      data: {
-        user
-      }
-    } = await supabase.auth.getUser();
-    if (!user) {
-      navigate("/auth");
-      return;
-    }
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const {
-      data,
-      error
-    } = await supabase.from("diaries").select("id").eq("user_id", user.id).gte("created_at", today.toISOString()).lt("created_at", tomorrow.toISOString()).maybeSingle();
-    if (data) {
-      toast({
-        title: "오늘의 일기가 이미 있어요",
-        description: "일기를 수정하거나 사진을 추가할 수 있습니다."
-      });
-      navigate(`/diary/${data.id}`);
-    }
-  };
-
   const loadDiaryData = async () => {
     if (!id) return;
     
@@ -112,6 +90,7 @@ export default function Upload() {
     setPreviewUrls((diary.photos || []).map((p: any) => p.photo_url));
     setContent(diary.content || "");
     setTitle(diary.title || "");
+    setSelectedDate(new Date(diary.created_at));
     
     // 선택된 일기장 설정 (첫 번째 일기장만)
     const notebookIds = diary.diary_notebooks?.map((dn: any) => dn.notebook_id) || [];
@@ -314,7 +293,8 @@ export default function Upload() {
           content: "",
           tone: emotion,
           length,
-          weather
+          weather,
+          created_at: selectedDate.toISOString()
         }).select().single();
         if (diaryError) throw diaryError;
         
@@ -477,6 +457,34 @@ export default function Upload() {
                 <div className="border-t pt-6 mt-6" />
               </>
             )}
+
+            <div className="space-y-2">
+              <Label>일기 날짜</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !selectedDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {selectedDate ? format(selectedDate, "PPP", { locale: ko }) : <span>날짜 선택</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={(date) => date && setSelectedDate(date)}
+                    disabled={(date) => date > new Date()}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
 
             <div className="space-y-2">
               <Label>사진 선택 (3~6장)</Label>
