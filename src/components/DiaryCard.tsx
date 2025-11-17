@@ -1,4 +1,3 @@
-import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
@@ -63,11 +62,10 @@ export default function DiaryCard({
   };
 
   return (
-    <Card
-      className="shadow-medium hover:shadow-lg transition-shadow cursor-pointer group"
+    <div
+      className="shadow-medium hover:shadow-lg transition-shadow cursor-pointer group bg-card rounded-lg border p-4"
       onClick={onClick}
     >
-      <CardContent className="p-4">
         <div className={`flex gap-4 ${isMobile ? 'flex-col' : ''}`}>
           {/* 썸네일 또는 이모티콘 */}
           <div className={`flex-shrink-0 ${isMobile ? 'w-full h-48' : sizeClasses} rounded-lg overflow-hidden bg-muted relative flex items-center justify-center`}>
@@ -143,7 +141,6 @@ export default function DiaryCard({
             </p>
           </div>
         </div>
-      </CardContent>
-    </Card>
-  );
-}
+      </div>
+    );
+  }
