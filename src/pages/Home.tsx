@@ -317,7 +317,7 @@ export default function Home() {
             }
           }}
           className={cn(
-            "p-2 text-center rounded-lg transition-all relative cursor-pointer",
+            "p-3 text-center rounded-lg transition-all relative cursor-pointer min-h-[60px] flex flex-col items-center justify-center",
             dayDiaries.length > 0
               ? "hover:bg-accent/50 text-primary font-semibold"
               : "hover:bg-accent",
