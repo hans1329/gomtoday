@@ -802,15 +802,15 @@ export default function Home() {
                     size="sm"
                     onClick={handleLike}
                     className={cn(
-                      "gap-2 rounded-full",
+                      "gap-2 rounded-full h-9 px-3",
                       isLiked && "text-red-500 hover:text-red-600"
                     )}
                   >
-                    <Heart className={cn("h-5 w-5", isLiked && "fill-current")} />
-                    <span>{likes.length}</span>
+                    <Heart className={cn("h-4 w-4", isLiked && "fill-current")} />
+                    <span className="text-sm">{likes.length}</span>
                   </Button>
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <MessageCircle className="h-5 w-5" />
+                  <div className="flex items-center gap-2 text-muted-foreground h-9 px-3">
+                    <MessageCircle className="h-4 w-4" />
                     <span className="text-sm">{comments.length}</span>
                   </div>
                 </div>
