@@ -9,8 +9,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { BookOpen, Plus, Trash2, Users, X, Pencil } from "lucide-react";
+import { BookOpen, Plus, Trash2, Users, X, Pencil, MoreVertical } from "lucide-react";
 import LoadingBar from "@/components/LoadingBar";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 export default function Notebooks() {
   const [notebooks, setNotebooks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -422,12 +423,7 @@ export default function Notebooks() {
                             취소
                           </Button>
                         </div> : <>
-                          <div className="flex items-center gap-2">
-                            <CardTitle className="text-base sm:text-lg truncate">{notebook.name}</CardTitle>
-                            {!notebook.is_default && <Button variant="ghost" size="icon" className="h-6 w-6 flex-shrink-0" onClick={() => startEditingName(notebook.id, notebook.name)}>
-                                <Pencil className="h-3 w-3" />
-                              </Button>}
-                          </div>
+                          <CardTitle className="text-base sm:text-lg truncate">{notebook.name}</CardTitle>
                           <CardDescription className="text-xs sm:text-sm">
                             {getVisibilityLabel(notebook.visibility)}
                             {notebook.is_default && " • 기본"}
@@ -435,9 +431,28 @@ export default function Notebooks() {
                         </>}
                     </div>
                   </div>
-                  {!notebook.is_default && <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9 flex-shrink-0" onClick={() => handleDelete(notebook.id, notebook.is_default)}>
-                      <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-destructive" />
-                    </Button>}
+                  {!notebook.is_default && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => startEditingName(notebook.id, notebook.name)}>
+                          <Pencil className="h-4 w-4 mr-2" />
+                          이름 변경
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => handleDelete(notebook.id, notebook.is_default)}
+                          className="text-destructive focus:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          삭제
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
                 </div>
               </CardHeader>
               <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
