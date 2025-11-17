@@ -648,8 +648,18 @@ export default function Home() {
 
         <div className="space-y-3 px-2 sm:px-0">
           {diaries.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              {viewMode === "my" ? "아직 작성한 일기가 없습니다." : "공개된 일기가 없습니다."}
+            <div className="text-center py-12">
+              <p className="text-muted-foreground mb-4">
+                {viewMode === "my" ? "아직 작성한 일기가 없습니다." : "공개된 일기가 없습니다."}
+              </p>
+              {viewMode === "my" && (
+                <Button
+                  onClick={() => navigate("/upload")}
+                  className="rounded-full"
+                >
+                  일기 쓰기
+                </Button>
+              )}
             </div>
           ) : viewMode === "my" ? (
             <Card className="shadow-medium">
