@@ -1115,6 +1115,7 @@ export default function Upload() {
                     <SelectItem value="friend">친구</SelectItem>
                     <SelectItem value="family">가족</SelectItem>
                     <SelectItem value="stranger">낯선 사람</SelectItem>
+                    <SelectItem value="old_man">동네 꼰대 아저씨</SelectItem>
                     <SelectItem value="future">미래의 나</SelectItem>
                   </SelectContent>
                 </Select>
