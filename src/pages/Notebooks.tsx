@@ -510,15 +510,17 @@ export default function Notebooks() {
                 </div>
               </CardHeader>
               <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="w-full text-xs sm:text-sm"
-                  onClick={() => openMemberDialog(notebook.id)}
-                >
-                  <Users className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                  멤버 관리
-                </Button>
+                {!notebook.is_default && (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full text-xs sm:text-sm"
+                    onClick={() => openMemberDialog(notebook.id)}
+                  >
+                    <Users className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    멤버 관리
+                  </Button>
+                )}
               </CardContent>
             </Card>
           ))}
