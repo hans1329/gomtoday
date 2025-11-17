@@ -548,9 +548,9 @@ export default function Home() {
               className="rounded-full absolute right-0 hover:bg-accent group"
             >
               {isCalendarExpanded ? (
-                <ChevronUp className="h-5 w-5 text-primary group-hover:text-primary-foreground transition-colors" />
+                <ChevronUp className="h-5 w-5 text-primary group-hover:text-primary transition-colors" />
               ) : (
-                <ChevronDown className="h-5 w-5 text-primary group-hover:text-primary-foreground transition-colors" />
+                <ChevronDown className="h-5 w-5 text-primary group-hover:text-primary transition-colors" />
               )}
             </Button>
           </div>
@@ -796,7 +796,7 @@ export default function Home() {
                     </div>
                   )}
 
-                <div className="flex items-center gap-4 pt-4">
+                <div className="flex items-center gap-4 pt-2">
                   <Button
                     variant="ghost"
                     size="sm"
@@ -816,7 +816,7 @@ export default function Home() {
                 </div>
 
                 {comments.length > 0 && (
-                  <div className="space-y-4 pt-4">
+                  <div className="space-y-4 pt-2">
                     <h3 className="font-semibold">댓글 {comments.length}개</h3>
                     <div className="space-y-3">
                       {comments.map((comment: any) => (
@@ -846,13 +846,13 @@ export default function Home() {
                   </div>
                 )}
 
-                <div className="pt-4">
+                <div className="pt-2">
                   <div className="relative">
                     <Input
                       placeholder="댓글을 입력하세요..."
                       value={newComment}
                       onChange={(e) => setNewComment(e.target.value)}
-                      className="pr-12 h-11"
+                      className="pr-12 h-11 placeholder:text-xs"
                       onKeyDown={(e) => {
                         if (e.key === "Enter" && !e.shiftKey) {
                           e.preventDefault();
