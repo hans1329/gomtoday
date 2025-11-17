@@ -55,6 +55,13 @@ export default function Upload() {
     }
   }, [id]);
 
+  // currentUser가 로드된 후 일기 데이터 다시 처리
+  useEffect(() => {
+    if (currentUser && isEditMode) {
+      loadDiaryData();
+    }
+  }, [currentUser]);
+
   const loadCurrentUser = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
@@ -126,7 +133,20 @@ export default function Upload() {
     
     // 등장인물 로드
     if (diary.participants && Array.isArray(diary.participants)) {
-      setParticipants(diary.participants as Array<{id: string, name: string}>);
+      const loadedParticipants = diary.participants as Array<{id: string, name: string, profile_photo_url?: string}>;
+      
+      // 현재 사용자가 등장인물에 없으면 추가
+      const hasCurrentUser = loadedParticipants.some(p => p.id === user.id);
+      if (!hasCurrentUser && currentUser) {
+        setParticipants([currentUser, ...loadedParticipants]);
+      } else if (loadedParticipants.length > 0) {
+        setParticipants(loadedParticipants);
+      } else if (currentUser) {
+        setParticipants([currentUser]);
+      }
+    } else if (currentUser) {
+      // participants가 없으면 현재 사용자만 추가
+      setParticipants([currentUser]);
     }
     
     setLoading(false);
