@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { BookOpen, Plus, Trash2, Users } from "lucide-react";
+import { BookOpen, Plus, Trash2, Users, X } from "lucide-react";
 import LoadingBar from "@/components/LoadingBar";
 
 export default function Notebooks() {
@@ -18,6 +18,12 @@ export default function Notebooks() {
   const [newName, setNewName] = useState("");
   const [newVisibility, setNewVisibility] = useState<"private" | "shared" | "public">("shared");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [memberDialogOpen, setMemberDialogOpen] = useState(false);
+  const [selectedNotebookId, setSelectedNotebookId] = useState<string | null>(null);
+  const [members, setMembers] = useState<any[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searching, setSearching] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -144,6 +150,95 @@ export default function Notebooks() {
     }
   };
 
+  const openMemberDialog = async (notebookId: string) => {
+    setSelectedNotebookId(notebookId);
+    setMemberDialogOpen(true);
+    await fetchMembers(notebookId);
+  };
+
+  const fetchMembers = async (notebookId: string) => {
+    const { data } = await supabase
+      .from("notebook_members")
+      .select(`
+        id,
+        user_id,
+        role,
+        profiles!notebook_members_user_id_fkey (
+          name,
+          email
+        )
+      `)
+      .eq("notebook_id", notebookId);
+
+    setMembers(data || []);
+  };
+
+  const searchUsers = async () => {
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    setSearching(true);
+    const { data } = await supabase
+      .from("profiles")
+      .select("user_id, name, email")
+      .or(`name.ilike.%${searchQuery}%,email.ilike.%${searchQuery}%`)
+      .limit(5);
+
+    setSearchResults(data || []);
+    setSearching(false);
+  };
+
+  const addMember = async (userId: string) => {
+    if (!selectedNotebookId) return;
+
+    const { error } = await supabase
+      .from("notebook_members")
+      .insert({
+        notebook_id: selectedNotebookId,
+        user_id: userId,
+        role: "viewer"
+      });
+
+    if (error) {
+      toast({
+        title: "멤버 추가 실패",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "멤버가 추가되었어요",
+      });
+      setSearchQuery("");
+      setSearchResults([]);
+      fetchMembers(selectedNotebookId);
+    }
+  };
+
+  const removeMember = async (memberId: string) => {
+    const { error } = await supabase
+      .from("notebook_members")
+      .delete()
+      .eq("id", memberId);
+
+    if (error) {
+      toast({
+        title: "멤버 삭제 실패",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "멤버가 삭제되었어요",
+      });
+      if (selectedNotebookId) {
+        fetchMembers(selectedNotebookId);
+      }
+    }
+  };
+
   if (loading) {
     return <LoadingBar />;
   }
@@ -254,7 +349,12 @@ export default function Notebooks() {
               </CardHeader>
               {notebook.visibility === "shared" && (
                 <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
-                  <Button variant="outline" size="sm" className="w-full text-xs sm:text-sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full text-xs sm:text-sm"
+                    onClick={() => openMemberDialog(notebook.id)}
+                  >
                     <Users className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     멤버 관리
                   </Button>
@@ -272,6 +372,99 @@ export default function Notebooks() {
           ← 홈으로 돌아가기
         </Button>
       </div>
+
+      <Dialog open={memberDialogOpen} onOpenChange={setMemberDialogOpen}>
+        <DialogContent className="max-w-[calc(100%-1rem)] sm:max-w-md mx-2 sm:mx-auto">
+          <DialogHeader>
+            <DialogTitle className="text-base sm:text-lg">멤버 관리</DialogTitle>
+            <DialogDescription className="text-xs sm:text-sm">
+              일기장을 공유할 사용자를 검색하고 추가하세요
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>사용자 검색</Label>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="이름 또는 이메일로 검색"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && searchUsers()}
+                />
+                <Button onClick={searchUsers} disabled={searching}>
+                  검색
+                </Button>
+              </div>
+            </div>
+
+            {searchResults.length > 0 && (
+              <div className="space-y-2">
+                <Label>검색 결과</Label>
+                <div className="space-y-2 max-h-40 overflow-y-auto">
+                  {searchResults.map((user) => (
+                    <div
+                      key={user.user_id}
+                      className="flex items-center justify-between p-2 rounded-lg border bg-card"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium truncate">{user.name}</p>
+                        <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                      </div>
+                      <Button
+                        size="sm"
+                        onClick={() => addMember(user.user_id)}
+                      >
+                        추가
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {members.length > 0 && (
+              <div className="space-y-2">
+                <Label>현재 멤버</Label>
+                <div className="space-y-2 max-h-60 overflow-y-auto">
+                  {members.map((member: any) => (
+                    <div
+                      key={member.id}
+                      className="flex items-center justify-between p-2 rounded-lg border bg-card"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium truncate">{member.profiles?.name}</p>
+                        <p className="text-xs text-muted-foreground truncate">{member.profiles?.email}</p>
+                      </div>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => removeMember(member.id)}
+                      >
+                        <X className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setMemberDialogOpen(false);
+                setSearchQuery("");
+                setSearchResults([]);
+              }}
+              className="w-full sm:w-auto"
+            >
+              닫기
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
