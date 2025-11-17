@@ -32,6 +32,7 @@ export default function Upload() {
   const [content, setContent] = useState("");
   const [title, setTitle] = useState("");
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [notebooks, setNotebooks] = useState<any[]>([]);
   const [selectedNotebook, setSelectedNotebook] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -460,7 +461,7 @@ export default function Upload() {
 
             <div className="space-y-2">
               <Label>일기 날짜</Label>
-              <Popover>
+              <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
@@ -477,7 +478,12 @@ export default function Upload() {
                   <Calendar
                     mode="single"
                     selected={selectedDate}
-                    onSelect={(date) => date && setSelectedDate(date)}
+                    onSelect={(date) => {
+                      if (date) {
+                        setSelectedDate(date);
+                        setDatePickerOpen(false);
+                      }
+                    }}
                     disabled={(date) => date > new Date()}
                     initialFocus
                     className={cn("p-3 pointer-events-auto")}
