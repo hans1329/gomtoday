@@ -506,10 +506,10 @@ export default function Home() {
                   variant="ghost"
                   size="icon"
                   onClick={handlePrevMonth}
-                  className="h-8 w-8"
+                  className="h-8 w-8 text-muted-foreground"
                 >
                   <ChevronLeft className="h-4 w-4" />
-                  <ChevronLeft className="h-4 w-4 -ml-3" />
+                  <ChevronLeft className="h-4 w-4 -ml-3.5" />
                 </Button>
                 <Button
                   variant="ghost"
@@ -534,10 +534,10 @@ export default function Home() {
                   variant="ghost"
                   size="icon"
                   onClick={handleNextMonth}
-                  className="h-8 w-8"
+                  className="h-8 w-8 text-muted-foreground"
                 >
                   <ChevronRight className="h-4 w-4" />
-                  <ChevronRight className="h-4 w-4 -ml-3" />
+                  <ChevronRight className="h-4 w-4 -ml-3.5" />
                 </Button>
               </div>
               <Button
