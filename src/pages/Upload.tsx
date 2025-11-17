@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { useToast } from "@/hooks/use-toast";
 import { Upload as UploadIcon, Loader2, ArrowLeft, Trash2, ChevronUp, ChevronDown, CalendarIcon, UserPlus, X, PenLine } from "lucide-react";
 import { format } from "date-fns";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { ko } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -933,9 +934,9 @@ export default function Upload() {
   if (loading) {
     return (
       <div className="min-h-screen gradient-soft flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">일기를 불러오는 중...</p>
+        <div className="text-center space-y-4">
+          <LoadingSpinner />
+          <p className="text-muted-foreground">일기를 불러오는 중...</p>
         </div>
       </div>
     );
