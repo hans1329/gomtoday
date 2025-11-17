@@ -716,65 +716,64 @@ export default function Home() {
               ) : null;
             })()
           ) : viewMode === "my" ? (
-            <Card className="shadow-medium">
-              <CardContent className="p-6">
-                {diaries[0].photos && diaries[0].photos.length > 0 && (
-                  <div className="mb-6">
-                    <Carousel className="w-full">
-                      <CarouselContent>
-                        {diaries[0].photos.map((photo: any) => (
-                          <CarouselItem key={photo.id}>
-                            <img
-                              src={photo.photo_url}
-                              alt="Diary photo"
-                              className="w-full h-[400px] object-cover rounded-lg"
-                            />
-                          </CarouselItem>
-                        ))}
-                      </CarouselContent>
-                      {diaries[0].photos.length > 1 && (
-                        <>
-                          <CarouselPrevious className="left-2" />
-                          <CarouselNext className="right-2" />
-                        </>
-                      )}
-                    </Carousel>
+            <div className="shadow-medium bg-card rounded-lg border p-4 md:p-6">
+              {diaries[0].photos && diaries[0].photos.length > 0 && (
+                <div className="mb-6">
+                  <Carousel className="w-full">
+                    <CarouselContent>
+                      {diaries[0].photos.map((photo: any) => (
+                        <CarouselItem key={photo.id}>
+                          <img
+                            src={photo.photo_url}
+                            alt="Diary photo"
+                            className="w-full h-[400px] object-cover rounded-lg"
+                          />
+                        </CarouselItem>
+                      ))}
+                    </CarouselContent>
+                    {diaries[0].photos.length > 1 && (
+                      <>
+                        <CarouselPrevious className="left-2" />
+                        <CarouselNext className="right-2" />
+                      </>
+                    )}
+                  </Carousel>
+                </div>
+              )}
+
+              <div className="space-y-4">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <h1 className="text-2xl font-bold mb-2">
+                      {diaries[0].title || "제목 없음"}
+                    </h1>
+                    <p className="text-sm text-muted-foreground">
+                      {format(new Date(diaries[0].created_at), "yyyy년 M월 d일 EEEE", { locale: ko })}
+                    </p>
+                  </div>
+                  {currentUserId === diaries[0].user_id && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => navigate(`/upload/${diaries[0].id}`)}
+                      className="rounded-full"
+                    >
+                      <Edit className="h-5 w-5" />
+                    </Button>
+                  )}
+                </div>
+
+                {diaries[0].emoji && (
+                  <div className="flex items-center gap-3 text-4xl">
+                    {diaries[0].emoji}
                   </div>
                 )}
 
-                <div className="space-y-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <h1 className="text-2xl font-bold mb-2">
-                        {diaries[0].title || "제목 없음"}
-                      </h1>
-                      <p className="text-sm text-muted-foreground">
-                        {format(new Date(diaries[0].created_at), "yyyy년 M월 d일 EEEE", { locale: ko })}
-                      </p>
-                    </div>
-                    {currentUserId === diaries[0].user_id && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => navigate(`/upload/${diaries[0].id}`)}
-                        className="rounded-full"
-                      >
-                        <Edit className="h-5 w-5" />
-                      </Button>
-                    )}
-                  </div>
-
-                  {diaries[0].emoji && (
-                    <div className="flex items-center gap-3 text-4xl">
-                      {diaries[0].emoji}
-                    </div>
-                  )}
-
-                  <div className="prose prose-sm max-w-none">
-                    <p className="whitespace-pre-wrap text-foreground leading-relaxed">
-                      {diaries[0].content}
-                    </p>
-                  </div>
+                <div className="prose prose-sm max-w-none">
+                  <p className="whitespace-pre-wrap text-muted-foreground/60 leading-relaxed text-sm">
+                    {diaries[0].content}
+                  </p>
+                </div>
 
                   <div className="flex items-center gap-4 pt-4 border-t">
                     <Button
@@ -851,8 +850,8 @@ export default function Home() {
                     </div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           ) : (
             <div className="space-y-3">
               {diaries.slice(0, 5).map((diary) => (
