@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 
@@ -76,21 +76,20 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center gradient-soft px-4 sm:px-6 py-8">
-      <div className="w-full max-w-md">
-        <div className="space-y-6 mb-8">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <img src="https://sqxoqvfcaekaxbpfguod.supabase.co/storage/v1/object/public/brand-assets/3rdme-logo.png" alt="3rdME" className="w-12 h-12" />
-            <h1 className="text-4xl font-bold text-foreground">
+    <div className="min-h-screen flex items-center justify-center gradient-soft px-6 py-8">
+      <Card className="w-full max-w-md shadow-medium bg-white">
+        <CardHeader className="space-y-3">
+          <div className="flex items-center justify-center gap-1.5 mb-2">
+            <img src="https://sqxoqvfcaekaxbpfguod.supabase.co/storage/v1/object/public/brand-assets/3rdme-logo.png" alt="3rdME" className="w-10 h-10" />
+            <CardTitle className="text-3xl font-bold">
               3rdME
-            </h1>
+            </CardTitle>
           </div>
-          <p className="text-base text-center text-muted-foreground">
+          <CardDescription className="text-base text-center">
             누군가가 써주는 나의 일기
-          </p>
-        </div>
-
-        <div>
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
           <Tabs defaultValue="signin" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="signin">로그인</TabsTrigger>
@@ -187,27 +186,27 @@ export default function Auth() {
               </form>
             </TabsContent>
           </Tabs>
-        </div>
-        
-        <div className="mt-8 pt-6">
-          <div className="flex flex-wrap justify-center gap-4 text-xs text-muted-foreground">
-            <Link to="/terms" className="hover:text-foreground transition-colors">
-              이용약관
-            </Link>
-            <span>•</span>
-            <Link to="/privacy" className="hover:text-foreground transition-colors">
-              개인정보 처리방침
-            </Link>
-            <span>•</span>
-            <a href="mailto:support@3rdme.com" className="hover:text-foreground transition-colors">
-              문의하기
-            </a>
+          
+          <div className="mt-8 pt-6 border-t border-border">
+            <div className="flex flex-wrap justify-center gap-4 text-xs text-muted-foreground">
+              <Link to="/terms" className="hover:text-foreground transition-colors">
+                이용약관
+              </Link>
+              <span>•</span>
+              <Link to="/privacy" className="hover:text-foreground transition-colors">
+                개인정보 처리방침
+              </Link>
+              <span>•</span>
+              <a href="mailto:support@3rdme.com" className="hover:text-foreground transition-colors">
+                문의하기
+              </a>
+            </div>
+            <p className="text-center text-xs text-muted-foreground mt-4">
+              © 2024 3rdME. All rights reserved.
+            </p>
           </div>
-          <p className="text-center text-xs text-muted-foreground mt-4">
-            © 2024 3rdME. All rights reserved.
-          </p>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
