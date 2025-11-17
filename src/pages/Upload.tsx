@@ -1112,8 +1112,8 @@ export default function Upload() {
                     <SelectContent className="bg-background z-50">
                       {notebooks.map((notebook) => (
                         <SelectItem key={notebook.id} value={notebook.id}>
-                          {notebook.name}
-                          {notebook.is_default && " (기본)"}
+                          {notebook.name} ({notebook.visibility === 'public' ? '공개' : '비공개'})
+                          {notebook.is_default && " 기본"}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -1138,6 +1138,7 @@ export default function Upload() {
             )}
           </CardContent>
         </Card>
+        <div className="h-20" />
       </div>
 
       <Dialog open={uploading} onOpenChange={() => {}}>
