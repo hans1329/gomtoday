@@ -434,13 +434,14 @@ export default function DiaryDetail() {
 
                 {/* Comment Input */}
                 <div className="relative">
-                  <Textarea
+                  <input
+                    type="text"
                     placeholder="댓글을 입력하세요..."
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
-                    className="min-h-[80px] resize-none pr-12"
+                    className="w-full h-10 px-4 pr-12 border border-input bg-background rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                     onKeyDown={(e) => {
-                      if (e.key === "Enter" && !e.shiftKey) {
+                      if (e.key === "Enter") {
                         e.preventDefault();
                         handleCommentSubmit();
                       }
@@ -451,7 +452,7 @@ export default function DiaryDetail() {
                     size="icon"
                     onClick={handleCommentSubmit}
                     disabled={!newComment.trim()}
-                    className="absolute bottom-2 right-2 h-8 w-8"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
                   >
                     <Send className="h-4 w-4 text-primary" />
                   </Button>
