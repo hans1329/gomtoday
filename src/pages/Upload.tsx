@@ -863,19 +863,18 @@ export default function Upload() {
         return;
       }
 
-      // 기존 사진 URL들 가져오기
-      const photoUrls = existingPhotos.length > 0 
-        ? existingPhotos.map(p => p.photo_url)
-        : previewUrls;
-
-      if (photoUrls.length === 0) {
+      // 기존 사진 URL들 가져오기 (저장된 사진만 사용)
+      if (existingPhotos.length === 0) {
         toast({
-          title: "사진이 필요해요",
-          description: "일기를 다시 생성하려면 사진이 필요해요.",
+          title: "저장된 사진이 필요해요",
+          description: "일기를 다시 생성하려면 먼저 저장해주세요.",
           variant: "destructive"
         });
+        setUploading(false);
         return;
       }
+
+      const photoUrls = existingPhotos.map(p => p.photo_url);
 
       setUploadStatus("AI가 일기를 다시 작성하고 있어요...");
       setUploadProgress(50);
