@@ -957,7 +957,7 @@ export default function Upload() {
             {isEditMode && (
               <>
                 <div className="space-y-2">
-                  <Label htmlFor="title">제목</Label>
+                  <Label htmlFor="title" className="px-2">제목</Label>
                   <Input
                     id="title"
                     value={title}
@@ -967,7 +967,7 @@ export default function Upload() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="content">일기 내용</Label>
+                  <Label htmlFor="content" className="px-2">일기 내용</Label>
                   <Textarea
                     id="content"
                     value={content}
@@ -982,7 +982,7 @@ export default function Upload() {
             )}
 
             <div className="space-y-2">
-              <Label>일기 날짜</Label>
+              <Label className="px-2">일기 날짜</Label>
               <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
                 <PopoverTrigger asChild>
                   <Button
@@ -1015,7 +1015,7 @@ export default function Upload() {
             </div>
 
             <div className="space-y-2">
-              <Label>사진 선택 (3~6장)</Label>
+              <Label className="px-2">사진 선택 (3~6장)</Label>
               {previewUrls.length > 0 ? <div className="space-y-3">
                   <div className="space-y-2">
                     {previewUrls.map((url, index) => <div key={index} className="relative flex items-center gap-3 p-3 rounded-lg border-2 border-border bg-card">
@@ -1082,7 +1082,7 @@ export default function Upload() {
             </div>
 
             <div className="space-y-2">
-              <Label>감정 선택</Label>
+              <Label className="px-2">감정 선택</Label>
               <Select value={emotion} onValueChange={setEmotion}>
                 <SelectTrigger>
                   <SelectValue />
@@ -1099,7 +1099,7 @@ export default function Upload() {
             </div>
 
             <div className="space-y-2">
-              <Label>날씨 선택</Label>
+              <Label className="px-2">날씨 선택</Label>
               <Select value={weather} onValueChange={setWeather}>
                 <SelectTrigger>
                   <SelectValue />
@@ -1116,7 +1116,7 @@ export default function Upload() {
             </div>
 
             <div className="space-y-2">
-              <Label>길이 선택</Label>
+              <Label className="px-2">길이 선택</Label>
               <Select value={length} onValueChange={setLength}>
                 <SelectTrigger>
                   <SelectValue />
@@ -1131,7 +1131,7 @@ export default function Upload() {
 
             {!isEditMode && (
               <div className="space-y-2">
-                <Label>시점 선택</Label>
+                <Label className="px-2">시점 선택</Label>
                 <Select value={perspective} onValueChange={setPerspective}>
                   <SelectTrigger>
                     <SelectValue />
@@ -1176,7 +1176,7 @@ export default function Upload() {
                 <div className="border-t pt-6 mt-6" />
 
                 <div className="space-y-2">
-                  <Label htmlFor="title">일기 제목</Label>
+                  <Label htmlFor="title" className="px-2">일기 제목</Label>
                   <div className="flex items-center gap-2">
                     <Input
                       id="title"
@@ -1189,7 +1189,7 @@ export default function Upload() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="content">일기 내용</Label>
+                  <Label htmlFor="content" className="px-2">일기 내용</Label>
                   <Textarea
                     id="content"
                     value={content}
@@ -1229,7 +1229,7 @@ export default function Upload() {
             {(isEditMode || isGenerated) && (
               <>
                 <div className="space-y-2">
-                  <Label>등장인물</Label>
+                  <Label className="px-2">등장인물</Label>
                   <TooltipProvider>
                     <div className="flex flex-wrap gap-2 p-3 border rounded-md min-h-[48px] items-center">
                       {participants.map((p) => (
@@ -1275,7 +1275,7 @@ export default function Upload() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>일기장 선택</Label>
+                  <Label className="px-2">일기장 선택</Label>
                   <Select value={selectedNotebook || undefined} onValueChange={setSelectedNotebook}>
                     <SelectTrigger>
                       <SelectValue placeholder="일기장을 선택하세요" />
