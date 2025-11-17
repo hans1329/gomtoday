@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { BookOpen, Plus, Trash2, Users, X } from "lucide-react";
+import { BookOpen, Plus, Trash2, Users, X, Pencil } from "lucide-react";
 import LoadingBar from "@/components/LoadingBar";
 
 export default function Notebooks() {
@@ -24,6 +24,8 @@ export default function Notebooks() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [searching, setSearching] = useState(false);
+  const [editingNotebookId, setEditingNotebookId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState("");
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -239,6 +241,46 @@ export default function Notebooks() {
     }
   };
 
+  const startEditingName = (notebookId: string, currentName: string) => {
+    setEditingNotebookId(notebookId);
+    setEditingName(currentName);
+  };
+
+  const cancelEditingName = () => {
+    setEditingNotebookId(null);
+    setEditingName("");
+  };
+
+  const saveNotebookName = async (notebookId: string) => {
+    if (!editingName.trim()) {
+      toast({
+        title: "이름을 입력해주세요",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const { error } = await supabase
+      .from("notebooks")
+      .update({ name: editingName.trim() })
+      .eq("id", notebookId);
+
+    if (error) {
+      toast({
+        title: "이름 변경 실패",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "일기장 이름이 변경되었어요",
+      });
+      setEditingNotebookId(null);
+      setEditingName("");
+      fetchNotebooks();
+    }
+  };
+
   if (loading) {
     return <LoadingBar />;
   }
@@ -330,11 +372,55 @@ export default function Notebooks() {
                   <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
                     <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 mt-0.5 sm:mt-0.5 text-primary flex-shrink-0" />
                     <div className="min-w-0 flex-1">
-                      <CardTitle className="text-base sm:text-lg truncate">{notebook.name}</CardTitle>
-                      <CardDescription className="text-xs sm:text-sm">
-                        {getVisibilityLabel(notebook.visibility)}
-                        {notebook.is_default && " • 기본"}
-                      </CardDescription>
+                      {editingNotebookId === notebook.id ? (
+                        <div className="flex gap-2 items-center">
+                          <Input
+                            value={editingName}
+                            onChange={(e) => setEditingName(e.target.value)}
+                            className="h-8 text-sm"
+                            autoFocus
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") saveNotebookName(notebook.id);
+                              if (e.key === "Escape") cancelEditingName();
+                            }}
+                          />
+                          <Button
+                            size="sm"
+                            onClick={() => saveNotebookName(notebook.id)}
+                            className="h-8"
+                          >
+                            저장
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={cancelEditingName}
+                            className="h-8"
+                          >
+                            취소
+                          </Button>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="flex items-center gap-2">
+                            <CardTitle className="text-base sm:text-lg truncate">{notebook.name}</CardTitle>
+                            {!notebook.is_default && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6 flex-shrink-0"
+                                onClick={() => startEditingName(notebook.id, notebook.name)}
+                              >
+                                <Pencil className="h-3 w-3" />
+                              </Button>
+                            )}
+                          </div>
+                          <CardDescription className="text-xs sm:text-sm">
+                            {getVisibilityLabel(notebook.visibility)}
+                            {notebook.is_default && " • 기본"}
+                          </CardDescription>
+                        </>
+                      )}
                     </div>
                   </div>
                   {!notebook.is_default && (
@@ -349,19 +435,17 @@ export default function Notebooks() {
                   )}
                 </div>
               </CardHeader>
-              {notebook.visibility === "shared" && (
-                <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="w-full text-xs sm:text-sm"
-                    onClick={() => openMemberDialog(notebook.id)}
-                  >
-                    <Users className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                    멤버 관리
-                  </Button>
-                </CardContent>
-              )}
+              <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full text-xs sm:text-sm"
+                  onClick={() => openMemberDialog(notebook.id)}
+                >
+                  <Users className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                  멤버 관리
+                </Button>
+              </CardContent>
             </Card>
           ))}
           {notebooks.length < 5 && (
