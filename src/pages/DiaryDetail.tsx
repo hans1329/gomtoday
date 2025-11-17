@@ -478,6 +478,7 @@ export default function DiaryDetail() {
             </div>
           </CardContent>
         </Card>
+        <div className="h-20" />
       </div>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
