@@ -76,7 +76,7 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center gradient-soft px-4 sm:px-6 py-8">
+    <div className="min-h-screen flex items-center justify-center bg-white px-4 sm:px-6 py-8">
       <div className="w-full max-w-md">
         <div className="space-y-6 mb-8">
           <div className="flex items-center justify-center gap-2 mb-4">
