@@ -62,6 +62,7 @@ export default function Upload() {
   const [generationCost, setGenerationCost] = useState(0);
   const [regenerationCost, setRegenerationCost] = useState(0);
   const [confirmRegenerateDialogOpen, setConfirmRegenerateDialogOpen] = useState(false);
+  const [writeCost, setWriteCost] = useState(0);
   const navigate = useNavigate();
   const {
     toast
@@ -141,6 +142,17 @@ export default function Upload() {
 
     if (regenerationSetting) {
       setRegenerationCost(regenerationSetting.setting_value);
+    }
+
+    // 일기 작성 비용 가져오기
+    const { data: writeSetting } = await supabase
+      .from("pencil_settings")
+      .select("setting_value")
+      .eq("setting_key", "diary_write_cost")
+      .single();
+
+    if (writeSetting) {
+      setWriteCost(writeSetting.setting_value);
     }
   };
 
@@ -582,6 +594,16 @@ export default function Upload() {
       return;
     }
 
+    // 연필 체크
+    if (pencilCount < writeCost) {
+      toast({
+        title: "연필이 부족해요",
+        description: `일기 저장에는 연필 ${writeCost}개가 필요합니다. (현재: ${pencilCount}개)`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -594,6 +616,16 @@ export default function Upload() {
         navigate("/auth");
         return;
       }
+
+      // 연필 차감
+      const { error: deductError } = await supabase
+        .from("profiles")
+        .update({ pencil_count: pencilCount - writeCost })
+        .eq("user_id", user.id);
+
+      if (deductError) throw deductError;
+
+      setPencilCount(pencilCount - writeCost);
 
       // 일기 내용 업데이트 (사용자가 수정한 경우)
       const {
@@ -643,6 +675,7 @@ export default function Upload() {
 
       toast({
         title: "일기가 저장되었어요!",
+        description: `연필 ${writeCost}개가 차감되었습니다.`,
       });
       navigate(`/diary/${currentDiaryId}`);
     } catch (error: any) {
