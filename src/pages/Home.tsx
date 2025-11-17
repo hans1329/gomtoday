@@ -484,7 +484,7 @@ export default function Home() {
                   <ChevronLeft className="h-5 w-5" />
                 </Button>
                 <h2 className="text-xl font-bold">
-                  {format(currentMonth, "yyyy년 M월", { locale: ko })}
+                  {format(selectedDate || new Date(), "M월 d일 EEEE", { locale: ko })}
                 </h2>
                 <Button
                   variant="ghost"
