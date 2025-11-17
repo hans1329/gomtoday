@@ -136,7 +136,7 @@ export default function Home() {
       if (publicDiaryIds && publicDiaryIds.length > 0) {
         const diaryIds = publicDiaryIds.map(dn => dn.diary_id);
         
-        const { data: publicData } = await supabase
+        let publicQuery = supabase
           .from("diaries")
           .select(`
             *,
@@ -148,9 +148,16 @@ export default function Home() {
               photo_url
             )
           `)
-          .in("id", diaryIds)
-          .gte("created_at", monthStart.toISOString())
-          .lte("created_at", monthEnd.toISOString());
+          .in("id", diaryIds);
+        
+        // 전체 보기가 아닐 때만 날짜 필터 적용
+        if (!showAllDiaries) {
+          publicQuery = publicQuery
+            .gte("created_at", monthStart.toISOString())
+            .lte("created_at", monthEnd.toISOString());
+        }
+        
+        const { data: publicData } = await publicQuery;
 
         if (publicData) {
           // 작성자 정보 가져오기
