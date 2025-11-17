@@ -15,6 +15,13 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import NotificationsSheet from "./NotificationsSheet";
 import { cn } from "@/lib/utils";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export default function Header() {
   const navigate = useNavigate();
@@ -30,6 +37,7 @@ export default function Header() {
   const [viewMode, setViewMode] = useState<"my" | "public">("my");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [pencilCount, setPencilCount] = useState(0);
+  const [purchaseDialogOpen, setPurchaseDialogOpen] = useState(false);
 
   useEffect(() => {
     fetchProfile();
@@ -314,11 +322,18 @@ export default function Header() {
                   <PenLine className="mr-2 h-5 w-5" />
                   일기 작성
                 </Button>
-                <div className="flex items-center justify-center gap-1.5 text-sm py-2 px-3 bg-muted/50 rounded-full">
-                  <Pencil className="h-4 w-4 text-primary" />
-                  <span className="font-semibold text-foreground">연필</span>
-                  <span className="font-bold text-primary">{pencilCount}개</span>
-                </div>
+                <Button
+                  variant="outline"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setPurchaseDialogOpen(true);
+                  }}
+                  className="w-full flex items-center justify-center gap-1.5 text-sm py-5 rounded-full hover:bg-primary/10 hover:text-primary hover:border-primary transition-colors"
+                >
+                  <Pencil className="h-4 w-4" />
+                  <span className="font-semibold">연필</span>
+                  <span className="font-bold">{pencilCount}개</span>
+                </Button>
               </div>
               <DropdownMenuSeparator />
               <DropdownMenuItem 
@@ -377,6 +392,56 @@ export default function Header() {
         open={notificationsOpen} 
         onOpenChange={setNotificationsOpen}
       />
+
+      <Dialog open={purchaseDialogOpen} onOpenChange={setPurchaseDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Pencil className="h-5 w-5 text-primary" />
+              연필 구매
+            </DialogTitle>
+            <DialogDescription>
+              일기 작성에 필요한 연필을 구매하세요
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                variant="outline"
+                className="h-24 flex flex-col items-center justify-center gap-2 rounded-2xl hover:bg-primary/10 hover:text-primary hover:border-primary transition-colors"
+              >
+                <Pencil className="h-6 w-6" />
+                <span className="font-bold text-lg">10개</span>
+                <span className="text-sm text-muted-foreground">₩1,000</span>
+              </Button>
+              <Button
+                variant="outline"
+                className="h-24 flex flex-col items-center justify-center gap-2 rounded-2xl hover:bg-primary/10 hover:text-primary hover:border-primary transition-colors"
+              >
+                <Pencil className="h-6 w-6" />
+                <span className="font-bold text-lg">50개</span>
+                <span className="text-sm text-muted-foreground">₩4,500</span>
+              </Button>
+              <Button
+                variant="outline"
+                className="h-24 flex flex-col items-center justify-center gap-2 rounded-2xl hover:bg-primary/10 hover:text-primary hover:border-primary transition-colors"
+              >
+                <Pencil className="h-6 w-6" />
+                <span className="font-bold text-lg">100개</span>
+                <span className="text-sm text-muted-foreground">₩8,000</span>
+              </Button>
+              <Button
+                variant="outline"
+                className="h-24 flex flex-col items-center justify-center gap-2 rounded-2xl hover:bg-primary/10 hover:text-primary hover:border-primary transition-colors"
+              >
+                <Pencil className="h-6 w-6" />
+                <span className="font-bold text-lg">300개</span>
+                <span className="text-sm text-muted-foreground">₩20,000</span>
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </header>
   );
 }
