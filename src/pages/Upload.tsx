@@ -365,6 +365,34 @@ export default function Upload() {
         }
         
         setUploadProgress(100);
+        
+        // 등장인물에게 알림 전송
+        const mentionedUsers = participants.filter(p => p.id !== user.id);
+        if (mentionedUsers.length > 0) {
+          const { data: profileData } = await supabase
+            .from("profiles")
+            .select("name")
+            .eq("user_id", user.id)
+            .single();
+          
+          const authorName = profileData?.name || "사용자";
+          
+          for (const participant of mentionedUsers) {
+            await supabase.from("notifications").insert({
+              user_id: participant.id,
+              type: "diary_mention",
+              title: "일기에 등장했어요!",
+              message: `${authorName}님의 일기에 회원님이 등장했어요`,
+              link: `/diary/${id}`,
+              metadata: {
+                diary_id: id,
+                from_user_id: user.id,
+                from_user_name: authorName
+              }
+            });
+          }
+        }
+        
         toast({
           title: "일기가 수정되었어요!",
         });
@@ -460,6 +488,33 @@ export default function Upload() {
         }
         
         setUploadProgress(100);
+        
+        // 등장인물에게 알림 전송
+        const mentionedUsers = participants.filter(p => p.id !== user.id);
+        if (mentionedUsers.length > 0) {
+          const { data: profileData } = await supabase
+            .from("profiles")
+            .select("name")
+            .eq("user_id", user.id)
+            .single();
+          
+          const authorName = profileData?.name || "사용자";
+          
+          for (const participant of mentionedUsers) {
+            await supabase.from("notifications").insert({
+              user_id: participant.id,
+              type: "diary_mention",
+              title: "일기에 등장했어요!",
+              message: `${authorName}님의 일기에 회원님이 등장했어요`,
+              link: `/diary/${diaryData.id}`,
+              metadata: {
+                diary_id: diaryData.id,
+                from_user_id: user.id,
+                from_user_name: authorName
+              }
+            });
+          }
+        }
         
         // 작성 완료 후 상세 페이지로 이동
         setTimeout(() => {

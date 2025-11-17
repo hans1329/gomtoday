@@ -25,6 +25,7 @@ export default function NotificationsSheet({ open, onOpenChange }: Notifications
   const [friendRequests, setFriendRequests] = useState<any[]>([]);
   const [likes, setLikes] = useState<any[]>([]);
   const [comments, setComments] = useState<any[]>([]);
+  const [mentions, setMentions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -92,6 +93,18 @@ export default function NotificationsSheet({ open, onOpenChange }: Notifications
       if (commentsData) setComments(commentsData);
     }
 
+    // 일기 등장 알림 가져오기
+    const { data: mentionsData } = await supabase
+      .from("notifications")
+      .select("*")
+      .eq("user_id", user.id)
+      .eq("type", "diary_mention")
+      .eq("read", false)
+      .order("created_at", { ascending: false })
+      .limit(20);
+
+    if (mentionsData) setMentions(mentionsData);
+
     setLoading(false);
   };
 
@@ -133,7 +146,17 @@ export default function NotificationsSheet({ open, onOpenChange }: Notifications
     }
   };
 
-  const totalNotifications = friendRequests.length + likes.length + comments.length;
+  const totalNotifications = friendRequests.length + likes.length + comments.length + mentions.length;
+
+  const handleMarkMentionAsRead = async (notificationId: string, link: string) => {
+    await supabase
+      .from("notifications")
+      .update({ read: true })
+      .eq("id", notificationId);
+    
+    navigate(link);
+    onOpenChange(false);
+  };
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -141,7 +164,7 @@ export default function NotificationsSheet({ open, onOpenChange }: Notifications
         <SheetHeader>
           <SheetTitle>알림 ({totalNotifications})</SheetTitle>
           <SheetDescription>
-            친구 요청, 좋아요, 댓글 알림을 확인하세요
+            친구 요청, 일기 등장, 좋아요, 댓글 알림을 확인하세요
           </SheetDescription>
         </SheetHeader>
 
@@ -265,6 +288,36 @@ export default function NotificationsSheet({ open, onOpenChange }: Notifications
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {format(new Date(comment.created_at), "yyyy.MM.dd HH:mm", { locale: ko })}
+                      </p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* 일기 등장 알림 */}
+            {mentions.length > 0 && (
+              <div className="space-y-3">
+                <h3 className="text-sm font-semibold flex items-center gap-2">
+                  <UserPlus className="h-4 w-4" />
+                  일기 등장 ({mentions.length})
+                </h3>
+                {mentions.map((mention: any) => (
+                  <button
+                    key={mention.id}
+                    onClick={() => handleMarkMentionAsRead(mention.id, mention.link)}
+                    className="flex items-start gap-3 p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors w-full text-left"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      <UserPlus className="h-5 w-5 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">{mention.title}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {mention.message}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {format(new Date(mention.created_at), "yyyy.MM.dd HH:mm", { locale: ko })}
                       </p>
                     </div>
                   </button>
