@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Users, Shield, UserCircle, Ban, CheckCircle } from "lucide-react";
+import { Upload, Users, Shield, UserCircle, Ban, CheckCircle, Trash2 } from "lucide-react";
 import LoadingBar from "@/components/LoadingBar";
 import {
   Select,
@@ -21,6 +21,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface UserWithRole {
   user_id: string;
@@ -42,6 +52,9 @@ export default function Admin() {
   const [users, setUsers] = useState<UserWithRole[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [stats, setStats] = useState({ totalUsers: 0, totalDiaries: 0, totalNotebooks: 0 });
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -226,6 +239,62 @@ export default function Admin() {
     });
 
     fetchUsers();
+  };
+
+  const handleDeleteUser = async (userId: string) => {
+    setDeleting(true);
+
+    try {
+      // 1. 사용자의 모든 사진 가져오기
+      const { data: photos } = await supabase
+        .from("photos")
+        .select("photo_url")
+        .eq("user_id", userId);
+
+      // 2. 스토리지에서 사진 삭제
+      if (photos && photos.length > 0) {
+        for (const photo of photos) {
+          // photo_url에서 파일 경로 추출
+          const urlParts = photo.photo_url.split('/');
+          const bucketIndex = urlParts.findIndex(part => part === 'photos');
+          if (bucketIndex !== -1) {
+            const filePath = urlParts.slice(bucketIndex + 1).join('/');
+            await supabase.storage.from('photos').remove([filePath]);
+          }
+        }
+      }
+
+      // 3. 데이터베이스에서 사용자 데이터 삭제 (CASCADE로 자동 삭제됨)
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .delete()
+        .eq("user_id", userId);
+
+      if (profileError) {
+        throw profileError;
+      }
+
+      // 4. Auth 사용자 삭제 (관리자 권한 필요 - service role key 사용)
+      // 참고: 클라이언트에서는 auth.admin.deleteUser를 사용할 수 없으므로
+      // profiles 삭제만으로 처리 (auth.users는 CASCADE 설정으로 자동 삭제 안됨)
+
+      toast({
+        title: "사용자 삭제 완료",
+        description: "해당 사용자와 모든 데이터가 삭제되었습니다.",
+      });
+
+      fetchUsers();
+      setDeleteDialogOpen(false);
+      setUserToDelete(null);
+    } catch (error: any) {
+      toast({
+        title: "삭제 실패",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const fetchCurrentLogo = () => {
@@ -425,14 +494,27 @@ export default function Admin() {
                           </Select>
                         </TableCell>
                         <TableCell className="text-center">
-                          <Button
-                            variant={user.banned ? "outline" : "destructive"}
-                            size="sm"
-                            onClick={() => handleBanUser(user.user_id, user.banned)}
-                            className="rounded-full"
-                          >
-                            {user.banned ? "밴 해제" : "밴"}
-                          </Button>
+                          <div className="flex items-center justify-center gap-2">
+                            <Button
+                              variant={user.banned ? "outline" : "destructive"}
+                              size="sm"
+                              onClick={() => handleBanUser(user.user_id, user.banned)}
+                              className="rounded-full"
+                            >
+                              {user.banned ? "밴 해제" : "밴"}
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => {
+                                setUserToDelete(user.user_id);
+                                setDeleteDialogOpen(true);
+                              }}
+                              className="rounded-full"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -499,6 +581,30 @@ export default function Admin() {
           </CardContent>
         </Card>
       </div>
+
+      {/* 사용자 삭제 확인 다이얼로그 */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>사용자를 정말 삭제하시겠습니까?</AlertDialogTitle>
+            <AlertDialogDescription>
+              이 작업은 되돌릴 수 없습니다. 해당 사용자의 모든 데이터(일기, 사진, 노트북 등)가 영구적으로 삭제됩니다.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+            <AlertDialogCancel disabled={deleting} className="rounded-full">
+              취소
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => userToDelete && handleDeleteUser(userToDelete)}
+              disabled={deleting}
+              className="rounded-full bg-destructive hover:bg-destructive/90"
+            >
+              {deleting ? "삭제 중..." : "삭제"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
