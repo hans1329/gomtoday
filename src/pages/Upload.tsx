@@ -1205,7 +1205,10 @@ export default function Upload() {
             {(isEditMode || isGenerated) && (
               <>
                 <div className="space-y-2">
-                  <Label className="px-2">등장인물</Label>
+                  <div className="flex items-center gap-2 px-2">
+                    <Label>등장인물</Label>
+                    <span className="text-xs text-muted-foreground">멤버에게 알립니다!</span>
+                  </div>
                   <TooltipProvider>
                     <div className="flex flex-wrap gap-2 p-3 border rounded-md min-h-[48px] items-center">
                       {participants.map((p) => (
@@ -1274,7 +1277,7 @@ export default function Upload() {
                       <PopoverTrigger asChild>
                         <Button
                           variant="outline"
-                          className="w-full justify-start text-left font-normal"
+                          className="w-full justify-start text-left font-normal hover:bg-accent hover:text-foreground"
                         >
                           <span className="text-2xl mr-2">{generatedEmoji || "📝"}</span>
                           <span className="text-sm text-muted-foreground">이모티콘 변경</span>
