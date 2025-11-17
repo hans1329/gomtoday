@@ -507,6 +507,7 @@ export default function Upload() {
       } = await supabase.from("diaries").update({
         content: content,
         title: title,
+        emoji: generatedEmoji,
         participants: participants
       }).eq("id", currentDiaryId);
       if (updateError) throw updateError;
@@ -624,6 +625,7 @@ export default function Upload() {
             weather,
             content: content.trim(),
             title: title.trim() || "무제",
+            emoji: generatedEmoji,
             perspective,
             participants: participants
           })
@@ -1248,21 +1250,87 @@ export default function Upload() {
                   </TooltipProvider>
                 </div>
 
-                <div className="space-y-2">
-                  <Label className="px-2">일기장 선택</Label>
-                  <Select value={selectedNotebook || undefined} onValueChange={setSelectedNotebook}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="일기장을 선택하세요" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-background z-50">
-                      {notebooks.map((notebook) => (
-                        <SelectItem key={notebook.id} value={notebook.id}>
-                          {notebook.name} ({notebook.visibility === 'public' ? '공개' : '비공개'})
-                          {notebook.is_default && " 기본"}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="px-2">일기장 선택</Label>
+                    <Select value={selectedNotebook || undefined} onValueChange={setSelectedNotebook}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="일기장을 선택하세요" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-background z-50">
+                        {notebooks.map((notebook) => (
+                          <SelectItem key={notebook.id} value={notebook.id}>
+                            {notebook.name} ({notebook.visibility === 'public' ? '공개' : '비공개'})
+                            {notebook.is_default && " 기본"}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="px-2">이모티콘 선택</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start text-left font-normal"
+                        >
+                          <span className="text-2xl mr-2">{generatedEmoji || "📝"}</span>
+                          <span className="text-sm text-muted-foreground">이모티콘 변경</span>
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-80 p-4" align="start">
+                        <div className="space-y-3">
+                          <div>
+                            <p className="text-sm font-medium mb-2">감정</p>
+                            <div className="grid grid-cols-6 gap-2">
+                              {["😊", "😢", "😠", "😴", "😍", "😎", "🤔", "😱", "🥳", "😌", "🤗", "😏"].map((emoji) => (
+                                <Button
+                                  key={emoji}
+                                  variant="ghost"
+                                  className="h-10 w-10 p-0 text-2xl hover:bg-accent"
+                                  onClick={() => setGeneratedEmoji(emoji)}
+                                >
+                                  {emoji}
+                                </Button>
+                              ))}
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium mb-2">활동</p>
+                            <div className="grid grid-cols-6 gap-2">
+                              {["🍕", "☕", "✈️", "🏖️", "💪", "📚", "💻", "🎵", "🎮", "🏃", "🚗", "🎸"].map((emoji) => (
+                                <Button
+                                  key={emoji}
+                                  variant="ghost"
+                                  className="h-10 w-10 p-0 text-2xl hover:bg-accent"
+                                  onClick={() => setGeneratedEmoji(emoji)}
+                                >
+                                  {emoji}
+                                </Button>
+                              ))}
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium mb-2">자연/기타</p>
+                            <div className="grid grid-cols-6 gap-2">
+                              {["🌺", "🌻", "🌈", "☀️", "🌙", "⭐", "🐱", "🐶", "💕", "❤️", "🎂", "🎁"].map((emoji) => (
+                                <Button
+                                  key={emoji}
+                                  variant="ghost"
+                                  className="h-10 w-10 p-0 text-2xl hover:bg-accent"
+                                  onClick={() => setGeneratedEmoji(emoji)}
+                                >
+                                  {emoji}
+                                </Button>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
                 </div>
 
                 <Button 
