@@ -6,8 +6,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Save, Pencil } from "lucide-react";
+import { ArrowLeft, Save, Pencil, Plus, Minus } from "lucide-react";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface PencilSetting {
   id: string;
@@ -22,6 +32,7 @@ export default function AdminPencilSettings() {
   const [settings, setSettings] = useState<PencilSetting[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
 
   useEffect(() => {
     checkAdminRole();
@@ -85,6 +96,10 @@ export default function AdminPencilSettings() {
     );
   };
 
+  const handleSaveClick = () => {
+    setConfirmDialogOpen(true);
+  };
+
   const handleSave = async () => {
     setSaving(true);
     
@@ -102,6 +117,7 @@ export default function AdminPencilSettings() {
           variant: "destructive",
         });
         setSaving(false);
+        setConfirmDialogOpen(false);
         return;
       }
     }
@@ -111,11 +127,18 @@ export default function AdminPencilSettings() {
       description: "연필 설정이 저장되었습니다.",
     });
     setSaving(false);
+    setConfirmDialogOpen(false);
   };
 
   if (loading) {
     return <LoadingSpinner />;
   }
+
+  // 지급과 차감 설정 분리
+  const grantSettings = settings.filter(s => s.setting_key === 'signup_initial_pencils');
+  const deductSettings = settings.filter(s => 
+    s.setting_key !== 'signup_initial_pencils'
+  );
 
   return (
     <div className="min-h-screen gradient-soft">
@@ -140,15 +163,19 @@ export default function AdminPencilSettings() {
           </div>
         </div>
 
-        <Card className="shadow-medium">
+        {/* 지급 설정 */}
+        <Card className="shadow-medium mb-6">
           <CardHeader>
-            <CardTitle>연필 시스템 설정</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Plus className="w-5 h-5 text-green-600" />
+              연필 지급 설정
+            </CardTitle>
             <CardDescription>
-              각 항목별 연필 개수를 설정할 수 있습니다
+              사용자에게 연필을 지급하는 항목을 설정합니다
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {settings.map((setting) => (
+            {grantSettings.map((setting) => (
               <div key={setting.id} className="space-y-2">
                 <Label htmlFor={setting.setting_key} className="text-base font-medium pl-1">
                   {setting.description || setting.setting_key}
@@ -164,43 +191,103 @@ export default function AdminPencilSettings() {
                   />
                   <span className="text-sm text-muted-foreground">개</span>
                 </div>
-                {setting.setting_key === "signup_initial_pencils" && (
-                  <p className="text-sm text-muted-foreground pl-1">
-                    새로 가입한 사용자에게 지급되는 초기 연필 개수입니다.
-                  </p>
-                )}
+                <p className="text-sm text-muted-foreground pl-1">
+                  새로 가입한 사용자에게 지급되는 초기 연필 개수입니다.
+                </p>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        {/* 차감 설정 */}
+        <Card className="shadow-medium mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Minus className="w-5 h-5 text-red-600" />
+              연필 차감 설정
+            </CardTitle>
+            <CardDescription>
+              사용자의 행동에 따라 연필을 차감하는 항목을 설정합니다
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {deductSettings.map((setting) => (
+              <div key={setting.id} className="space-y-2">
+                <Label htmlFor={setting.setting_key} className="text-base font-medium pl-1">
+                  {setting.description || setting.setting_key}
+                </Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    id={setting.setting_key}
+                    type="number"
+                    min="0"
+                    value={setting.setting_value}
+                    onChange={(e) => handleSettingChange(setting.setting_key, e.target.value)}
+                    className="max-w-[200px]"
+                  />
+                  <span className="text-sm text-muted-foreground">개</span>
+                </div>
                 {setting.setting_key === "diary_write_cost" && (
                   <p className="text-sm text-muted-foreground pl-1">
                     일기를 작성할 때마다 차감되는 연필 개수입니다.
                   </p>
                 )}
-                {setting.setting_key === "photo_upload_cost" && (
+                {setting.setting_key === "diary_generation_cost" && (
                   <p className="text-sm text-muted-foreground pl-1">
-                    사진을 업로드할 때마다 차감되는 연필 개수입니다.
+                    일기 생성을 시도할 때마다 차감되는 연필 개수입니다.
+                  </p>
+                )}
+                {setting.setting_key === "ai_generation_cost" && (
+                  <p className="text-sm text-muted-foreground pl-1">
+                    AI로 일기를 생성할 때마다 차감되는 연필 개수입니다.
                   </p>
                 )}
               </div>
             ))}
-
-            <div className="pt-4 flex justify-end">
-              <Button
-                onClick={handleSave}
-                disabled={saving}
-                className="rounded-full"
-              >
-                {saving ? (
-                  <>저장 중...</>
-                ) : (
-                  <>
-                    <Save className="mr-2 h-4 w-4" />
-                    저장
-                  </>
-                )}
-              </Button>
-            </div>
           </CardContent>
         </Card>
+
+        <div className="flex justify-end">
+          <Button
+            onClick={handleSaveClick}
+            disabled={saving}
+            className="rounded-full"
+          >
+            {saving ? (
+              <>저장 중...</>
+            ) : (
+              <>
+                <Save className="mr-2 h-4 w-4" />
+                저장
+              </>
+            )}
+          </Button>
+        </div>
       </div>
+
+      {/* 확인 대화상자 */}
+      <AlertDialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
+        <AlertDialogContent className="mx-4">
+          <AlertDialogHeader>
+            <AlertDialogTitle>연필 설정을 저장하시겠습니까?</AlertDialogTitle>
+            <AlertDialogDescription>
+              변경된 설정은 즉시 시스템에 적용됩니다. 차감 설정 변경시 사용자의 연필 사용에 영향을 줄 수 있습니다.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+            <AlertDialogCancel disabled={saving} className="rounded-full">
+              취소
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleSave}
+              disabled={saving}
+              className="rounded-full"
+            >
+              {saving ? "저장 중..." : "확인"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
