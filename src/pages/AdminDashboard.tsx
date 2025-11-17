@@ -122,6 +122,12 @@ export default function AdminDashboard() {
       icon: Pencil,
       path: "/admin/pencil-settings",
     },
+    {
+      title: "연필 상품 관리",
+      description: "판매할 연필 상품을 관리합니다",
+      icon: Pencil,
+      path: "/admin/pencil-products",
+    },
   ];
 
   return (

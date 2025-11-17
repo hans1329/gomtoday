@@ -314,6 +314,39 @@ export type Database = {
         }
         Relationships: []
       }
+      pencil_products: {
+        Row: {
+          created_at: string
+          display_order: number
+          id: string
+          is_active: boolean
+          name: string
+          pencil_count: number
+          price: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          name: string
+          pencil_count: number
+          price: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+          pencil_count?: number
+          price?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       pencil_settings: {
         Row: {
           created_at: string | null
