@@ -235,13 +235,21 @@ export default function Notebooks() {
     }
 
     setSearching(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
     const { data } = await supabase
       .from("profiles")
       .select("user_id, name, email")
       .or(`name.ilike.%${searchQuery}%,email.ilike.%${searchQuery}%`)
+      .neq("user_id", user.id)
       .limit(5);
 
-    setSearchResults(data || []);
+    // 이미 멤버인 사용자 제외
+    const existingMemberIds = new Set(members.map(m => m.user_id));
+    const filteredResults = (data || []).filter(profile => !existingMemberIds.has(profile.user_id));
+
+    setSearchResults(filteredResults);
     setSearching(false);
   };
 
