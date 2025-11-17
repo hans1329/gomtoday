@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { User, PenLine, Settings, LogOut, ArrowLeft, BookOpen, Shield, List, Bell, Users, Globe } from "lucide-react";
+import { User, PenLine, Settings, LogOut, ArrowLeft, BookOpen, Shield, List, Bell, Users, Globe, Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   DropdownMenu,
@@ -29,11 +29,13 @@ export default function Header() {
   const [notificationCount, setNotificationCount] = useState(0);
   const [viewMode, setViewMode] = useState<"my" | "public">("my");
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [pencilCount, setPencilCount] = useState(0);
 
   useEffect(() => {
     fetchProfile();
     checkAdminRole();
     fetchNotificationCount();
+    fetchPencilCount();
     
     // 프로필 업데이트 이벤트 리스너
     const handleProfileUpdate = () => {
@@ -81,7 +83,7 @@ export default function Header() {
 
     const { data: profile, error } = await supabase
       .from("profiles")
-      .select("profile_photo_url, name")
+      .select("profile_photo_url, name, pencil_count")
       .eq("user_id", user.id)
       .maybeSingle();
 
@@ -95,6 +97,24 @@ export default function Header() {
     }
     if (profile?.name) {
       setUserName(profile.name);
+    }
+    if (profile?.pencil_count !== undefined) {
+      setPencilCount(profile.pencil_count);
+    }
+  };
+
+  const fetchPencilCount = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("pencil_count")
+      .eq("user_id", user.id)
+      .single();
+
+    if (profile?.pencil_count !== undefined) {
+      setPencilCount(profile.pencil_count);
     }
   };
 
@@ -218,14 +238,20 @@ export default function Header() {
 
         <div className="flex-1 flex items-center justify-end space-x-2">
           {currentPath !== "/upload" && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate("/upload")}
-              title="일기 작성"
-            >
-              <PenLine className="h-5 w-5" />
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => navigate("/upload")}
+                title="일기 작성"
+              >
+                <PenLine className="h-5 w-5" />
+              </Button>
+              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                <Pencil className="h-4 w-4" />
+                <span className="font-medium">{pencilCount}</span>
+              </div>
+            </div>
           )}
 
           <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
@@ -247,7 +273,7 @@ export default function Header() {
                 )}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 bg-background">
+            <DropdownMenuContent align="end" className="w-64 bg-background">
               <DropdownMenuLabel className="font-normal">
                 <div className="flex items-center justify-end mb-2">
                   <Button
@@ -332,6 +358,10 @@ export default function Header() {
                   <DropdownMenuItem onClick={() => navigate("/admin")} className="py-3">
                     <Shield className="mr-2 h-4 w-4" />
                     <span>관리자</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/admin/pencil-settings")} className="py-3">
+                    <Pencil className="mr-2 h-4 w-4" />
+                    <span>연필 설정</span>
                   </DropdownMenuItem>
                 </>
               )}

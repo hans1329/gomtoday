@@ -20,6 +20,7 @@ import Notebooks from "./pages/Notebooks";
 import Friends from "./pages/Friends";
 import NotFound from "./pages/NotFound";
 import Admin from "./pages/Admin";
+import PencilSettings from "./pages/PencilSettings";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 
@@ -73,6 +74,7 @@ function AppContent() {
         <Route path="/diary/:id" element={<DiaryDetail />} />
         <Route path="/diary-review/:id" element={<DiaryReview />} />
         <Route path="/admin" element={<Admin />} />
+        <Route path="/admin/pencil-settings" element={<PencilSettings />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="*" element={<NotFound />} />

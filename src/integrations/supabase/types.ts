@@ -314,6 +314,33 @@ export type Database = {
         }
         Relationships: []
       }
+      pencil_settings: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          setting_key: string
+          setting_value: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          setting_key: string
+          setting_value: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          setting_key?: string
+          setting_value?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       photos: {
         Row: {
           diary_id: string | null
@@ -367,6 +394,7 @@ export type Database = {
           location: string | null
           mbti: string | null
           name: string | null
+          pencil_count: number
           profile_photo_url: string | null
           updated_at: string | null
           user_id: string
@@ -385,6 +413,7 @@ export type Database = {
           location?: string | null
           mbti?: string | null
           name?: string | null
+          pencil_count?: number
           profile_photo_url?: string | null
           updated_at?: string | null
           user_id: string
@@ -403,6 +432,7 @@ export type Database = {
           location?: string | null
           mbti?: string | null
           name?: string | null
+          pencil_count?: number
           profile_photo_url?: string | null
           updated_at?: string | null
           user_id?: string
