@@ -323,24 +323,6 @@ export default function Notebooks() {
         )}
 
         <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
-          {notebooks.length < 5 && (
-            <Card 
-              className="shadow-sm border-dashed border-2 cursor-pointer hover:border-primary hover:bg-accent/50 transition-colors"
-              onClick={() => setIsDialogOpen(true)}
-            >
-              <CardHeader className="p-4 sm:p-6">
-                <div className="flex items-center justify-center gap-3 min-h-[80px]">
-                  <Plus className="h-8 w-8 sm:h-10 sm:w-10 text-muted-foreground" />
-                  <div className="text-center">
-                    <CardTitle className="text-base sm:text-lg text-muted-foreground">새 일기장 만들기</CardTitle>
-                    <CardDescription className="text-xs sm:text-sm mt-1">
-                      특정 멤버와의 일기장을 만드세요
-                    </CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-            </Card>
-          )}
           {notebooks.map((notebook) => (
             <Card key={notebook.id} className="shadow-sm">
               <CardHeader className="p-4 sm:p-6">
@@ -382,6 +364,24 @@ export default function Notebooks() {
               )}
             </Card>
           ))}
+          {notebooks.length < 5 && (
+            <Card 
+              className="shadow-sm border-dashed border-2 cursor-pointer hover:border-primary hover:bg-accent/50 transition-colors"
+              onClick={() => setIsDialogOpen(true)}
+            >
+              <CardHeader className="p-4 sm:p-6">
+                <div className="flex items-center justify-center gap-3 min-h-[80px]">
+                  <Plus className="h-8 w-8 sm:h-10 sm:w-10 text-muted-foreground" />
+                  <div className="text-center">
+                    <CardTitle className="text-base sm:text-lg text-muted-foreground">새 일기장 만들기</CardTitle>
+                    <CardDescription className="text-xs sm:text-sm mt-1">
+                      특정 멤버와의 일기장을 만드세요
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+            </Card>
+          )}
         </div>
 
         <Button 
