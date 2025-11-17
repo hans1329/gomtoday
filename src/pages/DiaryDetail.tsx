@@ -407,25 +407,21 @@ export default function DiaryDetail() {
               )}
 
               {/* Likes and Comments */}
-              <div className="space-y-4 pt-4 border-t">
-                <div className="flex items-center gap-1">
+              <div className="space-y-4 pt-1">
+                <div className="flex items-center gap-4">
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={handleLike}
-                    className={`gap-2 ${isLiked ? "text-red-500" : ""}`}
+                    className={`gap-2 rounded-full h-9 px-3 ${isLiked ? "text-red-500 hover:text-red-600" : "text-muted-foreground"}`}
                   >
-                    <Heart className={`h-5 w-5 ${isLiked ? "fill-current" : ""}`} />
-                    <span>{likes.length}</span>
+                    <Heart className={`h-4 w-4 ${isLiked ? "fill-current" : ""}`} />
+                    <span className="text-sm">{likes.length}</span>
                   </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="gap-2 text-muted-foreground cursor-default hover:bg-transparent"
-                  >
-                    <MessageCircle className="h-5 w-5" />
-                    <span>{comments.length}</span>
-                  </Button>
+                  <div className="flex items-center gap-2 text-muted-foreground h-9 px-3">
+                    <MessageCircle className="h-4 w-4" />
+                    <span className="text-sm">{comments.length}</span>
+                  </div>
                 </div>
 
                 {/* Comments Section */}
