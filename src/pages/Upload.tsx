@@ -1277,10 +1277,10 @@ export default function Upload() {
                       <PopoverTrigger asChild>
                         <Button
                           variant="outline"
-                          className="w-full justify-start text-left font-normal hover:bg-accent hover:text-foreground"
+                          className="w-full justify-start text-left font-normal group hover:bg-accent"
                         >
                           <span className="text-2xl mr-2">{generatedEmoji || "📝"}</span>
-                          <span className="text-sm text-muted-foreground">이모티콘 변경</span>
+                          <span className="text-sm text-muted-foreground group-hover:text-foreground">이모티콘 변경</span>
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-80 p-0 bg-background z-50 max-h-[400px] overflow-y-auto pointer-events-auto" align="start">
