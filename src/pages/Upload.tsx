@@ -956,28 +956,6 @@ export default function Upload() {
           <CardContent className="p-6 space-y-6">
             {isEditMode && (
               <>
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold">일기 수정</h3>
-                  <Button
-                    onClick={handleRegenerate}
-                    disabled={uploading || (existingPhotos.length === 0 && previewUrls.length === 0)}
-                    variant="outline"
-                    size="sm"
-                  >
-                    {uploading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        재생성 중...
-                      </>
-                    ) : (
-                      <>
-                        <PenLine className="mr-2 h-4 w-4" />
-                        다시 생성하기
-                      </>
-                    )}
-                  </Button>
-                </div>
-
                 <div className="space-y-2">
                   <Label htmlFor="title">제목</Label>
                   <Input
@@ -1223,6 +1201,29 @@ export default function Upload() {
 
                 <div className="border-t pt-6 mt-6" />
               </>
+            )}
+
+            {isEditMode && (
+              <div className="flex items-center justify-end mb-4">
+                <Button
+                  onClick={handleRegenerate}
+                  disabled={uploading || (existingPhotos.length === 0 && previewUrls.length === 0)}
+                  variant="outline"
+                  size="sm"
+                >
+                  {uploading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      재생성 중...
+                    </>
+                  ) : (
+                    <>
+                      <PenLine className="mr-2 h-4 w-4" />
+                      다시 생성하기
+                    </>
+                  )}
+                </Button>
+              </div>
             )}
 
             {(isEditMode || isGenerated) && (
