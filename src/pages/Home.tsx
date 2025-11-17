@@ -716,7 +716,7 @@ export default function Home() {
               ) : null;
             })()
           ) : viewMode === "my" ? (
-            <div className="shadow-medium bg-card rounded-lg border p-4 md:p-6">
+            <div className="bg-card rounded-lg p-4 md:p-6">
               {diaries[0].photos && diaries[0].photos.length > 0 && (
                 <div className="mb-6">
                   <Carousel className="w-full">
@@ -747,9 +747,22 @@ export default function Home() {
                     <h1 className="text-2xl font-bold mb-2">
                       {diaries[0].title || "제목 없음"}
                     </h1>
-                    <p className="text-sm text-muted-foreground">
-                      {format(new Date(diaries[0].created_at), "yyyy년 M월 d일 EEEE", { locale: ko })}
-                    </p>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="text-sm text-muted-foreground">
+                        {format(new Date(diaries[0].created_at), "yyyy년 M월 d일 EEEE", { locale: ko })}
+                      </p>
+                      {diaries[0].perspective && (
+                        <span className="text-[10px] bg-muted px-2 py-1 rounded-full">
+                          {diaries[0].perspective === 'camera' && '📱 핸드폰'}
+                          {diaries[0].perspective === 'pet' && '🐾 애완동물'}
+                          {diaries[0].perspective === 'friend' && '👥 친구'}
+                          {diaries[0].perspective === 'family' && '👨‍👩‍👧 가족'}
+                          {diaries[0].perspective === 'stranger' && '🚶 낯선 사람'}
+                          {diaries[0].perspective === 'old_man' && '👴 동네 꼰대'}
+                          {diaries[0].perspective === 'future' && '🔮 미래의 나'}
+                        </span>
+                      )}
+                    </div>
                   </div>
                   {currentUserId === diaries[0].user_id && (
                     <Button
