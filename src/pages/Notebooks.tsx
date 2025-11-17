@@ -473,9 +473,7 @@ export default function Notebooks() {
             </Card>}
         </div>
 
-        <Button variant="outline" onClick={() => navigate("/")} className="w-full sm:w-auto rounded-full text-sm sm:text-base">
-          ← 홈으로 돌아가기
-        </Button>
+        
       </div>
 
       <Dialog open={memberDialogOpen} onOpenChange={setMemberDialogOpen}>
