@@ -796,7 +796,7 @@ export default function Home() {
                     </div>
                   )}
 
-                <div className="flex items-center gap-4 pt-2">
+                <div className="flex items-center gap-4 pt-1">
                   <Button
                     variant="ghost"
                     size="sm"
