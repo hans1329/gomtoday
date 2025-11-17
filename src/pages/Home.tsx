@@ -414,49 +414,47 @@ export default function Home() {
   return (
     <div className="min-h-screen gradient-soft">
       <div className="max-w-4xl mx-auto p-2 sm:p-4 space-y-4">
-        {viewMode === "my" && (
-          <Card className="shadow-medium md:max-w-2xl md:mx-auto">
-            <CardContent className="p-6">
-              <div className={cn(
-                "flex items-center justify-between",
-                isCalendarExpanded ? "mb-6" : "mb-0"
-              )}>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={handlePrevMonth}
-                  >
-                    <ChevronLeft className="h-5 w-5" />
-                  </Button>
-                  <h2 className="text-xl font-bold">
-                    {format(currentMonth, "yyyy년 M월", { locale: ko })}
-                  </h2>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={handleNextMonth}
-                  >
-                    <ChevronRight className="h-5 w-5" />
-                  </Button>
-                </div>
+        <Card className="shadow-medium md:max-w-2xl md:mx-auto">
+          <CardContent className="p-6">
+            <div className={cn(
+              "flex items-center justify-between",
+              isCalendarExpanded ? "mb-6" : "mb-0"
+            )}>
+              <div className="flex items-center gap-2">
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => setIsCalendarExpanded(!isCalendarExpanded)}
-                  className="rounded-full"
+                  onClick={handlePrevMonth}
                 >
-                  {isCalendarExpanded ? (
-                    <ChevronUp className="h-5 w-5" />
-                  ) : (
-                    <ChevronDown className="h-5 w-5" />
-                  )}
+                  <ChevronLeft className="h-5 w-5" />
+                </Button>
+                <h2 className="text-xl font-bold">
+                  {format(currentMonth, "yyyy년 M월", { locale: ko })}
+                </h2>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleNextMonth}
+                >
+                  <ChevronRight className="h-5 w-5" />
                 </Button>
               </div>
-              {isCalendarExpanded && renderCalendar()}
-            </CardContent>
-          </Card>
-        )}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsCalendarExpanded(!isCalendarExpanded)}
+                className="rounded-full"
+              >
+                {isCalendarExpanded ? (
+                  <ChevronUp className="h-5 w-5" />
+                ) : (
+                  <ChevronDown className="h-5 w-5" />
+                )}
+              </Button>
+            </div>
+            {isCalendarExpanded && renderCalendar()}
+          </CardContent>
+        </Card>
 
         <div className="flex items-center gap-2 px-2 sm:px-0 flex-wrap">
           <div className="relative flex-1 min-w-[200px]">
