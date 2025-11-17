@@ -354,6 +354,9 @@ export type Database = {
       }
       profiles: {
         Row: {
+          banned: boolean
+          banned_at: string | null
+          banned_reason: string | null
           bio: string | null
           birthday: string | null
           blood_type: string | null
@@ -369,6 +372,9 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          banned?: boolean
+          banned_at?: string | null
+          banned_reason?: string | null
           bio?: string | null
           birthday?: string | null
           blood_type?: string | null
@@ -384,6 +390,9 @@ export type Database = {
           user_id: string
         }
         Update: {
+          banned?: boolean
+          banned_at?: string | null
+          banned_reason?: string | null
           bio?: string | null
           birthday?: string | null
           blood_type?: string | null

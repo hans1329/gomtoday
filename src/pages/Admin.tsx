@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Users, Shield, UserCircle } from "lucide-react";
+import { Upload, Users, Shield, UserCircle, Ban, CheckCircle } from "lucide-react";
 import LoadingBar from "@/components/LoadingBar";
 import {
   Select,
@@ -29,6 +29,9 @@ interface UserWithRole {
   profile_photo_url: string | null;
   created_at: string | null;
   role: "admin" | "user" | null;
+  banned: boolean;
+  banned_at: string | null;
+  banned_reason: string | null;
 }
 
 export default function Admin() {
@@ -103,7 +106,7 @@ export default function Admin() {
     // 모든 프로필 가져오기
     const { data: profiles, error: profilesError } = await supabase
       .from("profiles")
-      .select("user_id, name, email, profile_photo_url, created_at")
+      .select("user_id, name, email, profile_photo_url, created_at, banned, banned_at, banned_reason")
       .order("created_at", { ascending: false });
 
     if (profilesError) {
@@ -189,6 +192,37 @@ export default function Admin() {
     toast({
       title: "역할 변경 완료!",
       description: `사용자 역할이 ${newRole}로 변경되었습니다.`,
+    });
+
+    fetchUsers();
+  };
+
+  const handleBanUser = async (userId: string, currentBanStatus: boolean) => {
+    const newBanStatus = !currentBanStatus;
+    
+    const { error } = await supabase
+      .from("profiles")
+      .update({ 
+        banned: newBanStatus,
+        banned_at: newBanStatus ? new Date().toISOString() : null,
+        banned_reason: newBanStatus ? "관리자에 의해 제한됨" : null
+      })
+      .eq("user_id", userId);
+
+    if (error) {
+      toast({
+        title: "상태 변경 실패",
+        description: error.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: newBanStatus ? "사용자 밴 완료" : "밴 해제 완료",
+      description: newBanStatus 
+        ? "해당 사용자는 더 이상 앱을 사용할 수 없습니다." 
+        : "해당 사용자의 계정이 복구되었습니다.",
     });
 
     fetchUsers();
@@ -317,7 +351,9 @@ export default function Admin() {
                       <TableHead>이름</TableHead>
                       <TableHead>이메일</TableHead>
                       <TableHead>가입일</TableHead>
+                      <TableHead className="text-center">상태</TableHead>
                       <TableHead className="text-center">역할</TableHead>
+                      <TableHead className="text-center">관리</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -350,6 +386,19 @@ export default function Admin() {
                             : "-"}
                         </TableCell>
                         <TableCell className="text-center">
+                          {user.banned ? (
+                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-destructive/10 text-destructive">
+                              <Ban className="w-3 h-3" />
+                              밴
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-500/10 text-green-600">
+                              <CheckCircle className="w-3 h-3" />
+                              활성
+                            </span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-center">
                           <Select
                             value={user.role || "user"}
                             onValueChange={(value: "admin" | "user") => 
@@ -374,6 +423,16 @@ export default function Admin() {
                               </SelectItem>
                             </SelectContent>
                           </Select>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Button
+                            variant={user.banned ? "outline" : "destructive"}
+                            size="sm"
+                            onClick={() => handleBanUser(user.user_id, user.banned)}
+                            className="rounded-full"
+                          >
+                            {user.banned ? "밴 해제" : "밴"}
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))}
