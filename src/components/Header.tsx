@@ -194,7 +194,7 @@ export default function Header() {
               >
                 <User className={cn("h-5 w-5 group-hover:text-white transition-colors", viewMode === "my" ? "text-primary" : "text-muted-foreground")} />
                 {viewMode === "my" && (
-                  <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-destructive" />
+                  <span className="absolute top-1.5 right-1.5 h-1 w-1 rounded-full bg-destructive" />
                 )}
               </Button>
               <div className="h-3 w-px bg-muted-foreground/30" />
@@ -209,7 +209,7 @@ export default function Header() {
               >
                 <Globe className={cn("h-5 w-5 group-hover:text-white transition-colors", viewMode === "public" ? "text-primary" : "text-muted-foreground")} />
                 {viewMode === "public" && (
-                  <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-destructive" />
+                  <span className="absolute top-1.5 right-1.5 h-1 w-1 rounded-full bg-destructive" />
                 )}
               </Button>
             </div>
