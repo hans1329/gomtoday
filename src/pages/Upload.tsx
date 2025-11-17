@@ -11,7 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Upload as UploadIcon, Loader2, ArrowLeft, Trash2, ChevronUp, ChevronDown, CalendarIcon, UserPlus, X } from "lucide-react";
+import { Upload as UploadIcon, Loader2, ArrowLeft, Trash2, ChevronUp, ChevronDown, CalendarIcon, UserPlus, X, PenLine } from "lucide-react";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -41,6 +41,11 @@ export default function Upload() {
   const [currentUser, setCurrentUser] = useState<{id: string, name: string, profile_photo_url?: string} | null>(null);
   const [friends, setFriends] = useState<Array<{id: string, name: string, profile_photo_url?: string}>>([]);
   const [showMemberDialog, setShowMemberDialog] = useState(false);
+  const [isGenerated, setIsGenerated] = useState(false);
+  const [generatedContent, setGeneratedContent] = useState("");
+  const [generatedTitle, setGeneratedTitle] = useState("");
+  const [generatedEmoji, setGeneratedEmoji] = useState("");
+  const [currentDiaryId, setCurrentDiaryId] = useState<string | null>(null);
   const navigate = useNavigate();
   const {
     toast
@@ -275,6 +280,222 @@ export default function Upload() {
     setUploadProgress(0);
     setUploadStatus("");
   };
+
+  // 일기 생성 함수 (AI 분석 및 임시 저장)
+  const handleGenerateDiary = async () => {
+    if (uploading || isGenerated) return;
+
+    if (selectedFiles.length < 1) {
+      toast({
+        title: "사진이 필요해요",
+        description: "최소 1장의 사진을 선택해주세요.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setUploading(true);
+    setUploadProgress(10);
+    setUploadStatus("사진 업로드 준비 중...");
+
+    const {
+      data: {
+        user
+      }
+    } = await supabase.auth.getUser();
+    if (!user) {
+      navigate("/auth");
+      return;
+    }
+
+    try {
+      setUploadStatus("사진 업로드 중...");
+      setUploadProgress(20);
+
+      const photoUrls: string[] = [];
+      for (let i = 0; i < selectedFiles.length; i++) {
+        const file = selectedFiles[i];
+        const fileExt = file.name.split('.').pop() || 'jpg';
+        const fileName = `${user.id}/${Date.now()}-${i}.${fileExt}`;
+        const {
+          error: uploadError
+        } = await supabase.storage.from("photos").upload(fileName, file);
+        if (uploadError) throw uploadError;
+        const {
+          data: {
+            publicUrl
+          }
+        } = supabase.storage.from("photos").getPublicUrl(fileName);
+        photoUrls.push(publicUrl);
+        setUploadProgress(20 + ((i + 1) / selectedFiles.length) * 30);
+      }
+
+      setUploadStatus("AI가 일기를 작성하고 있어요...");
+      setUploadProgress(60);
+
+      const {
+        data: aiResponse,
+        error: aiError
+      } = await supabase.functions.invoke("analyze-photo", {
+        body: {
+          photoUrls: photoUrls,
+          emotion,
+          length,
+          perspective
+        }
+      });
+      if (aiError) throw aiError;
+
+      setUploadProgress(80);
+      setUploadStatus("일기를 임시 저장하고 있어요...");
+
+      // 임시 일기 생성 (일기장 연결 없이)
+      const {
+        data: diaryData,
+        error: diaryError
+      } = await supabase.from("diaries").insert({
+        user_id: user.id,
+        content: aiResponse.content,
+        title: aiResponse.title,
+        emoji: aiResponse.emoji,
+        tone: emotion,
+        length,
+        weather,
+        perspective,
+        participants: participants,
+        created_at: selectedDate.toISOString()
+      }).select().single();
+      if (diaryError) throw diaryError;
+
+      // 사진을 일기에 연결
+      for (let i = 0; i < photoUrls.length; i++) {
+        await supabase.from("photos").insert({
+          user_id: user.id,
+          photo_url: photoUrls[i],
+          diary_id: diaryData.id,
+          display_order: i
+        });
+      }
+
+      setUploadProgress(100);
+      setGeneratedContent(aiResponse.content);
+      setGeneratedTitle(aiResponse.title);
+      setGeneratedEmoji(aiResponse.emoji);
+      setContent(aiResponse.content);
+      setTitle(aiResponse.title);
+      setCurrentDiaryId(diaryData.id);
+      setIsGenerated(true);
+      
+      toast({
+        title: "일기가 생성되었어요!",
+        description: "내용을 확인하고 수정하세요."
+      });
+    } catch (error: any) {
+      console.error("일기 생성 실패:", error);
+      toast({
+        title: "일기 생성 실패",
+        description: error.message || "다시 시도해주세요.",
+        variant: "destructive"
+      });
+    } finally {
+      setUploading(false);
+      setUploadProgress(0);
+      setUploadStatus("");
+    }
+  };
+
+  // 최종 저장 함수 (일기장 연결 및 알림)
+  const handleSave = async () => {
+    if (!currentDiaryId || !selectedNotebook) {
+      toast({
+        title: "일기장을 선택해주세요",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!content.trim()) {
+      toast({
+        title: "일기 내용을 입력해주세요",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const {
+        data: {
+          user
+        }
+      } = await supabase.auth.getUser();
+      if (!user) {
+        navigate("/auth");
+        return;
+      }
+
+      // 일기 내용 업데이트 (사용자가 수정한 경우)
+      const {
+        error: updateError
+      } = await supabase.from("diaries").update({
+        content: content,
+        title: title,
+        participants: participants
+      }).eq("id", currentDiaryId);
+      if (updateError) throw updateError;
+
+      // 일기장에 연결
+      await supabase
+        .from("diary_notebooks")
+        .insert({
+          diary_id: currentDiaryId,
+          notebook_id: selectedNotebook
+        });
+
+      // 등장인물에게 알림 전송
+      const mentionedUsers = participants.filter(p => p.id !== user.id);
+      if (mentionedUsers.length > 0) {
+        const { data: profileData } = await supabase
+          .from("profiles")
+          .select("name")
+          .eq("user_id", user.id)
+          .single();
+        
+        const authorName = profileData?.name || "사용자";
+        
+        for (const participant of mentionedUsers) {
+          await supabase.from("notifications").insert({
+            user_id: participant.id,
+            type: "diary_mention",
+            title: "일기에 등장했어요!",
+            message: `${authorName}님의 일기에 회원님이 등장했어요`,
+            link: `/diary/${currentDiaryId}`,
+            metadata: {
+              diary_id: currentDiaryId,
+              from_user_id: user.id,
+              from_user_name: authorName
+            }
+          });
+        }
+      }
+
+      toast({
+        title: "일기가 저장되었어요!",
+      });
+      navigate(`/diary/${currentDiaryId}`);
+    } catch (error: any) {
+      console.error("일기 저장 실패:", error);
+      toast({
+        title: "일기 저장 실패",
+        description: error.message || "다시 시도해주세요.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleUpload = async () => {
     if (uploading) return;
 
@@ -779,69 +1000,142 @@ export default function Upload() {
               </div>
             )}
 
-            <div className="space-y-2">
-              <Label>등장인물</Label>
-              <TooltipProvider>
-                <div className="flex flex-wrap gap-2 p-3 border rounded-md min-h-[48px] items-center">
-                  {participants.map((p) => (
-                    <div key={p.id} className="relative group">
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className="relative">
-                            <Avatar className="h-10 w-10 cursor-pointer border-2 border-border">
-                              <AvatarImage src={p.profile_photo_url} />
-                              <AvatarFallback>{p.name.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <button
-                              onClick={() => removeParticipant(p.id)}
-                              className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-destructive text-destructive-foreground opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
-                            >
-                              <X className="h-3 w-3" />
-                            </button>
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>{p.name}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </div>
-                  ))}
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="h-10 w-10 rounded-full p-0"
-                    onClick={() => setShowMemberDialog(true)}
-                  >
-                    <UserPlus className="h-4 w-4" />
-                  </Button>
+            {!isEditMode && !isGenerated && (
+              <div className="pt-4">
+                <Button
+                  onClick={handleGenerateDiary}
+                  disabled={selectedFiles.length < 1 || uploading}
+                  className="w-full h-14 text-lg font-semibold"
+                  size="lg"
+                >
+                  {uploading ? (
+                    <>
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      일기 생성 중...
+                    </>
+                  ) : (
+                    <>
+                      <PenLine className="mr-2 h-5 w-5" />
+                      일기 생성하기
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
+
+            {(isEditMode || isGenerated) && (
+              <>
+                <div className="border-t pt-6 mt-6" />
+
+                <div className="space-y-2">
+                  <Label htmlFor="title">일기 제목</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id="title"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      placeholder="일기 제목을 입력하세요"
+                      className="flex-1"
+                    />
+                  </div>
                 </div>
-              </TooltipProvider>
-            </div>
 
-            <div className="space-y-2">
-              <Label>일기장 선택</Label>
-              <Select value={selectedNotebook || undefined} onValueChange={setSelectedNotebook}>
-                <SelectTrigger>
-                  <SelectValue placeholder="일기장을 선택하세요" />
-                </SelectTrigger>
-                <SelectContent className="bg-background z-50">
-                  {notebooks.map((notebook) => (
-                    <SelectItem key={notebook.id} value={notebook.id}>
-                      {notebook.name}
-                      {notebook.is_default && " (기본)"}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+                <div className="space-y-2">
+                  <Label htmlFor="content">일기 내용</Label>
+                  <Textarea
+                    id="content"
+                    value={content}
+                    onChange={(e) => setContent(e.target.value)}
+                    placeholder="일기 내용을 입력하세요"
+                    className="min-h-[200px]"
+                  />
+                </div>
 
-            <Button onClick={handleUpload} disabled={uploading || (existingPhotos.length + selectedFiles.length) < 1} className="w-full h-12">
-              {uploading ? <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {isEditMode ? "일기 수정 중..." : "일기 작성 중..."}
-                </> : (isEditMode ? "일기 수정하기" : "일기 작성하기")}
-            </Button>
+                <div className="border-t pt-6 mt-6" />
+              </>
+            )}
+
+            {(isEditMode || isGenerated) && (
+              <>
+                <div className="space-y-2">
+                  <Label>등장인물</Label>
+                  <TooltipProvider>
+                    <div className="flex flex-wrap gap-2 p-3 border rounded-md min-h-[48px] items-center">
+                      {participants.map((p) => (
+                        <div key={p.id} className="relative group">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="relative">
+                                <Avatar className="h-10 w-10 cursor-pointer border-2 border-border">
+                                  <AvatarImage src={p.profile_photo_url} />
+                                  <AvatarFallback>{p.name.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <button
+                                  onClick={() => removeParticipant(p.id)}
+                                  className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-destructive text-destructive-foreground opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                                >
+                                  <X className="h-3 w-3" />
+                                </button>
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>{p.name}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </div>
+                      ))}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-10 w-10 rounded-full p-0"
+                        onClick={async () => {
+                          const { data: { user } } = await supabase.auth.getUser();
+                          if (user) {
+                            await fetchFriends(user.id);
+                            setShowMemberDialog(true);
+                          }
+                        }}
+                      >
+                        <UserPlus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TooltipProvider>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>일기장 선택</Label>
+                  <Select value={selectedNotebook || undefined} onValueChange={setSelectedNotebook}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="일기장을 선택하세요" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background z-50">
+                      {notebooks.map((notebook) => (
+                        <SelectItem key={notebook.id} value={notebook.id}>
+                          {notebook.name}
+                          {notebook.is_default && " (기본)"}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <Button 
+                  onClick={isEditMode ? handleUpload : handleSave} 
+                  disabled={loading || !content.trim() || !selectedNotebook} 
+                  className="w-full h-12"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      {isEditMode ? "일기 수정 중..." : "일기 저장 중..."}
+                    </>
+                  ) : (
+                    isEditMode ? "일기 수정하기" : "일기 저장하기"
+                  )}
+                </Button>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
