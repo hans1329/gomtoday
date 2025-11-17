@@ -415,7 +415,7 @@ export default function Home() {
     <div className="min-h-screen gradient-soft">
       <div className="max-w-4xl mx-auto p-2 sm:p-4 space-y-4">
         {viewMode === "my" && (
-          <Card className="shadow-medium">
+          <Card className="shadow-medium md:max-w-2xl md:mx-auto">
             <CardContent className="p-6">
               <div className={cn(
                 "flex items-center justify-between",
@@ -469,54 +469,6 @@ export default function Home() {
               className="pl-9 rounded-full h-9 text-sm"
             />
           </div>
-
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className={cn(
-                  "rounded-full h-9",
-                  selectedDate && "border-primary"
-                )}
-              >
-                <CalendarIcon className="h-4 w-4" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={selectedDate}
-                onSelect={(date) => {
-                  setSelectedDate(date);
-                  if (date) {
-                    toast({
-                      title: format(date, "yyyy년 M월 d일 (E)", { locale: ko }) + " 일기",
-                    });
-                  }
-                }}
-                initialFocus
-                className={cn("p-3 pointer-events-auto")}
-              />
-              {selectedDate && (
-                <div className="p-3 border-t">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full rounded-full"
-                    onClick={() => {
-                      setSelectedDate(undefined);
-                      toast({
-                        title: "날짜 필터 해제",
-                      });
-                    }}
-                  >
-                    필터 해제
-                  </Button>
-                </div>
-              )}
-            </PopoverContent>
-          </Popover>
 
           <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
             <SelectTrigger className="w-[140px] rounded-full h-9">
