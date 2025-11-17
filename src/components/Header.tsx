@@ -190,9 +190,12 @@ export default function Header() {
                   setViewMode("my");
                   window.dispatchEvent(new CustomEvent('viewModeChange', { detail: 'my' }));
                 }}
-                className="rounded-full h-9 w-9 group"
+                className="rounded-full h-9 w-9 group relative"
               >
                 <User className={cn("h-5 w-5 group-hover:text-white transition-colors", viewMode === "my" ? "text-primary" : "text-muted-foreground")} />
+                {viewMode === "my" && (
+                  <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-destructive" />
+                )}
               </Button>
               <div className="h-3 w-px bg-muted-foreground/30" />
               <Button
@@ -202,9 +205,12 @@ export default function Header() {
                   setViewMode("public");
                   window.dispatchEvent(new CustomEvent('viewModeChange', { detail: 'public' }));
                 }}
-                className="rounded-full h-9 w-9 group"
+                className="rounded-full h-9 w-9 group relative"
               >
                 <Globe className={cn("h-5 w-5 group-hover:text-white transition-colors", viewMode === "public" ? "text-primary" : "text-muted-foreground")} />
+                {viewMode === "public" && (
+                  <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-destructive" />
+                )}
               </Button>
             </div>
           </div>
