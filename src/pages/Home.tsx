@@ -28,6 +28,7 @@ export default function Home() {
   const [selectedEmoji, setSelectedEmoji] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
   const [isCalendarExpanded, setIsCalendarExpanded] = useState(true);
+  const [showAllDiaries, setShowAllDiaries] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   
@@ -56,7 +57,7 @@ export default function Home() {
     if (currentUserId) {
       fetchMonthData();
     }
-  }, [currentUserId, currentMonth]);
+  }, [currentUserId, currentMonth, showAllDiaries]);
 
   useEffect(() => {
     if (currentUserId && (allDiaries.length > 0 || publicDiaries.length > 0)) {
@@ -81,8 +82,8 @@ export default function Home() {
     const monthStart = startOfMonth(currentMonth);
     const monthEnd = endOfMonth(currentMonth);
 
-    // 내 일기 가져오기 (캘린더용)
-    const { data: myData } = await supabase
+    // 내 일기 가져오기
+    let myQuery = supabase
       .from("diaries")
       .select(`
         *,
@@ -94,10 +95,16 @@ export default function Home() {
           photo_url
         )
       `)
-      .eq("user_id", user.id)
-      .gte("created_at", monthStart.toISOString())
-      .lte("created_at", monthEnd.toISOString())
-      .order("created_at", { ascending: false });
+      .eq("user_id", user.id);
+    
+    // 전체 보기가 아닐 때만 날짜 필터 적용
+    if (!showAllDiaries) {
+      myQuery = myQuery
+        .gte("created_at", monthStart.toISOString())
+        .lte("created_at", monthEnd.toISOString());
+    }
+    
+    const { data: myData } = await myQuery.order("created_at", { ascending: false });
 
     if (myData) {
       const processedMyData = myData.map((diary: any) => {
@@ -359,22 +366,37 @@ export default function Home() {
               isCalendarExpanded ? "mb-6" : "mb-0"
             )}>
               <div className="flex items-center gap-2">
+                {!showAllDiaries && (
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={handlePrevMonth}
+                    >
+                      <ChevronLeft className="h-5 w-5" />
+                    </Button>
+                    <h2 className="text-xl font-bold">
+                      {format(currentMonth, "yyyy년 M월", { locale: ko })}
+                    </h2>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={handleNextMonth}
+                    >
+                      <ChevronRight className="h-5 w-5" />
+                    </Button>
+                  </>
+                )}
+                {showAllDiaries && (
+                  <h2 className="text-xl font-bold">전체 일기</h2>
+                )}
                 <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handlePrevMonth}
+                  variant={showAllDiaries ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setShowAllDiaries(!showAllDiaries)}
+                  className="ml-2 rounded-full text-xs"
                 >
-                  <ChevronLeft className="h-5 w-5" />
-                </Button>
-                <h2 className="text-xl font-bold">
-                  {format(currentMonth, "yyyy년 M월", { locale: ko })}
-                </h2>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleNextMonth}
-                >
-                  <ChevronRight className="h-5 w-5" />
+                  {showAllDiaries ? "월별 보기" : "전체 보기"}
                 </Button>
               </div>
               <Button
