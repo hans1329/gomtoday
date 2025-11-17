@@ -13,7 +13,7 @@ export const LoadingSpinner = () => {
   }, []);
 
   return (
-    <div className="relative w-12 h-12 flex items-center justify-center">
+    <div className="relative w-12 h-12 flex items-center justify-center mx-auto">
       <div
         className={`absolute transition-all duration-300 ${
           showPen
