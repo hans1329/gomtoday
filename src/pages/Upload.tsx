@@ -29,7 +29,6 @@ export default function Upload() {
   const [title, setTitle] = useState("");
   const [notebooks, setNotebooks] = useState<any[]>([]);
   const [selectedNotebook, setSelectedNotebook] = useState<string | null>(null);
-  const [addToPublic, setAddToPublic] = useState(false);
   const navigate = useNavigate();
   const {
     toast
@@ -379,42 +378,14 @@ export default function Upload() {
         }).eq("id", diaryData.id);
         if (updateError) throw updateError;
         
-        // 기본 나만보기 노트북에 일기 연결
-        const { data: privateNotebook } = await supabase
-          .from("notebooks")
-          .select("id")
-          .eq("user_id", user.id)
-          .eq("visibility", "private")
-          .eq("is_default", true)
-          .maybeSingle();
-        
-        if (privateNotebook) {
+        // 선택한 일기장에 연결
+        if (selectedNotebook) {
           await supabase
             .from("diary_notebooks")
             .insert({
               diary_id: diaryData.id,
-              notebook_id: privateNotebook.id
+              notebook_id: selectedNotebook
             });
-        }
-
-        // 공개 일기장에도 등록 (선택한 경우)
-        if (addToPublic) {
-          const { data: publicNotebook } = await supabase
-            .from("notebooks")
-            .select("id")
-            .eq("user_id", user.id)
-            .eq("visibility", "public")
-            .eq("is_default", true)
-            .maybeSingle();
-          
-          if (publicNotebook) {
-            await supabase
-              .from("diary_notebooks")
-              .insert({
-                diary_id: diaryData.id,
-                notebook_id: publicNotebook.id
-              });
-          }
         }
         
         setUploadProgress(100);
@@ -505,21 +476,6 @@ export default function Upload() {
 
                 <div className="border-t pt-6 mt-6" />
               </>
-            )}
-
-            {!isEditMode && (
-              <div className="flex items-center space-x-2 p-4 rounded-lg bg-muted/50 border border-border">
-                <input
-                  type="checkbox"
-                  id="addToPublic"
-                  checked={addToPublic}
-                  onChange={(e) => setAddToPublic(e.target.checked)}
-                  className="w-4 h-4 rounded border-input"
-                />
-                <Label htmlFor="addToPublic" className="cursor-pointer font-normal">
-                  전체공개 일기장에도 등록하기
-                </Label>
-              </div>
             )}
 
             <div className="space-y-2">
