@@ -26,12 +26,65 @@ export default function Notebooks() {
   const [searching, setSearching] = useState(false);
   const [editingNotebookId, setEditingNotebookId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
+  const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
     fetchNotebooks();
+    setupPresenceTracking();
   }, []);
+
+  const setupPresenceTracking = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const channel = supabase.channel('online-users');
+    
+    channel
+      .on('presence', { event: 'sync' }, () => {
+        const state = channel.presenceState();
+        const online = new Set<string>();
+        Object.values(state).forEach((presences: any) => {
+          presences.forEach((presence: any) => {
+            if (presence.user_id) {
+              online.add(presence.user_id);
+            }
+          });
+        });
+        setOnlineUsers(online);
+      })
+      .on('presence', { event: 'join' }, ({ newPresences }) => {
+        newPresences.forEach((presence: any) => {
+          if (presence.user_id) {
+            setOnlineUsers(prev => new Set(prev).add(presence.user_id));
+          }
+        });
+      })
+      .on('presence', { event: 'leave' }, ({ leftPresences }) => {
+        leftPresences.forEach((presence: any) => {
+          if (presence.user_id) {
+            setOnlineUsers(prev => {
+              const newSet = new Set(prev);
+              newSet.delete(presence.user_id);
+              return newSet;
+            });
+          }
+        });
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await channel.track({
+            user_id: user.id,
+            online_at: new Date().toISOString(),
+          });
+        }
+      });
+
+    return () => {
+      channel.unsubscribe();
+    };
+  };
 
   const fetchNotebooks = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -536,9 +589,21 @@ export default function Notebooks() {
                       key={member.id}
                       className="flex items-center justify-between p-2 rounded-lg border bg-card"
                     >
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium truncate">{member.profiles?.name}</p>
-                        <p className="text-xs text-muted-foreground truncate">{member.profiles?.email}</p>
+                      <div className="min-w-0 flex-1 flex items-center gap-2">
+                        <div className="relative">
+                          <div className={`w-2 h-2 rounded-full ${
+                            onlineUsers.has(member.user_id) ? 'bg-green-500' : 'bg-gray-300'
+                          }`} />
+                          {onlineUsers.has(member.user_id) && (
+                            <div className="absolute inset-0 w-2 h-2 rounded-full bg-green-500 animate-ping" />
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium truncate">{member.profiles?.name}</p>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {member.profiles?.email} • {onlineUsers.has(member.user_id) ? '온라인' : '오프라인'}
+                          </p>
+                        </div>
                       </div>
                       <Button
                         size="icon"
