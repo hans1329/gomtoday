@@ -320,11 +320,13 @@ export default function Home() {
             "p-3 text-center transition-all relative cursor-pointer min-h-[60px] flex flex-col items-center justify-center",
             dayDiaries.length > 0
               ? "hover:bg-accent/50 text-primary font-semibold"
-              : "hover:bg-accent",
-            isSameDay(currentDay, new Date()) && "border-b-2 border-primary"
+              : "hover:bg-accent"
           )}
         >
           <div className="text-sm">{format(currentDay, "d")}</div>
+          {isSameDay(currentDay, new Date()) && (
+            <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-primary rounded-full"></div>
+          )}
           {dayDiaries.length > 0 && (
             <>
               <div className="absolute top-1 right-1 w-1.5 h-1.5 bg-primary rounded-full"></div>
