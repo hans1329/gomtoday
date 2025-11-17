@@ -1280,8 +1280,8 @@ export default function Upload() {
                           <span className="text-sm text-muted-foreground">이모티콘 변경</span>
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-80 p-4" align="start">
-                        <div className="space-y-3">
+                      <PopoverContent className="w-80 p-0 bg-background z-50 max-h-[400px] overflow-y-auto pointer-events-auto" align="start">
+                        <div className="p-4 space-y-3">
                           <div>
                             <p className="text-sm font-medium mb-2">감정</p>
                             <div className="grid grid-cols-6 gap-2">
