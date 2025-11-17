@@ -360,6 +360,24 @@ export default function Home() {
     setCurrentMonth(addMonths(currentMonth, 1));
   };
 
+  const handlePrevDay = () => {
+    if (selectedDate) {
+      const prevDay = new Date(selectedDate);
+      prevDay.setDate(prevDay.getDate() - 1);
+      setSelectedDate(prevDay);
+      setCurrentMonth(prevDay);
+    }
+  };
+
+  const handleNextDay = () => {
+    if (selectedDate) {
+      const nextDay = new Date(selectedDate);
+      nextDay.setDate(nextDay.getDate() + 1);
+      setSelectedDate(nextDay);
+      setCurrentMonth(nextDay);
+    }
+  };
+
   const fetchLikes = async () => {
     if (diaries.length === 0) return;
     const diaryId = diaries[0].id;
@@ -475,23 +493,43 @@ export default function Home() {
               "flex items-center justify-between",
               isCalendarExpanded ? "mb-6" : "mb-0"
             )}>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1">
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={handlePrevMonth}
+                  className="h-8 w-8"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  <ChevronLeft className="h-4 w-4 -ml-3" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handlePrevDay}
+                  className="h-8 w-8"
                 >
                   <ChevronLeft className="h-5 w-5" />
                 </Button>
-                <h2 className="text-xl font-bold">
+                <h2 className="text-xl font-bold mx-2">
                   {format(selectedDate || new Date(), "M월 d일 EEEE", { locale: ko })}
                 </h2>
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={handleNextMonth}
+                  onClick={handleNextDay}
+                  className="h-8 w-8"
                 >
                   <ChevronRight className="h-5 w-5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleNextMonth}
+                  className="h-8 w-8"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                  <ChevronRight className="h-4 w-4 -ml-3" />
                 </Button>
               </div>
               <Button
