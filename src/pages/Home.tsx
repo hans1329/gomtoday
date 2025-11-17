@@ -18,12 +18,13 @@ import { Input } from "@/components/ui/input";
 export default function Home() {
   const [diaries, setDiaries] = useState<any[]>([]);
   const [allDiaries, setAllDiaries] = useState<any[]>([]);
+  const [publicDiaries, setPublicDiaries] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [currentUserId, setCurrentUserId] = useState<string>("");
   const [viewMode, setViewMode] = useState<"my" | "public">("my");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const [sortBy, setSortBy] = useState<"latest" | "oldest" | "likes" | "comments" | "friends">("latest");
+  const [sortBy, setSortBy] = useState<"latest" | "oldest" | "likes" | "comments">("latest");
   const [selectedEmoji, setSelectedEmoji] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
   const [isCalendarExpanded, setIsCalendarExpanded] = useState(true);
@@ -35,7 +36,6 @@ export default function Home() {
   useEffect(() => {
     const handleViewModeChange = (e: CustomEvent<"my" | "public">) => {
       setViewMode(e.detail);
-      setLoading(true);
       if (e.detail === "my") {
         setSearchQuery("");
       }
@@ -54,9 +54,15 @@ export default function Home() {
 
   useEffect(() => {
     if (currentUserId) {
-      fetchDiaries();
+      fetchMonthData();
     }
-  }, [currentUserId, viewMode, selectedDate, sortBy, selectedEmoji, searchQuery]);
+  }, [currentUserId, currentMonth]);
+
+  useEffect(() => {
+    if (currentUserId && (allDiaries.length > 0 || publicDiaries.length > 0)) {
+      filterAndSetDiaries();
+    }
+  }, [selectedDate, sortBy, selectedEmoji, searchQuery, allDiaries, publicDiaries, viewMode]);
 
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -67,250 +73,165 @@ export default function Home() {
     }
   };
 
-  const fetchDiaries = async () => {
+  const fetchMonthData = async () => {
+    setLoading(true);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    if (viewMode === "my") {
-      const { data, error } = await supabase
-        .from("diaries")
-        .select(`
-          *,
-          photos!photos_diary_id_fkey (
-            photo_url,
-            display_order
-          ),
-          photo:photos!diaries_photo_id_fkey (
-            photo_url
-          )
-        `)
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
+    const monthStart = startOfMonth(currentMonth);
+    const monthEnd = endOfMonth(currentMonth);
 
-      if (error) {
-        console.error("Error fetching diaries:", error);
-      }
+    // 내 일기 가져오기 (캘린더용)
+    const { data: myData } = await supabase
+      .from("diaries")
+      .select(`
+        *,
+        photos!photos_diary_id_fkey (
+          photo_url,
+          display_order
+        ),
+        photo:photos!diaries_photo_id_fkey (
+          photo_url
+        )
+      `)
+      .eq("user_id", user.id)
+      .gte("created_at", monthStart.toISOString())
+      .lte("created_at", monthEnd.toISOString())
+      .order("created_at", { ascending: false });
+
+    if (myData) {
+      const processedMyData = myData.map((diary: any) => {
+        let allPhotos = [];
+        if (diary.photos && diary.photos.length > 0) {
+          allPhotos = diary.photos.sort((a: any, b: any) => a.display_order - b.display_order);
+        } else if (diary.photo) {
+          allPhotos = [diary.photo];
+        }
+        return { ...diary, photos: allPhotos };
+      });
+      setAllDiaries(processedMyData);
+    }
+
+    // 전체 공개 일기 가져오기
+    const { data: publicNotebooks } = await supabase
+      .from("notebooks")
+      .select("id")
+      .eq("visibility", "public");
+
+    if (publicNotebooks && publicNotebooks.length > 0) {
+      const publicNotebookIds = publicNotebooks.map(nb => nb.id);
       
-      if (data) {
-        let diariesWithSortedPhotos = data.map((diary: any) => {
-          let allPhotos = [];
-          
-          if (diary.photos && diary.photos.length > 0) {
-            allPhotos = diary.photos.sort((a: any, b: any) => a.display_order - b.display_order);
-          } else if (diary.photo) {
-            allPhotos = [diary.photo];
-          }
-          
-          return {
+      const { data: publicDiaryIds } = await supabase
+        .from("diary_notebooks")
+        .select("diary_id")
+        .in("notebook_id", publicNotebookIds);
+
+      if (publicDiaryIds && publicDiaryIds.length > 0) {
+        const diaryIds = publicDiaryIds.map(dn => dn.diary_id);
+        
+        const { data: publicData } = await supabase
+          .from("diaries")
+          .select(`
+            *,
+            photos!photos_diary_id_fkey (
+              photo_url,
+              display_order
+            ),
+            photo:photos!diaries_photo_id_fkey (
+              photo_url
+            )
+          `)
+          .in("id", diaryIds)
+          .gte("created_at", monthStart.toISOString())
+          .lte("created_at", monthEnd.toISOString());
+
+        if (publicData) {
+          const processedPublicData = publicData.map((diary: any) => {
+            let allPhotos = [];
+            if (diary.photos && diary.photos.length > 0) {
+              allPhotos = diary.photos.sort((a: any, b: any) => a.display_order - b.display_order);
+            } else if (diary.photo) {
+              allPhotos = [diary.photo];
+            }
+            return { ...diary, photos: allPhotos };
+          });
+
+          // 좋아요와 댓글 수 가져오기
+          const { data: likesData } = await supabase
+            .from("diary_likes")
+            .select("diary_id")
+            .in("diary_id", diaryIds);
+
+          const { data: commentsData } = await supabase
+            .from("diary_comments")
+            .select("diary_id")
+            .in("diary_id", diaryIds);
+
+          const likesCount = likesData?.reduce((acc: any, like: any) => {
+            acc[like.diary_id] = (acc[like.diary_id] || 0) + 1;
+            return acc;
+          }, {}) || {};
+
+          const commentsCount = commentsData?.reduce((acc: any, comment: any) => {
+            acc[comment.diary_id] = (acc[comment.diary_id] || 0) + 1;
+            return acc;
+          }, {}) || {};
+
+          const dataWithCounts = processedPublicData.map((diary: any) => ({
             ...diary,
-            photos: allPhotos
-          };
-        });
-        
-        setAllDiaries(diariesWithSortedPhotos);
-        
-        if (selectedEmoji) {
-          diariesWithSortedPhotos = diariesWithSortedPhotos.filter(diary => 
-            diary.emoji === selectedEmoji
-          );
-        }
-        
-        if (searchQuery.trim()) {
-          diariesWithSortedPhotos = diariesWithSortedPhotos.filter(diary => 
-            diary.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            diary.content?.toLowerCase().includes(searchQuery.toLowerCase())
-          );
-        }
-        
-        if (selectedDate) {
-          diariesWithSortedPhotos = diariesWithSortedPhotos.filter(diary => 
-            isSameDay(new Date(diary.created_at), selectedDate)
-          );
-        }
-        
-        setDiaries(diariesWithSortedPhotos);
-      }
-      setLoading(false);
-    } else {
-      // 캘린더용 내 일기 데이터 불러오기
-      const { data: myDiariesData } = await supabase
-        .from("diaries")
-        .select(`
-          *,
-          photos!photos_diary_id_fkey (
-            photo_url,
-            display_order
-          ),
-          photo:photos!diaries_photo_id_fkey (
-            photo_url
-          )
-        `)
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
+            likesCount: likesCount[diary.id] || 0,
+            commentsCount: commentsCount[diary.id] || 0,
+          }));
 
-      if (myDiariesData) {
-        const myDiariesWithSortedPhotos = myDiariesData.map((diary: any) => {
-          let allPhotos = [];
-          
-          if (diary.photos && diary.photos.length > 0) {
-            allPhotos = diary.photos.sort((a: any, b: any) => a.display_order - b.display_order);
-          } else if (diary.photo) {
-            allPhotos = [diary.photo];
-          }
-          
-          return {
-            ...diary,
-            photos: allPhotos
-          };
-        });
-        
-        setAllDiaries(myDiariesWithSortedPhotos);
-      }
-
-      let query = supabase
-        .from("diaries")
-        .select(`
-          *,
-          photos!photos_diary_id_fkey (
-            photo_url,
-            display_order
-          ),
-          photo:photos!diaries_photo_id_fkey (
-            photo_url
-          )
-        `);
-
-      const { data: publicNotebooks } = await supabase
-        .from("notebooks")
-        .select("id")
-        .eq("visibility", "public");
-
-      if (publicNotebooks && publicNotebooks.length > 0) {
-        const publicNotebookIds = publicNotebooks.map(nb => nb.id);
-        
-        const { data: publicDiaryIds } = await supabase
-          .from("diary_notebooks")
-          .select("diary_id")
-          .in("notebook_id", publicNotebookIds);
-
-        if (publicDiaryIds && publicDiaryIds.length > 0) {
-          const diaryIds = publicDiaryIds.map(dn => dn.diary_id);
-          query = query.in("id", diaryIds);
-        } else {
-          setDiaries([]);
-          setLoading(false);
-          return;
+          setPublicDiaries(dataWithCounts);
         }
       } else {
-        setDiaries([]);
-        setLoading(false);
-        return;
+        setPublicDiaries([]);
       }
-
-      const { data, error } = await query;
-
-      if (error) {
-        console.error("Error fetching public diaries:", error);
-      }
-
-      if (data) {
-        let diariesWithSortedPhotos = data.map((diary: any) => {
-          let allPhotos = [];
-          
-          if (diary.photos && diary.photos.length > 0) {
-            allPhotos = diary.photos.sort((a: any, b: any) => a.display_order - b.display_order);
-          } else if (diary.photo) {
-            allPhotos = [diary.photo];
-          }
-          
-          return {
-            ...diary,
-            photos: allPhotos
-          };
-        });
-        
-        if (selectedEmoji) {
-          diariesWithSortedPhotos = diariesWithSortedPhotos.filter(diary => 
-            diary.emoji === selectedEmoji
-          );
-        }
-        
-        if (searchQuery.trim()) {
-          diariesWithSortedPhotos = diariesWithSortedPhotos.filter(diary => 
-            diary.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            diary.content?.toLowerCase().includes(searchQuery.toLowerCase())
-          );
-        }
-        
-        if (selectedDate) {
-          diariesWithSortedPhotos = diariesWithSortedPhotos.filter(diary => 
-            isSameDay(new Date(diary.created_at), selectedDate)
-          );
-        }
-
-        const diaryIds = diariesWithSortedPhotos.map(d => d.id);
-        const { data: likesData } = await supabase
-          .from("diary_likes")
-          .select("diary_id")
-          .in("diary_id", diaryIds);
-
-        const { data: commentsData } = await supabase
-          .from("diary_comments")
-          .select("diary_id")
-          .in("diary_id", diaryIds);
-
-        const likesCount = likesData?.reduce((acc: any, like: any) => {
-          acc[like.diary_id] = (acc[like.diary_id] || 0) + 1;
-          return acc;
-        }, {}) || {};
-
-        const commentsCount = commentsData?.reduce((acc: any, comment: any) => {
-          acc[comment.diary_id] = (acc[comment.diary_id] || 0) + 1;
-          return acc;
-        }, {}) || {};
-
-        diariesWithSortedPhotos = diariesWithSortedPhotos.map((diary: any) => ({
-          ...diary,
-          likesCount: likesCount[diary.id] || 0,
-          commentsCount: commentsCount[diary.id] || 0,
-        }));
-
-        const { data: friendships } = await supabase
-          .from("friend_requests")
-          .select("from_user_id, to_user_id")
-          .or(`from_user_id.eq.${user.id},to_user_id.eq.${user.id}`)
-          .eq("status", "accepted");
-
-        const friendIds = friendships?.map((f: any) => 
-          f.from_user_id === user.id ? f.to_user_id : f.from_user_id
-        ) || [];
-
-        if (sortBy === "latest") {
-          diariesWithSortedPhotos.sort((a, b) => 
-            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-          );
-        } else if (sortBy === "oldest") {
-          diariesWithSortedPhotos.sort((a, b) => 
-            new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-          );
-        } else if (sortBy === "likes") {
-          diariesWithSortedPhotos.sort((a, b) => b.likesCount - a.likesCount);
-        } else if (sortBy === "comments") {
-          diariesWithSortedPhotos.sort((a, b) => b.commentsCount - a.commentsCount);
-        } else if (sortBy === "friends") {
-          diariesWithSortedPhotos.sort((a, b) => {
-            const aIsFriend = friendIds.includes(a.user_id);
-            const bIsFriend = friendIds.includes(b.user_id);
-            if (aIsFriend && !bIsFriend) return -1;
-            if (!aIsFriend && bIsFriend) return 1;
-            return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-          });
-        }
-
-        setDiaries(diariesWithSortedPhotos);
-      }
-      setLoading(false);
+    } else {
+      setPublicDiaries([]);
     }
+
+    setLoading(false);
+  };
+
+  const filterAndSetDiaries = () => {
+    let sourceDiaries = viewMode === "my" ? allDiaries : publicDiaries;
+    let filtered = [...sourceDiaries];
+
+    if (selectedEmoji) {
+      filtered = filtered.filter(diary => diary.emoji === selectedEmoji);
+    }
+
+    if (searchQuery.trim()) {
+      filtered = filtered.filter(diary => 
+        diary.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        diary.content?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    if (selectedDate) {
+      filtered = filtered.filter(diary => 
+        isSameDay(new Date(diary.created_at), selectedDate)
+      );
+    }
+
+    // 정렬
+    if (sortBy === "latest") {
+      filtered.sort((a, b) => 
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+    } else if (sortBy === "oldest") {
+      filtered.sort((a, b) => 
+        new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      );
+    } else if (sortBy === "likes") {
+      filtered.sort((a, b) => (b.likesCount || 0) - (a.likesCount || 0));
+    } else if (sortBy === "comments") {
+      filtered.sort((a, b) => (b.commentsCount || 0) - (a.commentsCount || 0));
+    }
+
+    setDiaries(filtered);
   };
 
   const renderCalendar = () => {
