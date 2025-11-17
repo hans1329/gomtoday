@@ -359,10 +359,6 @@ export default function Header() {
                     <Shield className="mr-2 h-4 w-4" />
                     <span>관리자</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate("/admin/pencil-settings")} className="py-3">
-                    <Pencil className="mr-2 h-4 w-4" />
-                    <span>연필 설정</span>
-                  </DropdownMenuItem>
                 </>
               )}
               <DropdownMenuSeparator />
