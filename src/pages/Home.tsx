@@ -112,12 +112,36 @@ export default function Home() {
   };
 
   const fetchMonthData = async () => {
-    setLoading(true);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
     const monthStart = startOfMonth(currentMonth);
     const monthEnd = endOfMonth(currentMonth);
+    const monthKey = format(currentMonth, 'yyyy-MM');
+    const cacheKey = `home_data_${user.id}_${monthKey}`;
+    const cacheTimeKey = `home_data_time_${user.id}_${monthKey}`;
+
+    // 캐시된 데이터 확인
+    const cachedData = localStorage.getItem(cacheKey);
+    const cachedTime = localStorage.getItem(cacheTimeKey);
+    const cacheAge = cachedTime ? Date.now() - parseInt(cachedTime) : Infinity;
+    const CACHE_DURATION = 5 * 60 * 1000; // 5분
+
+    // 캐시가 유효하면 먼저 보여주기
+    if (cachedData && cacheAge < CACHE_DURATION) {
+      try {
+        const parsed = JSON.parse(cachedData);
+        setAllDiaries(parsed.myDiaries || []);
+        setPublicDiaries(parsed.publicDiaries || []);
+        setLoading(false);
+        // 캐시가 유효하면 백그라운드 업데이트는 하지 않음
+        return;
+      } catch (e) {
+        console.error('Cache parse error:', e);
+      }
+    }
+
+    setLoading(true);
 
     // 내 일기 가져오기
     const { data: myData } = await supabase
@@ -137,20 +161,20 @@ export default function Home() {
       .lte("created_at", monthEnd.toISOString())
       .order("created_at", { ascending: false });
 
-    if (myData) {
-      const processedMyData = myData.map((diary: any) => {
-        let allPhotos = [];
-        if (diary.photos && diary.photos.length > 0) {
-          allPhotos = diary.photos.sort((a: any, b: any) => a.display_order - b.display_order);
-        } else if (diary.photo) {
-          allPhotos = [diary.photo];
-        }
-        return { ...diary, photos: allPhotos };
-      });
-      setAllDiaries(processedMyData);
-    }
+    const processedMyData = myData ? myData.map((diary: any) => {
+      let allPhotos = [];
+      if (diary.photos && diary.photos.length > 0) {
+        allPhotos = diary.photos.sort((a: any, b: any) => a.display_order - b.display_order);
+      } else if (diary.photo) {
+        allPhotos = [diary.photo];
+      }
+      return { ...diary, photos: allPhotos };
+    }) : [];
+
+    setAllDiaries(processedMyData);
 
     // 전체 공개 일기 가져오기
+    let finalPublicDiaries: any[] = [];
     const { data: publicNotebooks } = await supabase
       .from("notebooks")
       .select("id")
@@ -238,13 +262,27 @@ export default function Home() {
             commentsCount: commentsCount[diary.id] || 0,
           }));
 
+          finalPublicDiaries = dataWithCounts;
           setPublicDiaries(dataWithCounts);
         }
-      } else {
-        setPublicDiaries([]);
       }
-    } else {
+    }
+
+    if (finalPublicDiaries.length === 0) {
       setPublicDiaries([]);
+    }
+
+    // 데이터 캐싱
+    const cacheData = {
+      myDiaries: processedMyData,
+      publicDiaries: finalPublicDiaries
+    };
+    
+    try {
+      localStorage.setItem(cacheKey, JSON.stringify(cacheData));
+      localStorage.setItem(cacheTimeKey, Date.now().toString());
+    } catch (e) {
+      console.error('Cache save error:', e);
     }
 
     setLoading(false);
