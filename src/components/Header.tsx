@@ -84,12 +84,25 @@ export default function Header() {
   }, []);
 
   const fetchLogos = async () => {
+    // 캐시된 로고 확인
+    const cachedDesktopLogo = localStorage.getItem("desktop_logo_url");
+    const cachedMobileLogo = localStorage.getItem("mobile_logo_url");
+    
+    if (cachedDesktopLogo) {
+      setLogoUrl(cachedDesktopLogo);
+    }
+    if (cachedMobileLogo) {
+      setMobileLogoUrl(cachedMobileLogo);
+    }
+
+    // 브랜드 에셋에서 로고 가져오기
     const { data } = supabase.storage
       .from("brand-assets")
       .getPublicUrl("3rdme-logo.png");
 
     if (data) {
       setLogoUrl(data.publicUrl);
+      localStorage.setItem("desktop_logo_url", data.publicUrl);
     }
 
     const { data: mobileData } = supabase.storage
@@ -98,6 +111,7 @@ export default function Header() {
 
     if (mobileData) {
       setMobileLogoUrl(mobileData.publicUrl);
+      localStorage.setItem("mobile_logo_url", mobileData.publicUrl);
     }
   };
 
