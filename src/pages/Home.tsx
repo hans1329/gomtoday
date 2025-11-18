@@ -351,7 +351,7 @@ export default function Home() {
       );
     }
 
-    return <div>{dateRows}</div>;
+    return <div className="bg-background rounded-lg shadow-lg p-4">{dateRows}</div>;
   };
 
   const handlePrevMonth = () => {
