@@ -276,36 +276,35 @@ export default function Header() {
 
         {currentPath === "/" && (
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-            <div className="flex items-center gap-1 bg-background rounded-full px-3 h-12 shadow-md">
-              <Button
-                variant="ghost"
-                size="icon"
+            <div className="relative flex items-center gap-1 bg-muted/30 rounded-full p-1 h-11">
+              {/* 슬라이딩 배경 */}
+              <div 
+                className={cn(
+                  "absolute h-9 w-9 rounded-full bg-background shadow-lg transition-all duration-300 ease-in-out",
+                  viewMode === "my" ? "left-1" : "left-[calc(50%+0.125rem)]"
+                )}
+              />
+              
+              {/* 버튼들 */}
+              <button
                 onClick={() => {
                   setViewMode("my");
                   window.dispatchEvent(new CustomEvent('viewModeChange', { detail: 'my' }));
                 }}
-                className="rounded-full h-9 w-9 group relative"
+                className="relative z-10 flex items-center justify-center rounded-full h-9 w-9 transition-colors"
               >
-                <User className={cn("h-6 w-6 group-hover:text-white transition-colors", viewMode === "my" ? "text-primary" : "text-muted-foreground")} />
-                {viewMode === "my" && (
-                  <span className="absolute top-1.5 right-1.5 h-1 w-1 rounded-full bg-destructive" />
-                )}
-              </Button>
-              <div className="h-3 w-px bg-muted-foreground/30" />
-              <Button
-                variant="ghost"
-                size="icon"
+                <User className={cn("h-5 w-5 transition-colors", viewMode === "my" ? "text-primary" : "text-muted-foreground")} />
+              </button>
+              
+              <button
                 onClick={() => {
                   setViewMode("public");
                   window.dispatchEvent(new CustomEvent('viewModeChange', { detail: 'public' }));
                 }}
-                className="rounded-full h-9 w-9 group relative"
+                className="relative z-10 flex items-center justify-center rounded-full h-9 w-9 transition-colors"
               >
-                <Globe className={cn("h-6 w-6 group-hover:text-white transition-colors", viewMode === "public" ? "text-primary" : "text-muted-foreground")} />
-                {viewMode === "public" && (
-                  <span className="absolute top-1.5 right-1.5 h-1 w-1 rounded-full bg-destructive" />
-                )}
-              </Button>
+                <Globe className={cn("h-5 w-5 transition-colors", viewMode === "public" ? "text-primary" : "text-muted-foreground")} />
+              </button>
             </div>
           </div>
         )}
