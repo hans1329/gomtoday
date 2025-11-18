@@ -341,7 +341,7 @@ export default function Header() {
                 )}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-64 bg-background">
+            <DropdownMenuContent align="end" className="w-64 bg-background max-h-[80vh] overflow-y-auto">
               <DropdownMenuLabel className="font-normal">
                 <div className="flex items-center justify-end mb-2">
                   <Button
