@@ -1137,7 +1137,7 @@ export default function Upload() {
                     {selectedDate ? format(selectedDate, "PPP", { locale: ko }) : <span>날짜 선택</span>}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
+                <PopoverContent className="w-auto p-0 bg-background shadow-lg" align="start">
                   <Calendar
                     mode="single"
                     selected={selectedDate}
