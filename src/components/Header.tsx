@@ -276,7 +276,7 @@ export default function Header() {
 
         {currentPath === "/" && (
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-            <div className="relative flex items-center gap-1 bg-muted/30 rounded-full p-1 h-11">
+            <div className="relative flex items-center gap-1 bg-muted rounded-full p-1 h-11 shadow-md">
               {/* 슬라이딩 배경 */}
               <div 
                 className={cn(
