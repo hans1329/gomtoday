@@ -12,7 +12,9 @@ export default function AdminBrandAssets() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [uploadingMobile, setUploadingMobile] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string>("");
+  const [mobileLogoUrl, setMobileLogoUrl] = useState<string>("");
 
   useEffect(() => {
     checkAdminRole();
@@ -55,6 +57,14 @@ export default function AdminBrandAssets() {
     if (data) {
       setLogoUrl(data.publicUrl);
     }
+
+    const { data: mobileData } = supabase.storage
+      .from("brand-assets")
+      .getPublicUrl("3rdme-logo-mobile.png");
+
+    if (mobileData) {
+      setMobileLogoUrl(mobileData.publicUrl);
+    }
   };
 
   const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -90,6 +100,39 @@ export default function AdminBrandAssets() {
     }
   };
 
+  const handleMobileLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploadingMobile(true);
+
+    try {
+      const { error: uploadError } = await supabase.storage
+        .from("brand-assets")
+        .upload("3rdme-logo-mobile.png", file, {
+          cacheControl: "3600",
+          upsert: true,
+        });
+
+      if (uploadError) throw uploadError;
+
+      toast({
+        title: "모바일 로고 업로드 완료",
+        description: "모바일 브랜드 로고가 성공적으로 업데이트되었습니다.",
+      });
+
+      fetchCurrentLogo();
+    } catch (error: any) {
+      toast({
+        title: "업로드 실패",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingMobile(false);
+    }
+  };
+
   if (loading) {
     return <LoadingSpinner />;
   }
@@ -112,57 +155,111 @@ export default function AdminBrandAssets() {
           </div>
         </div>
 
-        <Card className="shadow-medium">
-          <CardHeader>
-            <CardTitle>브랜드 로고</CardTitle>
-            <CardDescription>
-              앱에서 사용되는 브랜드 로고를 관리합니다
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {logoUrl && (
-              <div className="flex items-center justify-center p-8 bg-muted rounded-lg">
-                <img 
-                  src={`${logoUrl}?t=${Date.now()}`} 
-                  alt="현재 로고" 
-                  className="max-w-[200px] max-h-[200px] object-contain"
-                />
-              </div>
-            )}
-
-            <div className="flex flex-col gap-4">
-              <label
-                htmlFor="logo-upload"
-                className="cursor-pointer"
-              >
-                <div className="flex items-center justify-center gap-2 p-4 border-2 border-dashed border-border rounded-lg hover:bg-muted/50 transition-colors">
-                  {uploading ? (
-                    <p className="text-sm text-muted-foreground">업로드 중...</p>
-                  ) : (
-                    <>
-                      <Upload className="w-5 h-5 text-muted-foreground" />
-                      <span className="text-sm text-muted-foreground">
-                        클릭하여 새 로고 업로드
-                      </span>
-                    </>
-                  )}
+        <div className="space-y-6">
+          <Card className="shadow-medium">
+            <CardHeader>
+              <CardTitle>데스크톱 로고</CardTitle>
+              <CardDescription>
+                데스크톱 및 태블릿에서 텍스트와 함께 표시되는 로고입니다
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {logoUrl && (
+                <div className="flex items-center justify-center p-8 bg-muted rounded-lg">
+                  <img 
+                    src={`${logoUrl}?t=${Date.now()}`} 
+                    alt="현재 로고" 
+                    className="max-w-[200px] max-h-[200px] object-contain"
+                  />
                 </div>
-                <input
-                  id="logo-upload"
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleLogoUpload}
-                  disabled={uploading}
-                />
-              </label>
-              
-              <p className="text-xs text-muted-foreground pl-1">
-                * PNG 형식 권장, 파일명은 자동으로 3rdme-logo.png로 저장됩니다
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+              )}
+
+              <div className="flex flex-col gap-4">
+                <label
+                  htmlFor="logo-upload"
+                  className="cursor-pointer"
+                >
+                  <div className="flex items-center justify-center gap-2 p-4 border-2 border-dashed border-border rounded-lg hover:bg-muted/50 transition-colors">
+                    {uploading ? (
+                      <p className="text-sm text-muted-foreground">업로드 중...</p>
+                    ) : (
+                      <>
+                        <Upload className="w-5 h-5 text-muted-foreground" />
+                        <span className="text-sm text-muted-foreground">
+                          클릭하여 새 로고 업로드
+                        </span>
+                      </>
+                    )}
+                  </div>
+                  <input
+                    id="logo-upload"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleLogoUpload}
+                    disabled={uploading}
+                  />
+                </label>
+                
+                <p className="text-xs text-muted-foreground pl-1">
+                  * PNG 형식 권장, 파일명은 자동으로 3rdme-logo.png로 저장됩니다
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-medium">
+            <CardHeader>
+              <CardTitle>모바일 로고</CardTitle>
+              <CardDescription>
+                모바일에서 아이콘 형태로 표시되는 로고입니다
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {mobileLogoUrl && (
+                <div className="flex items-center justify-center p-8 bg-muted rounded-lg">
+                  <img 
+                    src={`${mobileLogoUrl}?t=${Date.now()}`} 
+                    alt="현재 모바일 로고" 
+                    className="max-w-[100px] max-h-[100px] object-contain"
+                  />
+                </div>
+              )}
+
+              <div className="flex flex-col gap-4">
+                <label
+                  htmlFor="mobile-logo-upload"
+                  className="cursor-pointer"
+                >
+                  <div className="flex items-center justify-center gap-2 p-4 border-2 border-dashed border-border rounded-lg hover:bg-muted/50 transition-colors">
+                    {uploadingMobile ? (
+                      <p className="text-sm text-muted-foreground">업로드 중...</p>
+                    ) : (
+                      <>
+                        <Upload className="w-5 h-5 text-muted-foreground" />
+                        <span className="text-sm text-muted-foreground">
+                          클릭하여 새 모바일 로고 업로드
+                        </span>
+                      </>
+                    )}
+                  </div>
+                  <input
+                    id="mobile-logo-upload"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleMobileLogoUpload}
+                    disabled={uploadingMobile}
+                  />
+                </label>
+                
+                <p className="text-xs text-muted-foreground pl-1">
+                  * PNG 형식 권장, 정사각형 이미지 권장, 파일명은 자동으로 3rdme-logo-mobile.png로 저장됩니다
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
