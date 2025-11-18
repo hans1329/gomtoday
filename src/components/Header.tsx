@@ -238,20 +238,14 @@ export default function Header() {
           {currentPath === "/" ? (
             <button 
               onClick={() => navigate("/")}
-              className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
+              className="flex items-center hover:opacity-80 transition-opacity"
             >
               {isMobile && mobileLogoUrl ? (
-                <img src={mobileLogoUrl} alt="3rdME" className="w-6 h-6" />
+                <img src={mobileLogoUrl} alt="Logo" className="w-6 h-6" />
               ) : logoUrl ? (
-                <>
-                  <img src={logoUrl} alt="3rdME" className="w-6 h-6" />
-                  <span className="hidden md:inline font-bold text-xl">3rdME</span>
-                </>
+                <img src={logoUrl} alt="Logo" className="w-6 h-6" />
               ) : (
-                <>
-                  <img src="/3rdme-logo.png" alt="3rdME" className="w-6 h-6" />
-                  <span className="hidden md:inline font-bold text-xl">3rdME</span>
-                </>
+                <img src="/3rdme-logo.png" alt="Logo" className="w-6 h-6" />
               )}
             </button>
           ) : (
