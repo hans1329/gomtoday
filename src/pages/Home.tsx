@@ -23,7 +23,7 @@ export default function Home() {
   const [diaries, setDiaries] = useState<any[]>([]);
   const [allDiaries, setAllDiaries] = useState<any[]>([]);
   const [publicDiaries, setPublicDiaries] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [currentUserId, setCurrentUserId] = useState<string>("");
   const [viewMode, setViewMode] = useState<"my" | "public">("my");
