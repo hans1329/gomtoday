@@ -103,7 +103,7 @@ export default function Auth() {
               />
             )}
           </div>
-          <p className="text-base text-center text-muted-foreground">
+          <p className="text-base text-center text-muted-foreground font-bold">
             누군가가 써주는 나의 일기
           </p>
         </div>
