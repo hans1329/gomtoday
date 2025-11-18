@@ -276,7 +276,7 @@ export default function Header() {
 
         {currentPath === "/" && (
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-            <div className="flex items-center gap-1 bg-background rounded-full px-3 py-1 shadow-sm">
+            <div className="flex items-center gap-1 bg-background rounded-full px-3 h-14 shadow-sm">
               <Button
                 variant="ghost"
                 size="icon"
