@@ -42,6 +42,7 @@ export default function Header() {
   const [purchaseDialogOpen, setPurchaseDialogOpen] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string>("");
   const [mobileLogoUrl, setMobileLogoUrl] = useState<string>("");
+  const [logoCacheBuster] = useState(() => Date.now());
   const [products, setProducts] = useState<Array<{
     id: string;
     name: string;
@@ -241,11 +242,25 @@ export default function Header() {
               className="flex items-center hover:opacity-80 transition-opacity"
             >
               {isMobile && mobileLogoUrl ? (
-                <img src={mobileLogoUrl} alt="Logo" className="w-6 h-6" />
+                <img 
+                  src={`${mobileLogoUrl}?t=${logoCacheBuster}`} 
+                  alt="Dpen 로고" 
+                  className="w-6 h-6" 
+                  onError={(e) => {
+                    e.currentTarget.src = "/3rdme-logo.png";
+                  }}
+                />
               ) : logoUrl ? (
-                <img src={logoUrl} alt="Logo" className="w-6 h-6" />
+                <img 
+                  src={`${logoUrl}?t=${logoCacheBuster}`} 
+                  alt="Dpen 로고" 
+                  className="w-6 h-6" 
+                  onError={(e) => {
+                    e.currentTarget.src = "/3rdme-logo.png";
+                  }}
+                />
               ) : (
-                <img src="/3rdme-logo.png" alt="Logo" className="w-6 h-6" />
+                <img src="/3rdme-logo.png" alt="Dpen 로고" className="w-6 h-6" />
               )}
             </button>
           ) : (
