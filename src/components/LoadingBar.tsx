@@ -20,14 +20,14 @@ export default function LoadingBar() {
         <img 
           src={`${mobileLogoUrl}?t=${Date.now()}`} 
           alt="로딩 중" 
-          className="w-12 h-12 animate-spin"
+          className="h-12 w-auto animate-spin"
           style={{ animationDuration: '2s' }}
           onError={(e) => {
             e.currentTarget.src = "/3rdme-logo.png";
           }}
         />
       ) : (
-        <img src="/3rdme-logo.png" alt="로딩 중" className="w-12 h-12 animate-spin" style={{ animationDuration: '2s' }} />
+        <img src="/3rdme-logo.png" alt="로딩 중" className="h-12 w-auto animate-spin" style={{ animationDuration: '2s' }} />
       )}
       <div className="w-64 h-1.5 bg-muted rounded-full overflow-hidden">
         <div className="h-full bg-gradient-to-r from-primary via-primary/60 to-primary animate-shimmer bg-[length:200%_100%]" />
