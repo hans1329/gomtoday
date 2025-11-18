@@ -698,7 +698,12 @@ export default function Home() {
             (() => {
               const isFutureDate = selectedDate && selectedDate > new Date();
               return !isFutureDate ? (
-                <div className="text-center">
+                <div className="text-center flex flex-col items-center">
+                  <img 
+                    src="/3rdme-logo.png" 
+                    alt="Logo" 
+                    className="h-24 w-auto object-contain mb-8"
+                  />
                   <p className="text-muted-foreground mb-6 text-lg">
                     {viewMode === "my" ? "아직 작성한 일기가 없습니다." : "공개된 일기가 없습니다."}
                   </p>
