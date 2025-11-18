@@ -3,16 +3,36 @@ import { supabase } from "@/integrations/supabase/client";
 
 export default function LoadingBar() {
   const [mobileLogoUrl, setMobileLogoUrl] = useState<string>("");
+  const [isLogoLoaded, setIsLogoLoaded] = useState(false);
 
   useEffect(() => {
-    const { data } = supabase.storage
-      .from("brand-assets")
-      .getPublicUrl("3rdme-logo-mobile.png");
+    const fetchLogo = async () => {
+      // 캐시된 로고 확인
+      const cachedLogo = localStorage.getItem("mobile_logo_url");
+      if (cachedLogo) {
+        setMobileLogoUrl(cachedLogo);
+        setIsLogoLoaded(true);
+      }
 
-    if (data) {
-      setMobileLogoUrl(data.publicUrl);
-    }
+      // 브랜드 에셋에서 로고 가져오기
+      const { data } = supabase.storage
+        .from("brand-assets")
+        .getPublicUrl("3rdme-logo-mobile.png");
+
+      if (data) {
+        const logoUrl = data.publicUrl;
+        setMobileLogoUrl(logoUrl);
+        localStorage.setItem("mobile_logo_url", logoUrl);
+        setIsLogoLoaded(true);
+      }
+    };
+    
+    fetchLogo();
   }, []);
+
+  if (!isLogoLoaded) {
+    return null;
+  }
 
   return (
     <div className="fixed inset-0 flex flex-col items-center justify-center gradient-soft gap-4 z-50">
