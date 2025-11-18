@@ -15,7 +15,7 @@ export default function LoadingBar() {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center gradient-soft gap-4">
+    <div className="fixed inset-0 flex flex-col items-center justify-center gradient-soft gap-4 z-50">
       <img 
         src={`${mobileLogoUrl}?t=${Date.now()}`} 
         alt="로딩 중" 
