@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { User, PenLine, Settings, LogOut, ArrowLeft, BookOpen, Shield, List, Bell, Users, Globe, Pencil } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
 import {
   DropdownMenu,
@@ -28,6 +29,7 @@ export default function Header() {
   const location = useLocation();
   const { toast } = useToast();
   const currentPath = location.pathname;
+  const isMobile = useIsMobile();
   const [profilePhotoUrl, setProfilePhotoUrl] = useState<string | null>(null);
   const [userName, setUserName] = useState<string>("");
   const [userEmail, setUserEmail] = useState<string>("");
@@ -38,6 +40,8 @@ export default function Header() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [pencilCount, setPencilCount] = useState(0);
   const [purchaseDialogOpen, setPurchaseDialogOpen] = useState(false);
+  const [logoUrl, setLogoUrl] = useState<string>("");
+  const [mobileLogoUrl, setMobileLogoUrl] = useState<string>("");
   const [products, setProducts] = useState<Array<{
     id: string;
     name: string;
@@ -52,6 +56,7 @@ export default function Header() {
     fetchNotificationCount();
     fetchPencilCount();
     fetchProducts();
+    fetchLogos();
     
     // 프로필 업데이트 이벤트 리스너
     const handleProfileUpdate = () => {
@@ -76,6 +81,24 @@ export default function Header() {
       clearInterval(interval);
     };
   }, []);
+
+  const fetchLogos = async () => {
+    const { data } = supabase.storage
+      .from("brand-assets")
+      .getPublicUrl("3rdme-logo.png");
+
+    if (data) {
+      setLogoUrl(data.publicUrl);
+    }
+
+    const { data: mobileData } = supabase.storage
+      .from("brand-assets")
+      .getPublicUrl("3rdme-logo-mobile.png");
+
+    if (mobileData) {
+      setMobileLogoUrl(mobileData.publicUrl);
+    }
+  };
 
   const checkAdminRole = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -217,8 +240,19 @@ export default function Header() {
               onClick={() => navigate("/")}
               className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
             >
-              <img src="/3rdme-logo.png" alt="3rdME" className="w-6 h-6" />
-              <span className="hidden md:inline font-bold text-xl">3rdME</span>
+              {isMobile && mobileLogoUrl ? (
+                <img src={mobileLogoUrl} alt="3rdME" className="w-6 h-6" />
+              ) : logoUrl ? (
+                <>
+                  <img src={logoUrl} alt="3rdME" className="w-6 h-6" />
+                  <span className="hidden md:inline font-bold text-xl">3rdME</span>
+                </>
+              ) : (
+                <>
+                  <img src="/3rdme-logo.png" alt="3rdME" className="w-6 h-6" />
+                  <span className="hidden md:inline font-bold text-xl">3rdME</span>
+                </>
+              )}
             </button>
           ) : (
             <Button
