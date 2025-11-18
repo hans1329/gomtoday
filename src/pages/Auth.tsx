@@ -16,18 +16,25 @@ export default function Auth() {
   const [logoUrl, setLogoUrl] = useState<string>("");
 
   useEffect(() => {
+    const fetchLogo = async () => {
+      // 캐시된 로고 확인
+      const cachedLogo = localStorage.getItem("desktop_logo_url");
+      if (cachedLogo) {
+        setLogoUrl(cachedLogo);
+      }
+
+      // 브랜드 에셋에서 로고 가져오기
+      const { data } = supabase.storage
+        .from("brand-assets")
+        .getPublicUrl("3rdme-logo.png");
+
+      if (data) {
+        setLogoUrl(data.publicUrl);
+        localStorage.setItem("desktop_logo_url", data.publicUrl);
+      }
+    };
     fetchLogo();
   }, []);
-
-  const fetchLogo = async () => {
-    const { data } = supabase.storage
-      .from("brand-assets")
-      .getPublicUrl("3rdme-logo.png");
-
-    if (data) {
-      setLogoUrl(data.publicUrl);
-    }
-  };
 
   const handleEmailAuth = async (isSignUp: boolean) => {
     setLoading(true);
