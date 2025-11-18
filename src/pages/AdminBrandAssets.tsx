@@ -13,8 +13,10 @@ export default function AdminBrandAssets() {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [uploadingMobile, setUploadingMobile] = useState(false);
+  const [uploadingFavicon, setUploadingFavicon] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string>("");
   const [mobileLogoUrl, setMobileLogoUrl] = useState<string>("");
+  const [faviconUrl, setFaviconUrl] = useState<string>("");
 
   useEffect(() => {
     checkAdminRole();
@@ -64,6 +66,14 @@ export default function AdminBrandAssets() {
 
     if (mobileData) {
       setMobileLogoUrl(mobileData.publicUrl);
+    }
+
+    const { data: faviconData } = supabase.storage
+      .from("brand-assets")
+      .getPublicUrl("favicon.png");
+
+    if (faviconData) {
+      setFaviconUrl(faviconData.publicUrl);
     }
   };
 
@@ -130,6 +140,39 @@ export default function AdminBrandAssets() {
       });
     } finally {
       setUploadingMobile(false);
+    }
+  };
+
+  const handleFaviconUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploadingFavicon(true);
+
+    try {
+      const { error: uploadError } = await supabase.storage
+        .from("brand-assets")
+        .upload("favicon.png", file, {
+          cacheControl: "3600",
+          upsert: true,
+        });
+
+      if (uploadError) throw uploadError;
+
+      toast({
+        title: "파비콘 업로드 완료",
+        description: "파비콘이 성공적으로 업데이트되었습니다. 브라우저를 새로고침하면 반영됩니다.",
+      });
+
+      fetchCurrentLogo();
+    } catch (error: any) {
+      toast({
+        title: "업로드 실패",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingFavicon(false);
     }
   };
 
@@ -255,6 +298,58 @@ export default function AdminBrandAssets() {
                 
                 <p className="text-xs text-muted-foreground pl-1">
                   * PNG 형식 권장, 정사각형 이미지 권장, 파일명은 자동으로 3rdme-logo-mobile.png로 저장됩니다
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-medium">
+            <CardHeader>
+              <CardTitle>파비콘</CardTitle>
+              <CardDescription>
+                브라우저 탭에 표시되는 파비콘 아이콘입니다
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {faviconUrl && (
+                <div className="flex items-center justify-center p-8 bg-muted rounded-lg">
+                  <img 
+                    src={`${faviconUrl}?t=${Date.now()}`} 
+                    alt="현재 파비콘" 
+                    className="max-w-[64px] max-h-[64px] object-contain"
+                  />
+                </div>
+              )}
+
+              <div className="flex flex-col gap-4">
+                <label
+                  htmlFor="favicon-upload"
+                  className="cursor-pointer"
+                >
+                  <div className="flex items-center justify-center gap-2 p-4 border-2 border-dashed border-border rounded-lg hover:bg-muted/50 transition-colors">
+                    {uploadingFavicon ? (
+                      <p className="text-sm text-muted-foreground">업로드 중...</p>
+                    ) : (
+                      <>
+                        <Upload className="w-5 h-5 text-muted-foreground" />
+                        <span className="text-sm text-muted-foreground">
+                          클릭하여 새 파비콘 업로드
+                        </span>
+                      </>
+                    )}
+                  </div>
+                  <input
+                    id="favicon-upload"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleFaviconUpload}
+                    disabled={uploadingFavicon}
+                  />
+                </label>
+                
+                <p className="text-xs text-muted-foreground pl-1">
+                  * PNG/ICO 형식 권장, 32x32 또는 64x64 픽셀 권장, 파일명은 자동으로 favicon.png로 저장됩니다
                 </p>
               </div>
             </CardContent>
