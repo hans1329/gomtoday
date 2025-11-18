@@ -693,13 +693,13 @@ export default function Home() {
           </div>
         )}
 
-        <div className="space-y-3 px-2 sm:px-0">
+        <div className={cn("px-2 sm:px-0", diaries.length === 0 ? "flex items-center justify-center min-h-[60vh]" : "space-y-3")}>
           {diaries.length === 0 ? (
             (() => {
               const isFutureDate = selectedDate && selectedDate > new Date();
               return !isFutureDate ? (
-                <div className="text-center py-12">
-                  <p className="text-muted-foreground mb-4">
+                <div className="text-center">
+                  <p className="text-muted-foreground mb-6 text-lg">
                     {viewMode === "my" ? "아직 작성한 일기가 없습니다." : "공개된 일기가 없습니다."}
                   </p>
                   {viewMode === "my" && (
