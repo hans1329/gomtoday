@@ -90,7 +90,7 @@ export default function Auth() {
               <img 
                 src={`${logoUrl}?t=${Date.now()}`} 
                 alt="Logo" 
-                className="h-16 w-auto object-contain"
+                className="h-20 w-auto object-contain"
                 onError={(e) => {
                   e.currentTarget.src = "/3rdme-logo.png";
                 }}
@@ -99,7 +99,7 @@ export default function Auth() {
               <img 
                 src="/3rdme-logo.png" 
                 alt="Logo" 
-                className="h-16 w-auto object-contain"
+                className="h-20 w-auto object-contain"
               />
             )}
           </div>
