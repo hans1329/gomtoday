@@ -245,7 +245,7 @@ export default function Header() {
                 <img 
                   src={`${mobileLogoUrl}?t=${logoCacheBuster}`} 
                   alt="Dpen 로고" 
-                  className="h-8 w-auto object-contain" 
+                  className="h-7 w-auto object-contain"
                   onError={(e) => {
                     e.currentTarget.src = "/3rdme-logo.png";
                   }}
@@ -254,13 +254,13 @@ export default function Header() {
                 <img 
                   src={`${logoUrl}?t=${logoCacheBuster}`} 
                   alt="Dpen 로고" 
-                  className="h-8 w-auto object-contain" 
+                  className="h-7 w-auto object-contain"
                   onError={(e) => {
                     e.currentTarget.src = "/3rdme-logo.png";
                   }}
                 />
               ) : (
-                <img src="/3rdme-logo.png" alt="Dpen 로고" className="h-8 w-auto object-contain" />
+                <img src="/3rdme-logo.png" alt="Dpen 로고" className="h-7 w-auto object-contain" />
               )}
             </button>
           ) : (
