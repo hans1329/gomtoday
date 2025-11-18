@@ -723,9 +723,9 @@ export default function Home() {
                   <img 
                     src={`${logoUrl}?t=${Date.now()}`} 
                     alt="Logo" 
-                    className="h-24 w-auto object-contain mb-8"
+                    className="h-16 w-auto object-contain mb-6"
                   />
-                  <p className="text-muted-foreground mb-6 text-lg">
+                  <p className="text-muted-foreground mb-6 text-base">
                     {viewMode === "my" ? "아직 작성한 일기가 없습니다." : "공개된 일기가 없습니다."}
                   </p>
                   {viewMode === "my" && (
