@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -13,6 +13,21 @@ export default function Auth() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [logoUrl, setLogoUrl] = useState<string>("");
+
+  useEffect(() => {
+    fetchLogo();
+  }, []);
+
+  const fetchLogo = async () => {
+    const { data } = supabase.storage
+      .from("brand-assets")
+      .getPublicUrl("3rdme-logo.png");
+
+    if (data) {
+      setLogoUrl(data.publicUrl);
+    }
+  };
 
   const handleEmailAuth = async (isSignUp: boolean) => {
     setLoading(true);
@@ -70,11 +85,23 @@ export default function Auth() {
     <div className="min-h-screen flex items-center justify-center gradient-soft px-4 sm:px-6 py-8">
       <div className="w-full max-w-md">
         <div className="space-y-6 mb-8">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <img src="https://sqxoqvfcaekaxbpfguod.supabase.co/storage/v1/object/public/brand-assets/3rdme-logo.png" alt="3rdME" className="w-12 h-12" />
-            <h1 className="text-4xl font-bold text-foreground">
-              3rdME
-            </h1>
+          <div className="flex items-center justify-center mb-4">
+            {logoUrl ? (
+              <img 
+                src={`${logoUrl}?t=${Date.now()}`} 
+                alt="Logo" 
+                className="h-16 w-auto object-contain"
+                onError={(e) => {
+                  e.currentTarget.src = "/3rdme-logo.png";
+                }}
+              />
+            ) : (
+              <img 
+                src="/3rdme-logo.png" 
+                alt="Logo" 
+                className="h-16 w-auto object-contain"
+              />
+            )}
           </div>
           <p className="text-base text-center text-muted-foreground">
             누군가가 써주는 나의 일기
