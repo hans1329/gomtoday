@@ -286,7 +286,7 @@ export default function Header() {
                 }}
                 className="rounded-full h-9 w-9 group relative"
               >
-                <User className={cn("h-5 w-5 group-hover:text-white transition-colors", viewMode === "my" ? "text-primary" : "text-muted-foreground")} />
+                <User className={cn("h-6 w-6 group-hover:text-white transition-colors", viewMode === "my" ? "text-primary" : "text-muted-foreground")} />
                 {viewMode === "my" && (
                   <span className="absolute top-1.5 right-1.5 h-1 w-1 rounded-full bg-destructive" />
                 )}
@@ -301,7 +301,7 @@ export default function Header() {
                 }}
                 className="rounded-full h-9 w-9 group relative"
               >
-                <Globe className={cn("h-5 w-5 group-hover:text-white transition-colors", viewMode === "public" ? "text-primary" : "text-muted-foreground")} />
+                <Globe className={cn("h-6 w-6 group-hover:text-white transition-colors", viewMode === "public" ? "text-primary" : "text-muted-foreground")} />
                 {viewMode === "public" && (
                   <span className="absolute top-1.5 right-1.5 h-1 w-1 rounded-full bg-destructive" />
                 )}
