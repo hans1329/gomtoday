@@ -3,7 +3,6 @@ import { supabase } from "@/integrations/supabase/client";
 
 export default function LoadingBar() {
   const [mobileLogoUrl, setMobileLogoUrl] = useState<string>("");
-  const [isLogoLoaded, setIsLogoLoaded] = useState(false);
 
   useEffect(() => {
     const fetchLogo = async () => {
@@ -11,7 +10,7 @@ export default function LoadingBar() {
       const cachedLogo = localStorage.getItem("mobile_logo_url");
       if (cachedLogo) {
         setMobileLogoUrl(cachedLogo);
-        setIsLogoLoaded(true);
+        return;
       }
 
       // 브랜드 에셋에서 로고 가져오기
@@ -23,25 +22,22 @@ export default function LoadingBar() {
         const logoUrl = data.publicUrl;
         setMobileLogoUrl(logoUrl);
         localStorage.setItem("mobile_logo_url", logoUrl);
-        setIsLogoLoaded(true);
       }
     };
     
     fetchLogo();
   }, []);
 
-  if (!isLogoLoaded) {
-    return null;
-  }
-
   return (
     <div className="fixed inset-0 flex flex-col items-center justify-center gradient-soft gap-4 z-50">
-      <img 
-        src={`${mobileLogoUrl}?t=${Date.now()}`} 
-        alt="로딩 중" 
-        className="h-12 w-auto animate-spin"
-        style={{ animationDuration: '2s', animationDirection: 'reverse' }}
-      />
+      {mobileLogoUrl && (
+        <img 
+          src={mobileLogoUrl} 
+          alt="로딩 중" 
+          className="h-12 w-auto animate-spin"
+          style={{ animationDuration: '2s', animationDirection: 'reverse' }}
+        />
+      )}
       <div className="w-64 h-1.5 bg-muted rounded-full overflow-hidden">
         <div className="h-full bg-gradient-to-r from-primary via-primary/60 to-primary animate-shimmer bg-[length:200%_100%]" />
       </div>
