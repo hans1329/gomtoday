@@ -21,7 +21,7 @@ export default function Profile() {
   const [gender, setGender] = useState("");
   const [location, setLocation] = useState("");
   const [uploading, setUploading] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -36,6 +36,35 @@ export default function Profile() {
       navigate("/auth");
       return;
     }
+
+    // 캐시된 데이터 확인
+    const cacheKey = `profile_${user.id}`;
+    const cacheTimeKey = `profile_time_${user.id}`;
+    const cachedData = localStorage.getItem(cacheKey);
+    const cachedTime = localStorage.getItem(cacheTimeKey);
+    const cacheAge = cachedTime ? Date.now() - parseInt(cachedTime) : Infinity;
+    const CACHE_DURATION = 5 * 60 * 1000; // 5분
+
+    // 캐시가 유효하면 먼저 보여주기
+    if (cachedData && cacheAge < CACHE_DURATION) {
+      try {
+        const parsed = JSON.parse(cachedData);
+        setProfile(parsed);
+        setName(parsed.name || "");
+        setBio(parsed.bio || "");
+        setMbti(parsed.mbti || "");
+        setBloodType(parsed.blood_type || "");
+        setBirthday(parsed.birthday || "");
+        setGender(parsed.gender || "");
+        setLocation(parsed.location || "");
+        setLoading(false);
+        return;
+      } catch (e) {
+        console.error('Cache parse error:', e);
+      }
+    }
+
+    setLoading(true);
 
     const { data, error } = await supabase
       .from("profiles")
@@ -63,6 +92,14 @@ export default function Profile() {
       setBirthday(data.birthday || "");
       setGender(data.gender || "");
       setLocation(data.location || "");
+
+      // 데이터 캐싱
+      try {
+        localStorage.setItem(cacheKey, JSON.stringify(data));
+        localStorage.setItem(cacheTimeKey, Date.now().toString());
+      } catch (e) {
+        console.error('Cache save error:', e);
+      }
     }
     setLoading(false);
   };

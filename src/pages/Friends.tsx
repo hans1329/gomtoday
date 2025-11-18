@@ -15,7 +15,7 @@ export default function Friends() {
   const [receivedRequests, setReceivedRequests] = useState<any[]>([]);
   const [sentRequests, setSentRequests] = useState<any[]>([]);
   const [friends, setFriends] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -41,6 +41,28 @@ export default function Friends() {
 
   const fetchFriendRequests = async () => {
     if (!currentUserId) return;
+
+    // 캐시된 데이터 확인
+    const cacheKey = `friends_${currentUserId}`;
+    const cacheTimeKey = `friends_time_${currentUserId}`;
+    const cachedData = localStorage.getItem(cacheKey);
+    const cachedTime = localStorage.getItem(cacheTimeKey);
+    const cacheAge = cachedTime ? Date.now() - parseInt(cachedTime) : Infinity;
+    const CACHE_DURATION = 5 * 60 * 1000; // 5분
+
+    // 캐시가 유효하면 먼저 보여주기
+    if (cachedData && cacheAge < CACHE_DURATION) {
+      try {
+        const parsed = JSON.parse(cachedData);
+        setReceivedRequests(parsed.received || []);
+        setSentRequests(parsed.sent || []);
+        setFriends(parsed.friends || []);
+        setLoading(false);
+        return;
+      } catch (e) {
+        console.error('Cache parse error:', e);
+      }
+    }
 
     setLoading(true);
 
@@ -82,8 +104,9 @@ export default function Friends() {
       .eq("status", "accepted")
       .order("updated_at", { ascending: false });
 
+    let friendsList: any[] = [];
     if (acceptedFriends) {
-      const friendsList = acceptedFriends.map((req: any) => {
+      friendsList = acceptedFriends.map((req: any) => {
         const isSender = req.from_user_id === currentUserId;
         return {
           id: req.id,
@@ -92,6 +115,18 @@ export default function Friends() {
         };
       });
       setFriends(friendsList);
+    }
+
+    // 데이터 캐싱
+    try {
+      localStorage.setItem(cacheKey, JSON.stringify({
+        received: received || [],
+        sent: sent || [],
+        friends: friendsList
+      }));
+      localStorage.setItem(cacheTimeKey, Date.now().toString());
+    } catch (e) {
+      console.error('Cache save error:', e);
     }
 
     setLoading(false);

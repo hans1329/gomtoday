@@ -14,7 +14,7 @@ import LoadingBar from "@/components/LoadingBar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 export default function Notebooks() {
   const [notebooks, setNotebooks] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState("");
   const [newVisibility, setNewVisibility] = useState<"private" | "shared" | "public">("shared");
@@ -103,6 +103,29 @@ export default function Notebooks() {
       navigate("/auth");
       return;
     }
+
+    // 캐시된 데이터 확인
+    const cacheKey = `notebooks_${user.id}`;
+    const cacheTimeKey = `notebooks_time_${user.id}`;
+    const cachedData = localStorage.getItem(cacheKey);
+    const cachedTime = localStorage.getItem(cacheTimeKey);
+    const cacheAge = cachedTime ? Date.now() - parseInt(cachedTime) : Infinity;
+    const CACHE_DURATION = 5 * 60 * 1000; // 5분
+
+    // 캐시가 유효하면 먼저 보여주기
+    if (cachedData && cacheAge < CACHE_DURATION) {
+      try {
+        const parsed = JSON.parse(cachedData);
+        setNotebooks(parsed || []);
+        setLoading(false);
+        return;
+      } catch (e) {
+        console.error('Cache parse error:', e);
+      }
+    }
+
+    setLoading(true);
+
     const {
       data,
       error
@@ -118,6 +141,14 @@ export default function Notebooks() {
       });
     } else {
       setNotebooks(data || []);
+      
+      // 데이터 캐싱
+      try {
+        localStorage.setItem(cacheKey, JSON.stringify(data || []));
+        localStorage.setItem(cacheTimeKey, Date.now().toString());
+      } catch (e) {
+        console.error('Cache save error:', e);
+      }
     }
     setLoading(false);
   };

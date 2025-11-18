@@ -24,7 +24,7 @@ type Diary = {
 export default function Diaries() {
   const [diaries, setDiaries] = useState<Diary[]>([]);
   const [filteredDiaries, setFilteredDiaries] = useState<Diary[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [emotionFilter, setEmotionFilter] = useState("all");
   const [sortBy, setSortBy] = useState("latest");
@@ -53,6 +53,28 @@ export default function Diaries() {
   const fetchDiaries = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
+
+    // 캐시된 데이터 확인
+    const cacheKey = `diaries_${user.id}`;
+    const cacheTimeKey = `diaries_time_${user.id}`;
+    const cachedData = localStorage.getItem(cacheKey);
+    const cachedTime = localStorage.getItem(cacheTimeKey);
+    const cacheAge = cachedTime ? Date.now() - parseInt(cachedTime) : Infinity;
+    const CACHE_DURATION = 5 * 60 * 1000; // 5분
+
+    // 캐시가 유효하면 먼저 보여주기
+    if (cachedData && cacheAge < CACHE_DURATION) {
+      try {
+        const parsed = JSON.parse(cachedData);
+        setDiaries(parsed || []);
+        setLoading(false);
+        return;
+      } catch (e) {
+        console.error('Cache parse error:', e);
+      }
+    }
+
+    setLoading(true);
 
     const { data, error } = await supabase
       .from("diaries")
@@ -91,6 +113,14 @@ export default function Diaries() {
         };
       });
       setDiaries(diariesWithSortedPhotos);
+      
+      // 데이터 캐싱
+      try {
+        localStorage.setItem(cacheKey, JSON.stringify(diariesWithSortedPhotos));
+        localStorage.setItem(cacheTimeKey, Date.now().toString());
+      } catch (e) {
+        console.error('Cache save error:', e);
+      }
     }
     setLoading(false);
   };
