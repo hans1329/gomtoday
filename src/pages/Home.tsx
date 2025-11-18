@@ -497,7 +497,7 @@ export default function Home() {
   return (
     <div className="min-h-screen gradient-soft">
       <div className="max-w-4xl mx-auto pb-24">
-        <div className="bg-background shadow-lg md:max-w-2xl md:mx-auto md:rounded-b-lg p-6 pt-4">
+        <div className="bg-background shadow-lg md:max-w-2xl md:mx-auto md:rounded-b-lg p-6 pt-2">
           <div className={cn(
             "flex items-center justify-center relative",
             isCalendarExpanded ? "mb-6" : "mb-0"
