@@ -721,7 +721,7 @@ export default function Home() {
               return !isFutureDate ? (
                 <div className="text-center flex flex-col items-center">
                   <img 
-                    src={`${logoUrl}?t=${Date.now()}`} 
+                    src={logoUrl} 
                     alt="Logo" 
                     className="h-16 w-auto object-contain mb-6"
                   />

@@ -94,7 +94,7 @@ export default function Auth() {
         <div className="space-y-6 mb-8">
           <div className="flex items-center justify-center mb-4">
             <img 
-              src={`${logoUrl}?t=${Date.now()}`} 
+              src={logoUrl} 
               alt="Logo" 
               className="h-20 w-auto object-contain"
             />

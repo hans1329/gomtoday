@@ -210,7 +210,7 @@ export default function AdminBrandAssets() {
               {logoUrl && (
                 <div className="flex items-center justify-center p-8 bg-muted rounded-lg">
                   <img 
-                    src={`${logoUrl}?t=${Date.now()}`} 
+                    src={logoUrl} 
                     alt="현재 로고" 
                     className="max-w-[200px] max-h-[200px] object-contain"
                   />
@@ -262,7 +262,7 @@ export default function AdminBrandAssets() {
               {mobileLogoUrl && (
                 <div className="flex items-center justify-center p-8 bg-muted rounded-lg">
                   <img 
-                    src={`${mobileLogoUrl}?t=${Date.now()}`} 
+                    src={mobileLogoUrl} 
                     alt="현재 모바일 로고" 
                     className="max-w-[100px] max-h-[100px] object-contain"
                   />
@@ -314,7 +314,7 @@ export default function AdminBrandAssets() {
               {faviconUrl && (
                 <div className="flex items-center justify-center p-8 bg-muted rounded-lg">
                   <img 
-                    src={`${faviconUrl}?t=${Date.now()}`} 
+                    src={faviconUrl} 
                     alt="현재 파비콘" 
                     className="max-w-[64px] max-h-[64px] object-contain"
                   />
