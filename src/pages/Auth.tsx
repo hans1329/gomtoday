@@ -86,22 +86,11 @@ export default function Auth() {
       <div className="w-full max-w-md">
         <div className="space-y-6 mb-8">
           <div className="flex items-center justify-center mb-4">
-            {logoUrl ? (
-              <img 
-                src={`${logoUrl}?t=${Date.now()}`} 
-                alt="Logo" 
-                className="h-20 w-auto object-contain"
-                onError={(e) => {
-                  e.currentTarget.src = "/3rdme-logo.png";
-                }}
-              />
-            ) : (
-              <img 
-                src="/3rdme-logo.png" 
-                alt="Logo" 
-                className="h-20 w-auto object-contain"
-              />
-            )}
+            <img 
+              src={`${logoUrl}?t=${Date.now()}`} 
+              alt="Logo" 
+              className="h-20 w-auto object-contain"
+            />
           </div>
           <p className="text-base text-center text-muted-foreground font-bold">
             누군가가 써주는 나의 일기

@@ -36,12 +36,25 @@ export default function Home() {
   const [comments, setComments] = useState<any[]>([]);
   const [isLiked, setIsLiked] = useState(false);
   const [newComment, setNewComment] = useState("");
+  const [logoUrl, setLogoUrl] = useState<string>("");
   const isLikingRef = useRef(false);
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const { toast } = useToast();
   
   const commonEmojis = ["😊", "😢", "😡", "😍", "🤔", "😴", "😱", "🤗", "😎", "🥳", "😤", "😭"];
+
+  useEffect(() => {
+    const fetchLogo = async () => {
+      const { data } = supabase.storage
+        .from("brand-assets")
+        .getPublicUrl("3rdme-logo.png");
+      if (data) {
+        setLogoUrl(data.publicUrl);
+      }
+    };
+    fetchLogo();
+  }, []);
 
   useEffect(() => {
     const handleViewModeChange = (e: CustomEvent<"my" | "public">) => {
@@ -700,7 +713,7 @@ export default function Home() {
               return !isFutureDate ? (
                 <div className="text-center flex flex-col items-center">
                   <img 
-                    src="/3rdme-logo.png" 
+                    src={`${logoUrl}?t=${Date.now()}`} 
                     alt="Logo" 
                     className="h-24 w-auto object-contain mb-8"
                   />

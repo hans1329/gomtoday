@@ -246,22 +246,14 @@ export default function Header() {
                   src={`${mobileLogoUrl}?t=${logoCacheBuster}`} 
                   alt="Dpen 로고" 
                   className="h-7 w-auto object-contain"
-                  onError={(e) => {
-                    e.currentTarget.src = "/3rdme-logo.png";
-                  }}
                 />
               ) : logoUrl ? (
                 <img 
                   src={`${logoUrl}?t=${logoCacheBuster}`} 
                   alt="Dpen 로고" 
                   className="h-7 w-auto object-contain"
-                  onError={(e) => {
-                    e.currentTarget.src = "/3rdme-logo.png";
-                  }}
                 />
-              ) : (
-                <img src="/3rdme-logo.png" alt="Dpen 로고" className="h-7 w-auto object-contain" />
-              )}
+              ) : null}
             </button>
           ) : (
             <Button
