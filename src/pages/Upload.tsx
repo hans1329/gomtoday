@@ -199,6 +199,9 @@ export default function Upload() {
       return;
     }
 
+    // 연필 개수 업데이트 이벤트 발생
+    window.dispatchEvent(new CustomEvent('pencil-updated'));
+
     setPencilCount(pencilCount - generationCost);
     handleGenerateDiary();
   };
@@ -712,6 +715,9 @@ export default function Upload() {
       if (deductError) throw deductError;
 
       setPencilCount(pencilCount - writeCost);
+      
+      // 연필 개수 업데이트 이벤트 발생
+      window.dispatchEvent(new CustomEvent('pencil-updated'));
 
       // 일기 내용 업데이트 (사용자가 수정한 경우)
       const {
@@ -835,6 +841,9 @@ export default function Upload() {
       if (deductError) throw deductError;
 
       setPencilCount(pencilCount - writeCost);
+      
+      // 연필 개수 업데이트 이벤트 발생
+      window.dispatchEvent(new CustomEvent('pencil-updated'));
 
       // 사진 업로드 (있는 경우)
       const photoUrls: string[] = [];
@@ -1310,6 +1319,9 @@ export default function Upload() {
       });
       return;
     }
+
+    // 연필 개수 업데이트 이벤트 발생
+    window.dispatchEvent(new CustomEvent('pencil-updated'));
 
     setPencilCount(pencilCount - regenerationCost);
     

@@ -64,6 +64,11 @@ export default function Header() {
       fetchProfile();
     };
 
+    // 연필 개수 업데이트 이벤트 리스너
+    const handlePencilUpdate = () => {
+      fetchPencilCount();
+    };
+
     // viewMode 변경 이벤트 리스너
     const handleViewModeChange = (e: Event) => {
       const customEvent = e as CustomEvent<"my" | "public">;
@@ -71,6 +76,7 @@ export default function Header() {
     };
     
     window.addEventListener('profile-updated', handleProfileUpdate);
+    window.addEventListener('pencil-updated', handlePencilUpdate);
     window.addEventListener('viewModeChange', handleViewModeChange as EventListener);
     
     // 알림 개수 주기적으로 업데이트
@@ -78,6 +84,7 @@ export default function Header() {
     
     return () => {
       window.removeEventListener('profile-updated', handleProfileUpdate);
+      window.removeEventListener('pencil-updated', handlePencilUpdate);
       window.removeEventListener('viewModeChange', handleViewModeChange as EventListener);
       clearInterval(interval);
     };
