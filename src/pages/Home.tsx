@@ -716,144 +716,6 @@ export default function Home() {
           {isCalendarExpanded && renderCalendar()}
         </div>
 
-        {/* 검색 영역 - 날짜 바로 아래 */}
-        <div className="bg-background md:max-w-2xl md:mx-auto px-6 pb-4">
-          <div className="flex items-center gap-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="text"
-                placeholder="검색"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 rounded-full h-9 text-sm"
-              />
-            </div>
-
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="rounded-full h-9 w-9 p-0 hover:bg-transparent border-0 flex-shrink-0"
-                >
-                  <div className="bg-background/90 rounded-full w-9 h-9 flex items-center justify-center shadow-sm border border-border">
-                    <ArrowUpDown className="h-4 w-4" />
-                  </div>
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-2 bg-background" align="end">
-                <div className="flex flex-col gap-1">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setSortBy("latest")}
-                    className={cn("justify-start", sortBy === "latest" && "bg-accent")}
-                  >
-                    <Clock className="h-4 w-4 mr-2" />
-                    최신순
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setSortBy("oldest")}
-                    className={cn("justify-start", sortBy === "oldest" && "bg-accent")}
-                  >
-                    <Clock className="h-4 w-4 mr-2" />
-                    오래된순
-                  </Button>
-                  {viewMode === "public" && (
-                    <>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setSortBy("likes")}
-                        className={cn("justify-start", sortBy === "likes" && "bg-accent")}
-                      >
-                        <Heart className="h-4 w-4 mr-2" />
-                        좋아요순
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setSortBy("comments")}
-                        className={cn("justify-start", sortBy === "comments" && "bg-accent")}
-                      >
-                        <MessageCircle className="h-4 w-4 mr-2" />
-                        댓글순
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setSortBy("friends")}
-                        className={cn("justify-start", sortBy === "friends" && "bg-accent")}
-                      >
-                        <Users className="h-4 w-4 mr-2" />
-                        친구순
-                      </Button>
-                    </>
-                  )}
-                </div>
-              </PopoverContent>
-            </Popover>
-
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="rounded-full h-9 w-9 p-0 hover:bg-transparent border-0 flex-shrink-0"
-                >
-                  <div className="bg-background/90 rounded-full w-9 h-9 flex items-center justify-center shadow-sm border border-border">
-                    {selectedEmoji ? (
-                      <span className="text-lg">{selectedEmoji}</span>
-                    ) : (
-                      <Smile className="h-4 w-4" />
-                    )}
-                  </div>
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-3 bg-background" align="end">
-                <div className="grid grid-cols-6 gap-2">
-                  {commonEmojis.map((emoji) => (
-                    <Button
-                      key={emoji}
-                      variant="ghost"
-                      size="sm"
-                      className="h-10 w-10 p-0 hover:bg-accent text-xl"
-                      onClick={() => {
-                        setSelectedEmoji(emoji);
-                        toast({
-                          title: `${emoji} 감정으로 필터링`,
-                        });
-                      }}
-                    >
-                      {emoji}
-                    </Button>
-                  ))}
-                </div>
-                {selectedEmoji && (
-                  <div className="mt-3 pt-3 border-t">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full rounded-full"
-                      onClick={() => {
-                        setSelectedEmoji("");
-                        toast({
-                          title: "감정 필터 해제",
-                        });
-                      }}
-                    >
-                      필터 해제
-                    </Button>
-                  </div>
-                )}
-              </PopoverContent>
-            </Popover>
-          </div>
-        </div>
-
         <div className="p-2 sm:p-4 space-y-4">
         {viewMode === "my" && hasAnyDiary === false ? (
           <div className="px-2 sm:px-0 flex items-center justify-center min-h-[60vh]">
@@ -1109,6 +971,123 @@ export default function Home() {
             </CardContent>
               </Card>
               
+              {/* 검색 영역 */}
+              <div className="bg-background px-2 sm:px-0 pt-4 pb-2">
+                <div className="flex items-center gap-2">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      type="text"
+                      placeholder="검색"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-9 rounded-full h-9 text-sm"
+                    />
+                  </div>
+
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="rounded-full h-9 w-9 p-0 hover:bg-transparent border-0 flex-shrink-0"
+                      >
+                        <div className="bg-background/90 rounded-full w-9 h-9 flex items-center justify-center shadow-sm border border-border">
+                          <ArrowUpDown className="h-4 w-4" />
+                        </div>
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-48 p-2 bg-background" align="end">
+                      <div className="space-y-1">
+                        <Button
+                          variant={sortBy === "latest" ? "secondary" : "ghost"}
+                          size="sm"
+                          className="w-full justify-start rounded-full text-sm h-8"
+                          onClick={() => {
+                            setSortBy("latest");
+                            toast({
+                              title: "최신순 정렬",
+                            });
+                          }}
+                        >
+                          <Clock className="h-3.5 w-3.5 mr-2" />
+                          최신순
+                        </Button>
+                        <Button
+                          variant={sortBy === "oldest" ? "secondary" : "ghost"}
+                          size="sm"
+                          className="w-full justify-start rounded-full text-sm h-8"
+                          onClick={() => {
+                            setSortBy("oldest");
+                            toast({
+                              title: "오래된순 정렬",
+                            });
+                          }}
+                        >
+                          <Clock className="h-3.5 w-3.5 mr-2" />
+                          오래된순
+                        </Button>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="rounded-full h-9 w-9 p-0 hover:bg-transparent border-0 flex-shrink-0"
+                      >
+                        <div className="bg-background/90 rounded-full w-9 h-9 flex items-center justify-center shadow-sm border border-border">
+                          {selectedEmoji ? (
+                            <span className="text-lg">{selectedEmoji}</span>
+                          ) : (
+                            <Smile className="h-4 w-4" />
+                          )}
+                        </div>
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-3 bg-background" align="end">
+                      <div className="grid grid-cols-6 gap-2">
+                        {commonEmojis.map((emoji) => (
+                          <Button
+                            key={emoji}
+                            variant="ghost"
+                            size="sm"
+                            className="h-10 w-10 p-0 hover:bg-accent text-xl"
+                            onClick={() => {
+                              setSelectedEmoji(emoji);
+                              toast({
+                                title: `${emoji} 감정으로 필터링`,
+                              });
+                            }}
+                          >
+                            {emoji}
+                          </Button>
+                        ))}
+                      </div>
+                      {selectedEmoji && (
+                        <div className="mt-3 pt-3 border-t">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full rounded-full"
+                            onClick={() => {
+                              setSelectedEmoji("");
+                              toast({
+                                title: "감정 필터 해제",
+                              });
+                            }}
+                          >
+                            필터 해제
+                          </Button>
+                        </div>
+                      )}
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+              
               {/* 나머지 일기들 */}
               {diaries.length > 1 && (
                 <div className="space-y-3">
@@ -1126,6 +1105,166 @@ export default function Home() {
               )}
             </>
           ) : (
+            <>
+              {/* 검색 영역 - 공개 일기 */}
+              <div className="bg-background px-2 sm:px-0 pb-2">
+                <div className="flex items-center gap-2">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      type="text"
+                      placeholder="검색"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-9 rounded-full h-9 text-sm"
+                    />
+                  </div>
+
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="rounded-full h-9 w-9 p-0 hover:bg-transparent border-0 flex-shrink-0"
+                      >
+                        <div className="bg-background/90 rounded-full w-9 h-9 flex items-center justify-center shadow-sm border border-border">
+                          <ArrowUpDown className="h-4 w-4" />
+                        </div>
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-48 p-2 bg-background" align="end">
+                      <div className="space-y-1">
+                        <Button
+                          variant={sortBy === "latest" ? "secondary" : "ghost"}
+                          size="sm"
+                          className="w-full justify-start rounded-full text-sm h-8"
+                          onClick={() => {
+                            setSortBy("latest");
+                            toast({
+                              title: "최신순 정렬",
+                            });
+                          }}
+                        >
+                          <Clock className="h-3.5 w-3.5 mr-2" />
+                          최신순
+                        </Button>
+                        <Button
+                          variant={sortBy === "oldest" ? "secondary" : "ghost"}
+                          size="sm"
+                          className="w-full justify-start rounded-full text-sm h-8"
+                          onClick={() => {
+                            setSortBy("oldest");
+                            toast({
+                              title: "오래된순 정렬",
+                            });
+                          }}
+                        >
+                          <Clock className="h-3.5 w-3.5 mr-2" />
+                          오래된순
+                        </Button>
+                        <Button
+                          variant={sortBy === "likes" ? "secondary" : "ghost"}
+                          size="sm"
+                          className="w-full justify-start rounded-full text-sm h-8"
+                          onClick={() => {
+                            setSortBy("likes");
+                            toast({
+                              title: "좋아요순 정렬",
+                            });
+                          }}
+                        >
+                          <Heart className="h-3.5 w-3.5 mr-2" />
+                          좋아요순
+                        </Button>
+                        <Button
+                          variant={sortBy === "comments" ? "secondary" : "ghost"}
+                          size="sm"
+                          className="w-full justify-start rounded-full text-sm h-8"
+                          onClick={() => {
+                            setSortBy("comments");
+                            toast({
+                              title: "댓글순 정렬",
+                            });
+                          }}
+                        >
+                          <MessageCircle className="h-3.5 w-3.5 mr-2" />
+                          댓글순
+                        </Button>
+                        <Button
+                          variant={sortBy === "friends" ? "secondary" : "ghost"}
+                          size="sm"
+                          className="w-full justify-start rounded-full text-sm h-8"
+                          onClick={() => {
+                            setSortBy("friends");
+                            toast({
+                              title: "친구순 정렬",
+                            });
+                          }}
+                        >
+                          <Users className="h-3.5 w-3.5 mr-2" />
+                          친구순
+                        </Button>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="rounded-full h-9 w-9 p-0 hover:bg-transparent border-0 flex-shrink-0"
+                      >
+                        <div className="bg-background/90 rounded-full w-9 h-9 flex items-center justify-center shadow-sm border border-border">
+                          {selectedEmoji ? (
+                            <span className="text-lg">{selectedEmoji}</span>
+                          ) : (
+                            <Smile className="h-4 w-4" />
+                          )}
+                        </div>
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-3 bg-background" align="end">
+                      <div className="grid grid-cols-6 gap-2">
+                        {commonEmojis.map((emoji) => (
+                          <Button
+                            key={emoji}
+                            variant="ghost"
+                            size="sm"
+                            className="h-10 w-10 p-0 hover:bg-accent text-xl"
+                            onClick={() => {
+                              setSelectedEmoji(emoji);
+                              toast({
+                                title: `${emoji} 감정으로 필터링`,
+                              });
+                            }}
+                          >
+                            {emoji}
+                          </Button>
+                        ))}
+                      </div>
+                      {selectedEmoji && (
+                        <div className="mt-3 pt-3 border-t">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full rounded-full"
+                            onClick={() => {
+                              setSelectedEmoji("");
+                              toast({
+                                title: "감정 필터 해제",
+                              });
+                            }}
+                          >
+                            필터 해제
+                          </Button>
+                        </div>
+                      )}
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+              
             <div className="space-y-3">
               {diaries.map((diary) => (
                 <DiaryCard
@@ -1138,6 +1277,7 @@ export default function Home() {
                 />
               ))}
             </div>
+            </>
           )}
 
           {/* 더 불러오기 버튼 */}
