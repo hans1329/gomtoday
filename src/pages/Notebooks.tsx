@@ -620,10 +620,10 @@ export default function Notebooks() {
                     return (
                       <Card 
                         key={notebook.id} 
-                        className={`shadow-sm cursor-pointer transition-all hover:shadow-lg ${isMyNotebook ? "border-2 border-primary/50" : ""}`}
+                        className={`shadow-sm cursor-pointer transition-all hover:shadow-lg min-h-[140px] sm:min-h-[160px] ${isMyNotebook ? "border-2 border-primary/50" : ""}`}
                         onClick={() => navigate(`/diaries?notebook=${notebook.id}`)}
                       >
-                        <CardHeader className="p-3 sm:p-4">
+                        <CardHeader className="p-4 sm:p-5">
                           <div className="flex items-center gap-2">
                             <CardTitle className="text-sm sm:text-base truncate">{notebook.name}</CardTitle>
                             {notebook.visibility === "private" && <Lock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />}
@@ -631,7 +631,7 @@ export default function Notebooks() {
                             {notebook.visibility === "public" && <Globe className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />}
                           </div>
                         </CardHeader>
-                        <CardContent className="p-3 pt-0 sm:p-4 sm:pt-0">
+                        <CardContent className="p-4 pt-0 sm:p-5 sm:pt-0">
                           {notebook.notebook_members && notebook.notebook_members.length > 0 && (
                             <div className="flex items-center gap-2">
                               <div className="flex -space-x-2">
