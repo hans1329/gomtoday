@@ -373,7 +373,7 @@ export default function Header() {
                   </Button>
                 </div>
                 <div className="flex items-center justify-between pl-2">
-                  <p className="text-sm font-medium leading-none">{userName || "사용자"}</p>
+                  <p className="text-base font-medium leading-none">{userName || "사용자"}</p>
                   <Button
                     variant="ghost"
                     size="icon"
