@@ -1622,7 +1622,7 @@ export default function Upload() {
                       className="flex items-center gap-1.5 bg-secondary hover:bg-secondary/80 px-3 py-1.5 rounded-full transition-colors"
                     >
                       <Plus className="w-5 h-5" />
-                      <span className="text-sm">추가</span>
+                      <span className="text-xs">추가</span>
                     </button>
                     {showFriendsList && (
                       <div className="absolute z-50 left-0 top-full mt-1 bg-background border rounded-md shadow-lg max-h-48 overflow-y-auto min-w-[200px]">
