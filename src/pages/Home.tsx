@@ -873,7 +873,8 @@ export default function Home() {
                 ) : null;
               })()
             ) : viewMode === "my" ? (
-            <Card className="shadow-medium overflow-hidden">
+              <>
+                <Card className="shadow-medium overflow-hidden">
               <CardContent className="p-0">
                 {/* Photos Carousel */}
                 {diaries[0].photos && diaries[0].photos.length > 0 && (
@@ -1072,19 +1073,27 @@ export default function Home() {
                 )}
               </div>
             </CardContent>
-            <div className="border-t p-4">
-              <Button 
-                onClick={() => navigate("/diaries")} 
-                variant="outline" 
-                className="w-full rounded-full"
-              >
-                내 일기 전체 보기
-              </Button>
-            </div>
-          </Card>
+              </Card>
+              
+              {/* 나머지 일기들 */}
+              {diaries.length > 1 && (
+                <div className="space-y-3">
+                  {diaries.slice(1).map((diary) => (
+                    <DiaryCard
+                      key={diary.id}
+                      diary={diary}
+                      onClick={() => navigate(`/diary/${diary.id}`)}
+                      showTime={false}
+                      imageSize="sm"
+                      currentUserId={currentUserId}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
           ) : (
             <div className="space-y-3">
-              {diaries.slice(0, 5).map((diary) => (
+              {diaries.map((diary) => (
                 <DiaryCard
                   key={diary.id}
                   diary={diary}
