@@ -116,11 +116,11 @@ export default function Auth() {
               <TabsContent value="signin" className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="signin-email">이메일</Label>
-                  <Input id="signin-email" type="email" placeholder="your@email.com" value={email} onChange={e => setEmail(e.target.value)} />
+                  <Input id="signin-email" type="email" placeholder="your@email.com" value={email} onChange={e => setEmail(e.target.value)} autoComplete="email" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="signin-password">비밀번호</Label>
-                  <Input id="signin-password" type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} />
+                  <Input id="signin-password" type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} autoComplete="current-password" />
                 </div>
                 <Button onClick={() => handleEmailAuth(false)} disabled={loading} className="w-full h-14">
                   로그인
@@ -130,11 +130,11 @@ export default function Auth() {
               <TabsContent value="signup" className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="signup-email">이메일</Label>
-                  <Input id="signup-email" type="email" placeholder="your@email.com" value={email} onChange={e => setEmail(e.target.value)} />
+                  <Input id="signup-email" type="email" placeholder="your@email.com" value={email} onChange={e => setEmail(e.target.value)} autoComplete="email" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="signup-password">비밀번호</Label>
-                  <Input id="signup-password" type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} />
+                  <Input id="signup-password" type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} autoComplete="new-password" />
                 </div>
                 <Button onClick={() => handleEmailAuth(true)} className="w-full h-12" disabled={loading}>
                   회원가입
