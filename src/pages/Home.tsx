@@ -1072,6 +1072,15 @@ export default function Home() {
                 )}
               </div>
             </CardContent>
+            <div className="border-t p-4">
+              <Button 
+                onClick={() => navigate("/diaries")} 
+                variant="outline" 
+                className="w-full rounded-full"
+              >
+                내 일기 전체 보기
+              </Button>
+            </div>
           </Card>
           ) : (
             <div className="space-y-3">
