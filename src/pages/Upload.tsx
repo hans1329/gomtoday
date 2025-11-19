@@ -1490,7 +1490,7 @@ export default function Upload() {
 
             {!isEditMode && !isGenerated && writeMode === "manual" && (
               <>
-                <div className="border-t pt-6 mt-6" />
+                <div className="border-t my-6" />
 
                 <div className="space-y-2">
                   <Label htmlFor="title" className="px-2">일기 제목</Label>
