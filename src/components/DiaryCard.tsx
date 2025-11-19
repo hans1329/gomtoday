@@ -112,11 +112,6 @@ export default function DiaryCard({
                       {weatherEmojis[diary.weather] || diary.weather}
                     </span>
                   )}
-                  {diary.perspective && diary.photos && diary.photos.length > 0 && (
-                    <span className="text-[10px] bg-muted px-2 py-0.5 rounded-full">
-                      {perspectiveLabels[diary.perspective] || diary.perspective}
-                    </span>
-                  )}
                 </p>
                 {currentUserId && diary.user_id !== currentUserId && (
                   <div className="flex items-center gap-2 mt-1">
