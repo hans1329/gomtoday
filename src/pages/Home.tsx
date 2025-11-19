@@ -803,38 +803,58 @@ export default function Home() {
           </div>
         )}
 
-        <div className={cn("px-2 sm:px-0", diaries.length === 0 ? "flex items-center justify-center min-h-[60vh]" : "space-y-3")}>
-          {diaries.length === 0 ? (
-            (() => {
-              const isFutureDate = selectedDate && selectedDate > new Date();
-              return !isFutureDate ? (
-                <div className="text-center flex flex-col items-center">
-                  <img 
-                    src={logoUrl} 
-                    alt="Logo" 
-                    className="h-16 w-auto object-contain mb-6"
-                  />
-                  <p className="text-muted-foreground mb-6 text-base">
-                    {viewMode === "my"
-                      ? (allDiaries.length === 0
-                          ? "첫 일기를 작성해 보세요!"
-                          : "선택한 날짜에 작성한 일기가 없습니다.")
-                      : "공개된 일기가 없습니다."}
-                  </p>
-                  {viewMode === "my" && (
-                    <Button
-                      onClick={() => navigate("/upload")}
-                      size="lg"
-                      className="rounded-full gap-2 shadow-medium"
-                    >
-                      <Pencil className="h-5 w-5" />
-                      일기 쓰기
-                    </Button>
-                  )}
-                </div>
-              ) : null;
-            })()
-          ) : viewMode === "my" ? (
+        {viewMode === "my" && allDiaries.length === 0 ? (
+          <div className="px-2 sm:px-0 flex items-center justify-center min-h-[60vh]">
+            <div className="text-center flex flex-col items-center">
+              <img 
+                src={logoUrl} 
+                alt="Logo" 
+                className="h-16 w-auto object-contain mb-6"
+              />
+              <p className="text-muted-foreground mb-6 text-base">
+                첫 일기를 작성해 보세요!
+              </p>
+              <Button
+                onClick={() => navigate("/upload")}
+                size="lg"
+                className="rounded-full gap-2 shadow-medium"
+              >
+                <Pencil className="h-5 w-5" />
+                일기 쓰기
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className={cn("px-2 sm:px-0", diaries.length === 0 ? "flex items-center justify-center min-h-[60vh]" : "space-y-3")}>
+            {diaries.length === 0 ? (
+              (() => {
+                const isFutureDate = selectedDate && selectedDate > new Date();
+                return !isFutureDate ? (
+                  <div className="text-center flex flex-col items-center">
+                    <img 
+                      src={logoUrl} 
+                      alt="Logo" 
+                      className="h-16 w-auto object-contain mb-6"
+                    />
+                    <p className="text-muted-foreground mb-6 text-base">
+                      {viewMode === "my"
+                        ? "선택한 날짜에 작성한 일기가 없습니다."
+                        : "공개된 일기가 없습니다."}
+                    </p>
+                    {viewMode === "my" && (
+                      <Button
+                        onClick={() => navigate("/upload")}
+                        size="lg"
+                        className="rounded-full gap-2 shadow-medium"
+                      >
+                        <Pencil className="h-5 w-5" />
+                        일기 쓰기
+                      </Button>
+                    )}
+                  </div>
+                ) : null;
+              })()
+            ) : viewMode === "my" ? (
             <Card className="shadow-medium overflow-hidden">
               <CardContent className="p-0">
                 {/* Photos Carousel */}
@@ -1034,7 +1054,8 @@ export default function Home() {
               ))}
             </div>
           )}
-        </div>
+          </div>
+        )}
         </div>
       </div>
 
