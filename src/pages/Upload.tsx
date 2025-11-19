@@ -1574,7 +1574,7 @@ export default function Upload() {
             )}
 
             {!isEditMode && (
-              <div className="space-y-2">
+              <div className="space-y-4">
                 <div className="flex items-center gap-2 px-2">
                   <Label>등장인물</Label>
                   <span className="text-xs text-muted-foreground">일기의 주인공들</span>
@@ -1948,7 +1948,7 @@ export default function Upload() {
                   const isMyPrivateNotebook = selectedNotebookData.visibility === 'private' && selectedNotebookData.is_default === true;
                   return !isMyPrivateNotebook;
                 })() && (
-                  <div className="space-y-2 mt-4">
+                  <div className="space-y-4 mt-4">
                     <div className="flex items-center gap-2 px-2">
                       <Label>등장인물</Label>
                       <span className="text-xs text-muted-foreground">멤버에게 알립니다!</span>
