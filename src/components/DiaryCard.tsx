@@ -100,18 +100,20 @@ export default function DiaryCard({
                     {diary.title}
                   </h3>
                 )}
-                <p className="text-xs text-muted-foreground">
-                  {showTime 
-                    ? format(new Date(diary.created_at), "yyyy년 M월 d일 (E) a h:mm", { locale: ko })
-                    : format(new Date(diary.created_at), "yyyy년 M월 d일 (E)", { locale: ko })
-                  }
+                <p className="text-xs text-muted-foreground flex items-center gap-2 flex-wrap">
+                  <span>
+                    {showTime 
+                      ? format(new Date(diary.created_at), "yyyy년 M월 d일 (E) a h:mm", { locale: ko })
+                      : format(new Date(diary.created_at), "yyyy년 M월 d일 (E)", { locale: ko })
+                    }
+                  </span>
                   {diary.weather && (
-                    <span className="ml-2">
+                    <span className="text-sm">
                       {weatherEmojis[diary.weather] || diary.weather}
                     </span>
                   )}
                   {diary.perspective && diary.photos && diary.photos.length > 0 && (
-                    <span className="ml-2 text-[10px] bg-muted px-2 py-0.5 rounded-full">
+                    <span className="text-[10px] bg-muted px-2 py-0.5 rounded-full">
                       {perspectiveLabels[diary.perspective] || diary.perspective}
                     </span>
                   )}
