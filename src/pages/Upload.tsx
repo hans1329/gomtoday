@@ -685,9 +685,24 @@ export default function Upload() {
       });
     } catch (error: any) {
       console.error("일기 생성 실패:", error);
+      
+      // 연필 환불
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { error: refundError } = await supabase
+          .from("profiles")
+          .update({ pencil_count: pencilCount + generationCost })
+          .eq("user_id", user.id);
+        
+        if (!refundError) {
+          setPencilCount(pencilCount + generationCost);
+          window.dispatchEvent(new CustomEvent('pencil-updated'));
+        }
+      }
+      
       toast({
         title: "일기 생성 실패",
-        description: error.message || "다시 시도해주세요.",
+        description: error.message || "다시 시도해주세요. (연필이 환불되었습니다)",
         variant: "destructive"
       });
     } finally {
