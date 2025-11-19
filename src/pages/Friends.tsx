@@ -7,7 +7,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import LoadingBar from "@/components/LoadingBar";
 import { useToast } from "@/hooks/use-toast";
-import { Check, X, UserX } from "lucide-react";
+import { Check, X, UserX, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 
@@ -17,6 +25,10 @@ export default function Friends() {
   const [friends, setFriends] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -189,6 +201,34 @@ export default function Friends() {
     }
   };
 
+  const handleSearchUsers = async (query: string) => {
+    if (!query.trim() || !currentUserId) {
+      setSearchResults([]);
+      return;
+    }
+
+    setSearching(true);
+
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("user_id, name, profile_photo_url")
+      .ilike("name", `%${query}%`)
+      .neq("user_id", currentUserId)
+      .limit(10);
+
+    if (error) {
+      console.error("Search error:", error);
+      toast({
+        title: "검색 실패",
+        variant: "destructive",
+      });
+    } else {
+      setSearchResults(data || []);
+    }
+
+    setSearching(false);
+  };
+
   const handleRemoveFriend = async (requestId: string) => {
     const { error } = await supabase
       .from("friend_requests" as any)
@@ -209,10 +249,72 @@ export default function Friends() {
   };
 
   return (
-
     <div className="min-h-screen gradient-soft">
       <div className="max-w-2xl mx-auto p-4 space-y-4">
-        <h1 className="text-2xl font-bold">일기친구</h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold">일기친구</h1>
+          
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="rounded-full">
+                <Search className="h-4 w-4 mr-2" />
+                일기친구 찾기
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md mx-4">
+              <DialogHeader>
+                <DialogTitle>일기친구 찾기</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <Input
+                  placeholder="이름으로 검색하세요"
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    handleSearchUsers(e.target.value);
+                  }}
+                />
+                
+                <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                  {searching ? (
+                    <p className="text-center text-muted-foreground py-4">검색 중...</p>
+                  ) : searchResults.length === 0 && searchQuery ? (
+                    <p className="text-center text-muted-foreground py-4">검색 결과가 없습니다</p>
+                  ) : searchResults.length === 0 ? (
+                    <p className="text-center text-muted-foreground py-4">이름을 입력해주세요</p>
+                  ) : (
+                    searchResults.map((user) => (
+                      <Card 
+                        key={user.user_id}
+                        className="cursor-pointer hover:bg-accent transition-colors"
+                        onClick={() => {
+                          navigate(`/user/${user.user_id}`);
+                          setDialogOpen(false);
+                          setSearchQuery("");
+                          setSearchResults([]);
+                        }}
+                      >
+                        <CardContent className="p-3">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="w-10 h-10">
+                              <AvatarImage src={user.profile_photo_url} />
+                              <AvatarFallback>
+                                {user.name?.charAt(0) || "?"}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1">
+                              <p className="font-medium">{user.name || "이름 없음"}</p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))
+                  )}
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
 
         <Tabs defaultValue="friends" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
