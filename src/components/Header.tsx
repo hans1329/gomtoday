@@ -275,13 +275,13 @@ export default function Header() {
                 <img 
                   src={`${mobileLogoUrl}?t=${logoCacheBuster}`} 
                   alt="Dpen 로고" 
-                  className="h-7 w-auto object-contain"
+                  className="h-9 w-auto object-contain"
                 />
               ) : logoUrl ? (
                 <img 
                   src={`${logoUrl}?t=${logoCacheBuster}`} 
                   alt="Dpen 로고" 
-                  className="h-7 w-auto object-contain"
+                  className="h-9 w-auto object-contain"
                 />
               ) : null}
             </button>
