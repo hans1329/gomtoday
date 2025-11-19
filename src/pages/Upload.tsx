@@ -1682,8 +1682,8 @@ export default function Upload() {
                   </div>
                 </div>
 
-                {/* 등장인물 선택 - 공개 일기장일 때만 표시 */}
-                {selectedNotebook && notebooks.find(nb => nb.id === selectedNotebook)?.visibility === 'public' && (
+                {/* 등장인물 선택 - 나만의 일기장이 아닐 때만 표시 */}
+                {selectedNotebook && !notebooks.find(nb => nb.id === selectedNotebook && nb.visibility === 'private' && nb.is_default) && (
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 px-2">
                       <Label>등장인물</Label>
