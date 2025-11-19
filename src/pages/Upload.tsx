@@ -1289,7 +1289,7 @@ export default function Upload() {
     setConfirmRegenerateDialogOpen(true);
   };
 
-  // 연필 차감 후 다시 생성
+  // 연필 차감 후 초기화 및 리셋
   const handleConfirmRegenerate = async () => {
     setConfirmRegenerateDialogOpen(false);
     
@@ -1312,91 +1312,25 @@ export default function Upload() {
     }
 
     setPencilCount(pencilCount - regenerationCost);
-    handleRegenerate();
-  };
-
-  // 일기 다시 생성하기
-  const handleRegenerate = async () => {
-    const diaryId = id || currentDiaryId;
-    if (!isGenerated || !diaryId) return;
     
-    setUploading(true);
-    setUploadProgress(10);
-    setUploadStatus("사진 분석 준비 중...");
-
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        navigate("/auth");
-        return;
-      }
-
-      // 기존 사진 URL들 가져오기 (저장된 사진만 사용)
-      if (existingPhotos.length === 0) {
-        toast({
-          title: "저장된 사진이 필요해요",
-          description: "일기를 다시 생성하려면 먼저 저장해주세요.",
-          variant: "destructive"
-        });
-        setUploading(false);
-        return;
-      }
-
-      const photoUrls = existingPhotos.map(p => p.photo_url);
-
-      setUploadStatus("AI가 일기를 다시 작성하고 있어요...");
-      setUploadProgress(50);
-
-      const { data: aiResponse, error: aiError } = await supabase.functions.invoke("analyze-photo", {
-        body: {
-          photoUrls: photoUrls,
-          emotion,
-          length,
-          perspective
-        }
-      });
-
-      if (aiError) throw aiError;
-
-      setUploadProgress(90);
-      setUploadStatus("일기를 업데이트하고 있어요...");
-
-      // 일기 내용 업데이트
-      const { error: updateError } = await supabase
-        .from("diaries")
-        .update({
-          content: aiResponse.content,
-          title: aiResponse.title,
-          emoji: aiResponse.emoji,
-          tone: emotion,
-          length,
-          perspective
-        })
-        .eq("id", diaryId);
-
-      if (updateError) throw updateError;
-
-      setContent(aiResponse.content);
-      setTitle(aiResponse.title);
-      setUploadProgress(100);
-
-      toast({
-        title: "일기를 다시 생성했어요!",
-        description: "내용을 확인하고 수정하세요."
-      });
-    } catch (error: any) {
-      console.error("일기 재생성 실패:", error);
-      toast({
-        title: "일기 재생성 실패",
-        description: error.message || "다시 시도해주세요.",
-        variant: "destructive"
-      });
-    } finally {
-      setUploading(false);
-      setUploadProgress(0);
-      setUploadStatus("");
-    }
+    // 초기 상태로 리셋
+    setIsGenerated(false);
+    setCurrentDiaryId(null);
+    setContent("");
+    setTitle("");
+    setGeneratedContent("");
+    setGeneratedTitle("");
+    setGeneratedEmoji("");
+    setSelectedFiles([]);
+    setPreviewUrls([]);
+    setExistingPhotos([]);
+    
+    toast({
+      title: "초기화되었습니다",
+      description: "새로운 일기를 작성할 수 있습니다.",
+    });
   };
+
   
   if (loading) {
     return (
@@ -1713,19 +1647,19 @@ export default function Upload() {
               <div className="flex items-center justify-end mb-4">
                 <Button
                   onClick={handleRegenerateClick}
-                  disabled={uploading || (existingPhotos.length === 0 && previewUrls.length === 0)}
+                  disabled={uploading}
                   variant="outline"
                   size="sm"
                 >
                   {uploading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      재생성 중...
+                      초기화 중...
                     </>
                   ) : (
                     <>
                       <PenLine className="mr-2 h-4 w-4" />
-                      다시 생성하기
+                      처음부터 다시
                     </>
                   )}
                 </Button>
@@ -2038,16 +1972,24 @@ export default function Upload() {
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
               <Pencil className="h-5 w-5" />
-              일기를 다시 생성하시겠습니까?
+              처음부터 다시 시작하시겠습니까?
             </AlertDialogTitle>
             <AlertDialogDescription>
-              일기 다시 생성에는 연필 {regenerationCost}개가 차감됩니다.
-              <div className="mt-2 p-3 rounded-lg bg-muted">
-                <p className="text-sm">
-                  현재 연필: <span className="font-bold">{pencilCount}개</span>
-                  {" → "}
-                  <span className="font-bold">{pencilCount - regenerationCost}개</span>
-                </p>
+              <div className="space-y-2">
+                <p>다음 내용이 모두 초기화됩니다:</p>
+                <ul className="list-disc list-inside text-sm space-y-1 ml-2">
+                  <li>선택한 모든 사진</li>
+                  <li>작성된 제목과 내용</li>
+                  <li>생성된 이모지</li>
+                </ul>
+                <p className="mt-3">일기 다시 생성에는 연필 {regenerationCost}개가 차감됩니다.</p>
+                <div className="mt-2 p-3 rounded-lg bg-muted">
+                  <p className="text-sm">
+                    현재 연필: <span className="font-bold">{pencilCount}개</span>
+                    {" → "}
+                    <span className="font-bold">{pencilCount - regenerationCost}개</span>
+                  </p>
+                </div>
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
