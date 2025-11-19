@@ -1470,7 +1470,7 @@ export default function Upload() {
                 <Button
                   onClick={handleGenerateClick}
                   disabled={selectedFiles.length < 1 || uploading}
-                  className="w-full h-14 text-lg font-semibold"
+                  className="w-full h-14 text-sm font-semibold"
                   size="lg"
                 >
                   {uploading ? (
