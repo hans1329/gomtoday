@@ -80,6 +80,13 @@ export default function Upload() {
     }
   }, [id]);
 
+  // 직접입력 모드에서 날짜 변경 시 해당 날짜의 일기 확인
+  useEffect(() => {
+    if (!isEditMode && writeMode === "manual") {
+      checkExistingDiaryForDate();
+    }
+  }, [selectedDate, writeMode, isEditMode]);
+
   // currentUser가 로드된 후 일기 데이터 다시 처리
   useEffect(() => {
     if (currentUser && isEditMode) {
@@ -255,6 +262,73 @@ export default function Upload() {
         });
         
         break;
+      }
+    }
+  };
+
+  // 직접입력 모드에서 선택한 날짜의 일기가 있는지 확인
+  const checkExistingDiaryForDate = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const startOfDay = new Date(selectedDate);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(selectedDate);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const { data: existingDiary } = await supabase
+      .from("diaries")
+      .select(`
+        *,
+        photos!photos_diary_id_fkey (
+          id,
+          photo_url,
+          display_order
+        ),
+        diary_notebooks (
+          notebook_id
+        )
+      `)
+      .eq("user_id", user.id)
+      .gte("created_at", startOfDay.toISOString())
+      .lte("created_at", endOfDay.toISOString())
+      .maybeSingle();
+
+    if (existingDiary) {
+      // 해당 날짜에 일기가 이미 있으면 수정 모드로 전환
+      setCurrentDiaryId(existingDiary.id);
+      setContent(existingDiary.content || "");
+      setTitle(existingDiary.title || "");
+      setEmotion(existingDiary.tone || "happy");
+      setWeather(existingDiary.weather || "sunny");
+      
+      if (existingDiary.participants) {
+        setParticipants(existingDiary.participants as Array<{id: string, name: string, profile_photo_url?: string}>);
+      }
+
+      if (existingDiary.photos && existingDiary.photos.length > 0) {
+        setExistingPhotos(existingDiary.photos);
+        setPreviewUrls(existingDiary.photos.map((p: any) => p.photo_url));
+      } else {
+        setExistingPhotos([]);
+        setPreviewUrls([]);
+      }
+
+      const notebookIds = existingDiary.diary_notebooks?.map((dn: any) => dn.notebook_id) || [];
+      setSelectedNotebook(notebookIds[0] || null);
+
+      toast({
+        title: "이 날짜의 일기가 있어요",
+        description: "수정 모드로 전환됩니다."
+      });
+    } else {
+      // 해당 날짜에 일기가 없으면 초기화
+      if (!currentDiaryId) {
+        setContent("");
+        setTitle("");
+        setExistingPhotos([]);
+        setPreviewUrls([]);
+        setParticipants(currentUser ? [currentUser] : []);
       }
     }
   };
@@ -771,23 +845,48 @@ export default function Upload() {
         }
       }
 
-      // 일기 생성
-      const {
-        data: diaryData,
-        error: diaryError
-      } = await supabase.from("diaries").insert({
-        user_id: user.id,
-        content: content,
-        title: title || "제목 없음",
-        emoji: generatedEmoji || "📝",
-        tone: emotion,
-        weather,
-        perspective: null,  // 직접 입력은 시점 없음
-        participants: participants,
-        created_at: selectedDate.toISOString()
-      }).select().single();
+      // 일기 생성 또는 수정
+      let diaryData;
+      if (currentDiaryId) {
+        // 기존 일기 수정
+        const { data: updatedDiary, error: updateError } = await supabase
+          .from("diaries")
+          .update({
+            content: content,
+            title: title || "제목 없음",
+            emoji: generatedEmoji || "📝",
+            tone: emotion,
+            weather,
+            perspective: null,
+            participants: participants,
+          })
+          .eq("id", currentDiaryId)
+          .select()
+          .single();
 
-      if (diaryError) throw diaryError;
+        if (updateError) throw updateError;
+        diaryData = updatedDiary;
+      } else {
+        // 새 일기 생성
+        const { data: newDiary, error: insertError } = await supabase
+          .from("diaries")
+          .insert({
+            user_id: user.id,
+            content: content,
+            title: title || "제목 없음",
+            emoji: generatedEmoji || "📝",
+            tone: emotion,
+            weather,
+            perspective: null,
+            participants: participants,
+            created_at: selectedDate.toISOString()
+          })
+          .select()
+          .single();
+
+        if (insertError) throw insertError;
+        diaryData = newDiary;
+      }
 
       // 사진 연결
       for (let i = 0; i < photoUrls.length; i++) {
