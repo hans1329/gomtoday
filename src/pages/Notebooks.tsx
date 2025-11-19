@@ -612,43 +612,43 @@ export default function Notebooks() {
           <>
             {/* 기본 일기장 - 모바일에서 가로 스크롤 */}
             {notebooks.filter(nb => nb.is_default).length > 0 && (
-              <div className="mb-6">
-                <h3 className="text-sm font-medium mb-3 px-1">기본 일기장</h3>
-                <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory">
+              <div className="mb-6 -mx-4 sm:mx-0">
+                <h3 className="text-sm font-medium mb-3 px-4 sm:px-1">기본 일기장</h3>
+                <div className="flex gap-2.5 overflow-x-auto pb-2 px-4 sm:px-0 scrollbar-hide snap-x snap-mandatory">
                   {notebooks.filter(nb => nb.is_default).map(notebook => {
                     const isMyNotebook = notebook.user_id === user?.id;
                     return (
                       <Card 
                         key={notebook.id} 
-                        className={`shadow-sm min-w-[280px] sm:min-w-[320px] flex-shrink-0 snap-start ${isMyNotebook ? "border-2 border-primary/50" : ""}`}
+                        className={`shadow-sm min-w-[calc(100vw-3rem)] max-w-[calc(100vw-3rem)] sm:min-w-[280px] sm:max-w-none flex-shrink-0 snap-center cursor-pointer transition-all hover:shadow-lg ${isMyNotebook ? "border-2 border-primary/50" : ""}`}
                         onClick={() => navigate(`/diaries?notebook=${notebook.id}`)}
                       >
-                        <CardHeader className="p-4">
+                        <CardHeader className="p-3 sm:p-4">
                           <div className="flex items-center gap-2">
-                            <CardTitle className="text-base truncate">{notebook.name}</CardTitle>
-                            {notebook.visibility === "private" && <Lock className="h-4 w-4 text-muted-foreground flex-shrink-0" />}
-                            {notebook.visibility === "shared" && <Users className="h-4 w-4 text-muted-foreground flex-shrink-0" />}
-                            {notebook.visibility === "public" && <Globe className="h-4 w-4 text-muted-foreground flex-shrink-0" />}
+                            <CardTitle className="text-sm sm:text-base truncate">{notebook.name}</CardTitle>
+                            {notebook.visibility === "private" && <Lock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />}
+                            {notebook.visibility === "shared" && <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />}
+                            {notebook.visibility === "public" && <Globe className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />}
                           </div>
                         </CardHeader>
-                        <CardContent className="p-4 pt-0">
+                        <CardContent className="p-3 pt-0 sm:p-4 sm:pt-0">
                           {notebook.notebook_members && notebook.notebook_members.length > 0 && (
                             <div className="flex items-center gap-2">
                               <div className="flex -space-x-2">
                                 {notebook.notebook_members.slice(0, 5).map((member: any) => (
-                                  <Avatar key={member.id} className="h-6 w-6 border-2 border-background relative">
+                                  <Avatar key={member.id} className="h-5 w-5 sm:h-6 sm:w-6 border-2 border-background relative">
                                     <AvatarImage src={member.profiles?.profile_photo_url || undefined} />
-                                    <AvatarFallback className="text-xs">
+                                    <AvatarFallback className="text-[10px] sm:text-xs">
                                       {member.profiles?.name?.[0] || "U"}
                                     </AvatarFallback>
                                     {onlineUsers.has(member.user_id) && (
-                                      <span className="absolute bottom-0 right-0 block h-2 w-2 rounded-full bg-green-500 ring-2 ring-background" />
+                                      <span className="absolute bottom-0 right-0 block h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-green-500 ring-2 ring-background" />
                                     )}
                                   </Avatar>
                                 ))}
                               </div>
                               {notebook.notebook_members.length > 5 && (
-                                <span className="text-xs text-muted-foreground">
+                                <span className="text-[10px] sm:text-xs text-muted-foreground">
                                   +{notebook.notebook_members.length - 5}
                                 </span>
                               )}
