@@ -498,24 +498,22 @@ export default function Upload() {
 
     const { data: members } = await supabase
       .from("notebook_members")
-      .select(`
-        user_id,
-        profiles:user_id (
-          user_id,
-          name,
-          profile_photo_url
-        )
-      `)
+      .select("user_id")
       .eq("notebook_id", notebookId);
 
-    if (members) {
-      const membersList = members
-        .map((member: any) => ({
-          id: member.profiles?.user_id,
-          name: member.profiles?.name || "사용자",
-          profile_photo_url: member.profiles?.profile_photo_url
-        }))
-        .filter((member: any) => member.id);
+    if (members && members.length > 0) {
+      const userIds = members.map(m => m.user_id);
+      
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("user_id, name, profile_photo_url")
+        .in("user_id", userIds);
+
+      const membersList = profiles?.map((profile: any) => ({
+        id: profile.user_id,
+        name: profile.name || "사용자",
+        profile_photo_url: profile.profile_photo_url
+      })) || [];
 
       // 현재 사용자가 포함되어 있지 않으면 추가
       const hasCurrentUser = membersList.some((m: any) => m.id === currentUser.id);
