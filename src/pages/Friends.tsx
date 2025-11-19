@@ -15,7 +15,7 @@ export default function Friends() {
   const [receivedRequests, setReceivedRequests] = useState<any[]>([]);
   const [sentRequests, setSentRequests] = useState<any[]>([]);
   const [friends, setFriends] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
