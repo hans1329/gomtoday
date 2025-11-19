@@ -444,11 +444,31 @@ export default function Home() {
   };
 
   const handlePrevMonth = () => {
-    setCurrentMonth(subMonths(currentMonth, 1));
+    const newMonth = subMonths(currentMonth, 1);
+    setCurrentMonth(newMonth);
+    
+    // selectedDate도 같이 이동 (같은 날짜로, 없으면 월의 마지막 날로)
+    if (selectedDate) {
+      const newDate = new Date(newMonth);
+      const maxDay = endOfMonth(newMonth).getDate();
+      const targetDay = Math.min(selectedDate.getDate(), maxDay);
+      newDate.setDate(targetDay);
+      setSelectedDate(newDate);
+    }
   };
 
   const handleNextMonth = () => {
-    setCurrentMonth(addMonths(currentMonth, 1));
+    const newMonth = addMonths(currentMonth, 1);
+    setCurrentMonth(newMonth);
+    
+    // selectedDate도 같이 이동 (같은 날짜로, 없으면 월의 마지막 날로)
+    if (selectedDate) {
+      const newDate = new Date(newMonth);
+      const maxDay = endOfMonth(newMonth).getDate();
+      const targetDay = Math.min(selectedDate.getDate(), maxDay);
+      newDate.setDate(targetDay);
+      setSelectedDate(newDate);
+    }
   };
 
   const handlePrevDay = () => {
