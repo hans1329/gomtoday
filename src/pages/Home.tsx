@@ -879,7 +879,7 @@ export default function Home() {
                       <h2 className="text-xl font-bold text-foreground">
                         {diaries[0].title}
                       </h2>
-                      {diaries[0].perspective && (
+                      {diaries[0].perspective && diaries[0].perspective !== 'direct' && (
                         <div className="text-sm text-muted-foreground">
                           #{(() => {
                             const perspectiveMap: Record<string, string> = {
@@ -904,31 +904,55 @@ export default function Home() {
                     </p>
                   </div>
 
-                <div className="flex items-center gap-4 pt-1">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleLike}
-                    className={cn(
-                      "gap-2 rounded-full h-9 px-3",
-                      isLiked ? "text-red-500 hover:text-red-600" : "text-muted-foreground"
-                    )}
-                  >
-                    <Heart className={cn("h-4 w-4", isLiked && "fill-current")} />
-                    <span className="text-sm">{likes.length}</span>
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowComments(!showComments);
-                    }}
-                    className="flex items-center gap-2 text-muted-foreground hover:text-foreground h-9 px-3 rounded-full"
-                  >
-                    <MessageCircle className="h-4 w-4" />
-                    <span className="text-sm">{comments.length}</span>
-                  </Button>
+                <div className="flex items-center justify-between pt-1">
+                  <div className="flex items-center gap-4">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleLike}
+                      className={cn(
+                        "gap-2 rounded-full h-9 px-3",
+                        isLiked ? "text-red-500 hover:text-red-600" : "text-muted-foreground"
+                      )}
+                    >
+                      <Heart className={cn("h-4 w-4", isLiked && "fill-current")} />
+                      <span className="text-sm">{likes.length}</span>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowComments(!showComments);
+                      }}
+                      className="flex items-center gap-2 text-muted-foreground hover:text-foreground h-9 px-3 rounded-full"
+                    >
+                      <MessageCircle className="h-4 w-4" />
+                      <span className="text-sm">{comments.length}</span>
+                    </Button>
+                  </div>
+
+                  {/* Edit/Delete Buttons - 본인의 일기일 경우에만 표시 */}
+                  {currentUserId === diaries[0].user_id && (
+                    <div className="flex items-center gap-2">
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={() => navigate(`/upload/${diaries[0].id}`)} 
+                        className="rounded-full h-9 w-9"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={() => setShowDeleteDialog(true)}
+                        className="rounded-full h-9 w-9 text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
                 </div>
 
                 {showComments && (
@@ -990,30 +1014,6 @@ export default function Home() {
                     </div>
                   </>
                 )}
-
-                  {/* Edit/Delete Buttons - 본인의 일기일 경우에만 표시 */}
-                  {currentUserId === diaries[0].user_id && (
-                    <div className="flex gap-2 pt-4 border-t mt-4 justify-end">
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => navigate(`/upload/${diaries[0].id}`)} 
-                        className="rounded-full gap-2"
-                      >
-                        <Edit className="h-4 w-4" />
-                        편집
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => setShowDeleteDialog(true)}
-                        className="rounded-full gap-2 text-destructive hover:text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                        삭제
-                      </Button>
-                    </div>
-                  )}
               </div>
             </CardContent>
           </Card>
