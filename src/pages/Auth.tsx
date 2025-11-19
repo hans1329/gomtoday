@@ -93,7 +93,7 @@ export default function Auth() {
       <div className="w-full max-w-md">
         <div className="space-y-6 mb-8">
           <div className="flex items-center justify-center mb-4">
-            <img src={logoUrl} alt="Logo" className="h-36 w-auto object-contain" />
+            <img src={logoUrl} alt="Logo" className="h-34 w-auto object-contain" />
           </div>
           <p className="text-base text-center text-muted-foreground font-bold">
             누군가가 써주는 나의 일기
