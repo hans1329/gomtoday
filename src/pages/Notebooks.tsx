@@ -559,6 +559,16 @@ export default function Notebooks() {
         });
       }
 
+      // 캐시 무효화
+      try {
+        const cacheKey = `notebooks_${user.id}`;
+        const cacheTimeKey = `notebooks_time_${user.id}`;
+        localStorage.removeItem(cacheKey);
+        localStorage.removeItem(cacheTimeKey);
+      } catch (e) {
+        console.error("Failed to clear notebook cache after leaving:", e);
+      }
+
       toast({
         title: "일기장을 나갔습니다"
       });
