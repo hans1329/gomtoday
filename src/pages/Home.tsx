@@ -113,11 +113,12 @@ export default function Home() {
     if (!currentUserId) return;
 
     const checkHasAnyDiary = async () => {
-      // 일기장에 연결된 일기만 카운트
+      // status가 published인 일기만 카운트
       const { data, error } = await supabase
-        .from("diary_notebooks")
-        .select("diary_id, diaries!inner(user_id)", { count: "exact", head: false })
-        .eq("diaries.user_id", currentUserId);
+        .from("diaries")
+        .select("id", { count: "exact", head: false })
+        .eq("user_id", currentUserId)
+        .eq("status", "published");
 
       if (!error) {
         setHasAnyDiary((data?.length ?? 0) > 0);
@@ -191,7 +192,7 @@ export default function Home() {
       }
     }
 
-    // 내 일기 가져오기 (일기장에 연결된 일기만)
+    // 내 일기 가져오기 (status가 published인 일기만)
     const { data: myData } = await supabase
       .from("diaries")
       .select(`
@@ -209,6 +210,7 @@ export default function Home() {
         )
       `)
       .eq("user_id", user.id)
+      .eq("status", "published")
       .gte("created_at", monthStart.toISOString())
       .lte("created_at", monthEnd.toISOString())
       .order("created_at", { ascending: false });
@@ -265,6 +267,7 @@ export default function Home() {
             )
           `)
           .in("id", publicDiaryIdList)
+          .eq("status", "published")
           .gte("created_at", monthStart.toISOString())
           .lte("created_at", monthEnd.toISOString());
 
@@ -274,7 +277,7 @@ export default function Home() {
       }
     }
 
-    // 2) 등장인물에 내가 포함된 일기 (일기장에 연결된 일기만)
+    // 2) 등장인물에 내가 포함된 일기 (status가 published인 일기만)
     const { data: participantData } = await supabase
       .from("diaries")
       .select(`
@@ -291,6 +294,7 @@ export default function Home() {
           notebooks(visibility)
         )
       `)
+      .eq("status", "published")
       .gte("created_at", monthStart.toISOString())
       .lte("created_at", monthEnd.toISOString());
 

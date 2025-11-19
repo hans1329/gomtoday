@@ -220,7 +220,7 @@ export default function Upload() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    // 일기장에 연결되지 않은 일기 중 가장 최근 것 찾기 (최적화: LEFT JOIN 사용)
+    // 일기장에 연결되지 않고 status가 draft인 일기 중 가장 최근 것 찾기
     const { data: diaries } = await supabase
       .from("diaries")
       .select(`
@@ -228,16 +228,14 @@ export default function Upload() {
         diary_notebooks(notebook_id)
       `)
       .eq("user_id", user.id)
+      .eq("status", "draft")
       .order("created_at", { ascending: false })
       .limit(20);
 
     if (!diaries || diaries.length === 0) return;
 
-    // 일기장에 연결되지 않은 일기 찾기
-    const draftDiary = diaries.find(diary => {
-      const notebooks = diary.diary_notebooks as any[];
-      return !notebooks || notebooks.length === 0;
-    });
+    // 가장 최근의 임시 저장 일기 사용
+    const draftDiary = diaries[0];
 
     if (draftDiary) {
       // 임시 저장된 일기 발견
@@ -643,7 +641,7 @@ export default function Upload() {
       setUploadProgress(80);
       setUploadStatus("일기를 임시 저장하고 있어요...");
 
-      // 임시 일기 생성 (일기장 연결 없이)
+      // 임시 일기 생성 (일기장 연결 없이, status는 draft)
       const {
         data: diaryData,
         error: diaryError
@@ -657,7 +655,8 @@ export default function Upload() {
         weather,
         perspective,
         participants: participants,
-        created_at: selectedDate.toISOString()
+        created_at: selectedDate.toISOString(),
+        status: 'draft'
       }).select().single();
       if (diaryError) throw diaryError;
 
@@ -767,14 +766,15 @@ export default function Upload() {
       // 연필 개수 업데이트 이벤트 발생
       window.dispatchEvent(new CustomEvent('pencil-updated'));
 
-      // 일기 내용 업데이트 (사용자가 수정한 경우)
+      // 일기 내용 업데이트 및 상태를 published로 변경
       const {
         error: updateError
       } = await supabase.from("diaries").update({
         content: content,
         title: title,
         emoji: generatedEmoji,
-        participants: participants
+        participants: participants,
+        status: 'published'
       }).eq("id", currentDiaryId);
       if (updateError) throw updateError;
 
@@ -927,6 +927,7 @@ export default function Upload() {
             weather,
             perspective: null,
             participants: participants,
+            status: 'published'
           })
           .eq("id", currentDiaryId)
           .select()
@@ -947,7 +948,8 @@ export default function Upload() {
             weather,
             perspective: null,
             participants: participants,
-            created_at: selectedDate.toISOString()
+            created_at: selectedDate.toISOString(),
+            status: 'published'
           })
           .select()
           .single();
