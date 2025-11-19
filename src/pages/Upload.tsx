@@ -1284,7 +1284,7 @@ export default function Upload() {
               className="flex-1 rounded-full"
               onClick={() => setWriteMode("ai")}
             >
-              AI 생성
+              누군가 작성
             </Button>
             <Button
               variant={writeMode === "manual" ? "default" : "ghost"}
