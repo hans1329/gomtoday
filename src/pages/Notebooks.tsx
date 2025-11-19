@@ -433,6 +433,23 @@ export default function Notebooks() {
   const addMember = async (userId: string) => {
     if (!selectedNotebookId) return;
     
+    // 현재 멤버 수 확인
+    const { count: currentMemberCount } = await supabase
+      .from("notebook_members")
+      .select("*", { count: "exact", head: true })
+      .eq("notebook_id", selectedNotebookId);
+
+    const MEMBER_LIMIT = 10; // 기본 멤버 제한 (나중에 연필로 확장 가능)
+    
+    if (currentMemberCount !== null && currentMemberCount >= MEMBER_LIMIT) {
+      toast({
+        title: "멤버 수 제한",
+        description: `일기장당 최대 ${MEMBER_LIMIT}명까지 추가할 수 있습니다.`,
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setAddingMember(userId); // 로딩 시작
     
     const {
@@ -915,7 +932,7 @@ export default function Notebooks() {
             
             <TabsContent value="add" className="space-y-4 mt-4">
               <div className="space-y-2">
-                <Label>사용자 검색</Label>
+                <Label>사용자 검색 (최대 10명)</Label>
                 <div className="flex gap-2">
                   <Input placeholder="이름 또는 이메일로 검색" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} onKeyDown={e => e.key === "Enter" && searchUsers()} />
                   <Button onClick={searchUsers} disabled={searching}>
