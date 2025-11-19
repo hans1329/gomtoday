@@ -21,7 +21,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Upload as UploadIcon, Loader2, ArrowLeft, Trash2, ChevronUp, ChevronDown, CalendarIcon, UserPlus, X, PenLine, Pencil } from "lucide-react";
+import { Upload as UploadIcon, Loader2, ArrowLeft, Trash2, ChevronUp, ChevronDown, CalendarIcon, X, PenLine, Pencil } from "lucide-react";
 import { format } from "date-fns";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { ko } from "date-fns/locale";
@@ -51,8 +51,6 @@ export default function Upload() {
   const [selectedNotebook, setSelectedNotebook] = useState<string | null>(null);
   const [participants, setParticipants] = useState<Array<{id: string, name: string, profile_photo_url?: string}>>([]);
   const [currentUser, setCurrentUser] = useState<{id: string, name: string, profile_photo_url?: string} | null>(null);
-  const [friends, setFriends] = useState<Array<{id: string, name: string, profile_photo_url?: string}>>([]);
-  const [showMemberDialog, setShowMemberDialog] = useState(false);
   const [isGenerated, setIsGenerated] = useState(false);
   const [generatedContent, setGeneratedContent] = useState("");
   const [generatedTitle, setGeneratedTitle] = useState("");
@@ -80,6 +78,13 @@ export default function Upload() {
       checkDraftDiary();
     }
   }, [id]);
+
+  // 일기장 선택 시 해당 일기장의 멤버를 자동으로 로드
+  useEffect(() => {
+    if (selectedNotebook && currentUser) {
+      fetchNotebookMembers(selectedNotebook);
+    }
+  }, [selectedNotebook, currentUser]);
 
   // 직접입력 모드에서 날짜 변경 시 해당 날짜의 일기 확인
   useEffect(() => {
@@ -449,52 +454,44 @@ export default function Upload() {
         }
       }
     }
-
-    // 일기 친구 목록 가져오기
-    await fetchFriends(user.id);
   };
 
-  const fetchFriends = async (userId: string) => {
-    // 친구 요청이 수락된 사용자들 가져오기
-    const { data: acceptedRequests } = await supabase
-      .from("friend_requests")
+  // 일기장의 멤버를 가져오는 함수
+  const fetchNotebookMembers = async (notebookId: string) => {
+    if (!currentUser) return;
+
+    const { data: members } = await supabase
+      .from("notebook_members")
       .select(`
-        from_user_id,
-        to_user_id,
-        from_profile:profiles!friend_requests_from_user_id_fkey(user_id, name, profile_photo_url),
-        to_profile:profiles!friend_requests_to_user_id_fkey(user_id, name, profile_photo_url)
+        user_id,
+        profiles:user_id (
+          user_id,
+          name,
+          profile_photo_url
+        )
       `)
-      .eq("status", "accepted")
-      .or(`from_user_id.eq.${userId},to_user_id.eq.${userId}`);
+      .eq("notebook_id", notebookId);
 
-    if (acceptedRequests) {
-      const friendsList = acceptedRequests
-        .map((req: any) => {
-          // 현재 사용자가 from_user면 to_user가 친구, 반대도 마찬가지
-          const isSender = req.from_user_id === userId;
-          const friendProfile = isSender ? req.to_profile : req.from_profile;
-          
-          return {
-            id: friendProfile?.user_id,
-            name: friendProfile?.name || "사용자",
-            profile_photo_url: friendProfile?.profile_photo_url
-          };
-        })
-        .filter((friend: any) => friend.id && !participants.some(p => p.id === friend.id)); // ID가 있고 이미 추가되지 않은 친구만
+    if (members) {
+      const membersList = members
+        .map((member: any) => ({
+          id: member.profiles?.user_id,
+          name: member.profiles?.name || "사용자",
+          profile_photo_url: member.profiles?.profile_photo_url
+        }))
+        .filter((member: any) => member.id);
 
-      setFriends(friendsList);
+      // 현재 사용자가 포함되어 있지 않으면 추가
+      const hasCurrentUser = membersList.some((m: any) => m.id === currentUser.id);
+      if (!hasCurrentUser) {
+        setParticipants([currentUser, ...membersList]);
+      } else {
+        setParticipants(membersList);
+      }
+    } else {
+      // 멤버가 없으면 현재 사용자만 표시
+      setParticipants([currentUser]);
     }
-  };
-
-  const addParticipant = (member: {id: string, name: string, profile_photo_url?: string}) => {
-    if (!participants.some(p => p.id === member.id)) {
-      setParticipants([...participants, member]);
-    }
-    setShowMemberDialog(false);
-  };
-
-  const removeParticipant = (memberId: string) => {
-    setParticipants(participants.filter(p => p.id !== memberId));
   };
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -1836,7 +1833,7 @@ export default function Upload() {
                   </div>
                 </div>
 
-                {/* 등장인물 선택 - '나만의 일기장'이 아닐 때만 표시 (공통, 일기장 선택 하단) */}
+                {/* 등장인물 - '나만의 일기장'이 아닐 때만 표시 */}
                 {(() => {
                   if (!selectedNotebook) return false;
                   const selectedNotebookData = notebooks.find(nb => nb.id === selectedNotebook);
@@ -1852,43 +1849,18 @@ export default function Upload() {
                     <TooltipProvider>
                       <div className="flex flex-wrap gap-2 p-3 border rounded-md min-h-[48px] items-center">
                         {participants.map((p) => (
-                          <div key={p.id} className="relative group">
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <div className="relative">
-                                  <Avatar className="h-10 w-10 cursor-pointer border-2 border-border">
-                                    <AvatarImage src={p.profile_photo_url} />
-                                    <AvatarFallback>{p.name.charAt(0)}</AvatarFallback>
-                                  </Avatar>
-                                  <button
-                                    onClick={() => removeParticipant(p.id)}
-                                    className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-destructive text-destructive-foreground opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
-                                  >
-                                    <X className="h-3 w-3" />
-                                  </button>
-                                </div>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>{p.name}</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </div>
+                          <Tooltip key={p.id}>
+                            <TooltipTrigger asChild>
+                              <Avatar className="h-10 w-10 cursor-pointer border-2 border-border">
+                                <AvatarImage src={p.profile_photo_url} />
+                                <AvatarFallback>{p.name.charAt(0)}</AvatarFallback>
+                              </Avatar>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>{p.name}</p>
+                            </TooltipContent>
+                          </Tooltip>
                         ))}
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          className="h-10 w-10 rounded-full p-0"
-                          onClick={async () => {
-                            const { data: { user } } = await supabase.auth.getUser();
-                            if (user) {
-                              await fetchFriends(user.id);
-                              setShowMemberDialog(true);
-                            }
-                          }}
-                        >
-                          <UserPlus className="h-4 w-4" />
-                        </Button>
                       </div>
                     </TooltipProvider>
                   </div>
@@ -2011,47 +1983,6 @@ export default function Upload() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={showMemberDialog} onOpenChange={setShowMemberDialog}>
-        <DialogContent className="max-w-[calc(100%-2rem)] sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>등장인물 추가</DialogTitle>
-            <DialogDescription>
-              일기 친구를 선택하세요
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-2 max-h-[300px] overflow-y-auto">
-            {friends.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-4">
-                추가할 수 있는 일기 친구가 없습니다
-              </p>
-            ) : (
-              friends.map((friend) => (
-                <Button
-                  key={friend.id}
-                  variant="outline"
-                  className="w-full justify-start gap-3"
-                  onClick={() => addParticipant(friend)}
-                >
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={friend.profile_photo_url} />
-                    <AvatarFallback>{friend.name.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                  {friend.name}
-                </Button>
-              ))
-            )}
-          </div>
-          <DialogFooter className="flex-col-reverse sm:flex-row sm:justify-end gap-2">
-            <Button 
-              variant="outline" 
-              onClick={() => setShowMemberDialog(false)}
-              className="w-full sm:w-auto"
-            >
-              닫기
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* 작성 취소 확인 대화상자 */}
       <AlertDialog open={confirmCancelDialogOpen} onOpenChange={setConfirmCancelDialogOpen}>
