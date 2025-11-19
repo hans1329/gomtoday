@@ -1342,6 +1342,23 @@ export default function Upload() {
   const handleConfirmRegenerate = async () => {
     setConfirmRegenerateDialogOpen(false);
     
+    // 임시 일기 삭제
+    if (currentDiaryId) {
+      const { error: deletePhotosError } = await supabase
+        .from("photos")
+        .delete()
+        .eq("diary_id", currentDiaryId);
+
+      const { error: deleteDiaryError } = await supabase
+        .from("diaries")
+        .delete()
+        .eq("id", currentDiaryId);
+
+      if (deletePhotosError || deleteDiaryError) {
+        console.error("임시 일기 삭제 실패:", deletePhotosError || deleteDiaryError);
+      }
+    }
+    
     // 초기 상태로 리셋
     setIsGenerated(false);
     setCurrentDiaryId(null);
@@ -2119,7 +2136,24 @@ export default function Upload() {
           <AlertDialogFooter className="flex-col-reverse sm:flex-row sm:justify-end gap-2">
             <AlertDialogCancel className="w-full sm:w-auto">아니오</AlertDialogCancel>
             <AlertDialogAction 
-              onClick={() => {
+              onClick={async () => {
+                // 임시 일기 삭제
+                if (currentDiaryId) {
+                  const { error: deletePhotosError } = await supabase
+                    .from("photos")
+                    .delete()
+                    .eq("diary_id", currentDiaryId);
+
+                  const { error: deleteDiaryError } = await supabase
+                    .from("diaries")
+                    .delete()
+                    .eq("id", currentDiaryId);
+
+                  if (deletePhotosError || deleteDiaryError) {
+                    console.error("임시 일기 삭제 실패:", deletePhotosError || deleteDiaryError);
+                  }
+                }
+
                 // 초기화
                 setIsGenerated(false);
                 setCurrentDiaryId(null);
