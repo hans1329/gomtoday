@@ -332,7 +332,8 @@ export default function Home() {
       );
     }
 
-    if (selectedDate) {
+    // 내 일기 모드에서는 날짜 필터를 적용하지 않음 (전체 일기 표시)
+    if (selectedDate && viewMode === "public") {
       filtered = filtered.filter(diary => 
         isSameDay(new Date(diary.created_at), selectedDate)
       );
