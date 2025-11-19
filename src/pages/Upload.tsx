@@ -31,6 +31,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 export default function Upload() {
   const { id } = useParams();
   const isEditMode = !!id;
+  const [writeMode, setWriteMode] = useState<"ai" | "manual">("ai");
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [existingPhotos, setExistingPhotos] = useState<any[]>([]);
@@ -690,6 +691,159 @@ export default function Upload() {
     }
   };
 
+  // 직접 입력 모드 저장 함수
+  const handleSaveManual = async () => {
+    if (!selectedNotebook) {
+      toast({
+        title: "일기장을 선택해주세요",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!content.trim()) {
+      toast({
+        title: "일기 내용을 입력해주세요",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // 연필 체크
+    if (pencilCount < writeCost) {
+      toast({
+        title: "연필이 부족해요",
+        description: `일기 저장에는 연필 ${writeCost}개가 필요합니다. (현재: ${pencilCount}개)`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const {
+        data: {
+          user
+        }
+      } = await supabase.auth.getUser();
+      if (!user) {
+        navigate("/auth");
+        return;
+      }
+
+      // 연필 차감
+      const { error: deductError } = await supabase
+        .from("profiles")
+        .update({ pencil_count: pencilCount - writeCost })
+        .eq("user_id", user.id);
+
+      if (deductError) throw deductError;
+
+      setPencilCount(pencilCount - writeCost);
+
+      // 사진 업로드 (있는 경우)
+      const photoUrls: string[] = [];
+      if (selectedFiles.length > 0) {
+        for (let i = 0; i < selectedFiles.length; i++) {
+          const file = selectedFiles[i];
+          const fileExt = file.name.split('.').pop() || 'jpg';
+          const fileName = `${user.id}/${Date.now()}-${i}.${fileExt}`;
+          const {
+            error: uploadError
+          } = await supabase.storage.from("photos").upload(fileName, file);
+          if (uploadError) throw uploadError;
+          const {
+            data: {
+              publicUrl
+            }
+          } = supabase.storage.from("photos").getPublicUrl(fileName);
+          photoUrls.push(publicUrl);
+        }
+      }
+
+      // 일기 생성
+      const {
+        data: diaryData,
+        error: diaryError
+      } = await supabase.from("diaries").insert({
+        user_id: user.id,
+        content: content,
+        title: title || "제목 없음",
+        emoji: generatedEmoji || "📝",
+        tone: emotion,
+        weather,
+        participants: participants,
+        created_at: selectedDate.toISOString()
+      }).select().single();
+
+      if (diaryError) throw diaryError;
+
+      // 사진 연결
+      for (let i = 0; i < photoUrls.length; i++) {
+        const {
+          error: photoError
+        } = await supabase.from("photos").insert({
+          user_id: user.id,
+          photo_url: photoUrls[i],
+          diary_id: diaryData.id,
+          display_order: i
+        });
+        if (photoError) throw photoError;
+      }
+
+      // 일기장에 연결
+      await supabase
+        .from("diary_notebooks")
+        .insert({
+          diary_id: diaryData.id,
+          notebook_id: selectedNotebook
+        });
+
+      // 등장인물에게 알림 전송
+      const mentionedUsers = participants.filter(p => p.id !== user.id);
+      if (mentionedUsers.length > 0) {
+        const { data: profileData } = await supabase
+          .from("profiles")
+          .select("name")
+          .eq("user_id", user.id)
+          .single();
+        
+        const authorName = profileData?.name || "사용자";
+        
+        for (const participant of mentionedUsers) {
+          await supabase.from("notifications").insert({
+            user_id: participant.id,
+            type: "diary_mention",
+            title: "일기에 등장했어요!",
+            message: `${authorName}님의 일기에 회원님이 등장했어요`,
+            link: `/diary/${diaryData.id}`,
+            metadata: {
+              diary_id: diaryData.id,
+              from_user_id: user.id,
+              from_user_name: authorName
+            }
+          });
+        }
+      }
+
+      toast({
+        title: "일기가 저장되었어요!",
+        description: `연필 ${writeCost}개가 차감되었습니다.`,
+      });
+      navigate(`/diary/${diaryData.id}`);
+    } catch (error: any) {
+      console.error("일기 저장 실패:", error);
+      toast({
+        title: "일기 저장 실패",
+        description: error.message || "다시 시도해주세요.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleUpload = async () => {
     if (uploading) return;
 
@@ -1116,10 +1270,31 @@ export default function Upload() {
           <p className="text-muted-foreground text-sm">
             {isEditMode 
               ? "사진과 감정, 길이를 수정할 수 있어요"
-              : "오늘을 대표하는 사진을 업로드하면 누군가가 자동으로 일기를 작성해드려요!"
+              : writeMode === "ai" 
+                ? "오늘을 대표하는 사진을 업로드하면 누군가가 자동으로 일기를 작성해드려요!"
+                : "오늘의 일기를 자유롭게 작성해보세요"
             }
           </p>
         </div>
+
+        {!isEditMode && !isGenerated && (
+          <div className="flex gap-2 p-1 bg-muted rounded-full">
+            <Button
+              variant={writeMode === "ai" ? "default" : "ghost"}
+              className="flex-1 rounded-full"
+              onClick={() => setWriteMode("ai")}
+            >
+              AI 생성
+            </Button>
+            <Button
+              variant={writeMode === "manual" ? "default" : "ghost"}
+              className="flex-1 rounded-full"
+              onClick={() => setWriteMode("manual")}
+            >
+              직접 입력
+            </Button>
+          </div>
+        )}
         
         <div className="space-y-6">
             <div className="space-y-2">
@@ -1156,7 +1331,7 @@ export default function Upload() {
             </div>
 
             <div className="space-y-2">
-              <Label className="px-2">사진 선택 (3~6장)</Label>
+              <Label className="px-2">사진 선택 {writeMode === "ai" ? "(3~6장)" : "(선택사항, 0~6장)"}</Label>
               {previewUrls.length > 0 ? <div className="space-y-3">
                   <div className="space-y-2">
                     {previewUrls.map((url, index) => <div key={index} className="relative flex items-center gap-3 p-3 rounded-lg border-2 border-border bg-card">
@@ -1290,7 +1465,7 @@ export default function Upload() {
               </div>
             )}
 
-            {!isEditMode && !isGenerated && (
+            {!isEditMode && !isGenerated && writeMode === "ai" && (
               <div className="pt-4">
                 <Button
                   onClick={handleGenerateClick}
@@ -1311,6 +1486,35 @@ export default function Upload() {
                   )}
                 </Button>
               </div>
+            )}
+
+            {!isEditMode && !isGenerated && writeMode === "manual" && (
+              <>
+                <div className="border-t pt-6 mt-6" />
+
+                <div className="space-y-2">
+                  <Label htmlFor="title" className="px-2">일기 제목</Label>
+                  <Input
+                    id="title"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="일기 제목을 입력하세요"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="content" className="px-2">일기 내용</Label>
+                  <Textarea
+                    id="content"
+                    value={content}
+                    onChange={(e) => setContent(e.target.value)}
+                    placeholder="오늘 있었던 일을 자유롭게 작성해보세요"
+                    className="min-h-[300px]"
+                  />
+                </div>
+
+                <div className="border-t pt-6 mt-6" />
+              </>
             )}
 
             {(isEditMode || isGenerated) && (
@@ -1368,7 +1572,7 @@ export default function Upload() {
               </div>
             )}
 
-            {(isEditMode || isGenerated) && (
+            {(isEditMode || isGenerated || (writeMode === "manual" && !isGenerated)) && (
               <>
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 px-2">
@@ -1608,7 +1812,7 @@ export default function Upload() {
                 </div>
 
                 <Button 
-                  onClick={isEditMode ? handleUpload : handleSave} 
+                  onClick={isEditMode ? handleUpload : (writeMode === "manual" && !isGenerated ? handleSaveManual : handleSave)} 
                   disabled={loading || !content.trim() || !selectedNotebook} 
                   className="w-full h-12"
                 >
