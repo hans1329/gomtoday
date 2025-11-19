@@ -610,8 +610,61 @@ export default function Notebooks() {
           </div>
         ) : (
           <>
-            {notebooks.length >= 5 && (
-              <Card className="bg-amber-50 border-amber-200">
+            {/* 기본 일기장 - 모바일에서 가로 스크롤 */}
+            {notebooks.filter(nb => nb.is_default).length > 0 && (
+              <div className="mb-6">
+                <h3 className="text-sm font-medium mb-3 px-1">기본 일기장</h3>
+                <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory">
+                  {notebooks.filter(nb => nb.is_default).map(notebook => {
+                    const isMyNotebook = notebook.user_id === user?.id;
+                    return (
+                      <Card 
+                        key={notebook.id} 
+                        className={`shadow-sm min-w-[280px] sm:min-w-[320px] flex-shrink-0 snap-start ${isMyNotebook ? "border-2 border-primary/50" : ""}`}
+                        onClick={() => navigate(`/diaries?notebook=${notebook.id}`)}
+                      >
+                        <CardHeader className="p-4">
+                          <div className="flex items-center gap-2">
+                            <CardTitle className="text-base truncate">{notebook.name}</CardTitle>
+                            {notebook.visibility === "private" && <Lock className="h-4 w-4 text-muted-foreground flex-shrink-0" />}
+                            {notebook.visibility === "shared" && <Users className="h-4 w-4 text-muted-foreground flex-shrink-0" />}
+                            {notebook.visibility === "public" && <Globe className="h-4 w-4 text-muted-foreground flex-shrink-0" />}
+                          </div>
+                        </CardHeader>
+                        <CardContent className="p-4 pt-0">
+                          {notebook.notebook_members && notebook.notebook_members.length > 0 && (
+                            <div className="flex items-center gap-2">
+                              <div className="flex -space-x-2">
+                                {notebook.notebook_members.slice(0, 5).map((member: any) => (
+                                  <Avatar key={member.id} className="h-6 w-6 border-2 border-background relative">
+                                    <AvatarImage src={member.profiles?.profile_photo_url || undefined} />
+                                    <AvatarFallback className="text-xs">
+                                      {member.profiles?.name?.[0] || "U"}
+                                    </AvatarFallback>
+                                    {onlineUsers.has(member.user_id) && (
+                                      <span className="absolute bottom-0 right-0 block h-2 w-2 rounded-full bg-green-500 ring-2 ring-background" />
+                                    )}
+                                  </Avatar>
+                                ))}
+                              </div>
+                              {notebook.notebook_members.length > 5 && (
+                                <span className="text-xs text-muted-foreground">
+                                  +{notebook.notebook_members.length - 5}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* 일반 일기장 */}
+            {notebooks.filter(nb => !nb.is_default).length >= 5 && (
+              <Card className="bg-amber-50 border-amber-200 mb-4">
                 <CardContent className="p-3 sm:p-4 sm:pt-6">
                   <p className="text-xs sm:text-sm text-amber-800">
                     일기장을 최대 5개까지 만들었어요. 더 만들려면 기존 일기장을 삭제해주세요.
@@ -621,7 +674,7 @@ export default function Notebooks() {
             )}
 
             <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
-              {notebooks.map(notebook => {
+              {notebooks.filter(nb => !nb.is_default).map(notebook => {
                 const isMyNotebook = notebook.user_id === user?.id;
                 return (
                   <Card 
@@ -721,7 +774,7 @@ export default function Notebooks() {
               </Card>
             );
           })}
-            {notebooks.length < 5 && (
+            {notebooks.filter(nb => !nb.is_default).length < 5 && (
               <Card className="shadow-sm border-dashed border-2 cursor-pointer hover:border-primary hover:bg-accent/50 transition-colors group" onClick={() => setIsDialogOpen(true)}>
               <CardHeader className="p-4 sm:p-6">
                 <div className="flex items-center justify-center gap-3 min-h-[80px]">
