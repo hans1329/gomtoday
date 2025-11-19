@@ -1939,6 +1939,15 @@ export default function Upload() {
                     isEditMode ? "일기 수정하기" : "일기 저장하기"
                   )}
                 </Button>
+                
+                <Button 
+                  onClick={() => navigate(-1)} 
+                  variant="outline"
+                  disabled={loading}
+                  className="w-full h-12"
+                >
+                  취소하기
+                </Button>
               </>
             )}
         </div>
