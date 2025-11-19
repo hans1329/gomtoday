@@ -1581,41 +1581,37 @@ export default function Upload() {
                   <Label>등장인물</Label>
                   <span className="text-xs text-muted-foreground">일기의 주인공들</span>
                 </div>
-                <div className="space-y-2 px-2">
-                  <div className="flex flex-wrap gap-2 min-h-[32px]">
-                    {participants.map((p) => (
-                      <div key={p.id} className="flex items-center gap-1.5 bg-secondary px-3 py-1.5 rounded-full">
-                        <Avatar className="w-5 h-5">
-                          <AvatarImage src={p.profile_photo_url || undefined} />
-                          <AvatarFallback className="text-xs">
-                            {p.name?.charAt(0) || "?"}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="text-sm">{p.name || "Unknown"}</span>
-                        {p.id !== currentUser?.id && (
-                          <button
-                            onClick={() => setParticipants(participants.filter(participant => participant.id !== p.id))}
-                            className="ml-1 hover:bg-destructive/10 rounded-full p-0.5"
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
+                <div className="flex flex-wrap gap-2 px-2">
+                  {participants.map((p) => (
+                    <div key={p.id} className="flex items-center gap-1.5 bg-secondary px-3 py-1.5 rounded-full">
+                      <Avatar className="w-5 h-5">
+                        <AvatarImage src={p.profile_photo_url || undefined} />
+                        <AvatarFallback className="text-xs">
+                          {p.name?.charAt(0) || "?"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="text-sm">{p.name || "Unknown"}</span>
+                      {p.id !== currentUser?.id && (
+                        <button
+                          onClick={() => setParticipants(participants.filter(participant => participant.id !== p.id))}
+                          className="ml-1 hover:bg-destructive/10 rounded-full p-0.5"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
                   <div className="relative">
-                    <Button
+                    <button
                       type="button"
-                      variant="outline"
-                      size="sm"
                       onClick={() => setShowFriendsList(!showFriendsList)}
-                      className="w-full"
+                      className="flex items-center gap-1.5 bg-secondary hover:bg-secondary/80 px-3 py-1.5 rounded-full transition-colors"
                     >
-                      <Plus className="w-4 h-4 mr-2" />
-                      친구 추가
-                    </Button>
+                      <Plus className="w-5 h-5" />
+                      <span className="text-sm">추가</span>
+                    </button>
                     {showFriendsList && (
-                      <div className="absolute z-50 w-full mt-1 bg-background border rounded-md shadow-lg max-h-48 overflow-y-auto">
+                      <div className="absolute z-50 left-0 top-full mt-1 bg-background border rounded-md shadow-lg max-h-48 overflow-y-auto min-w-[200px]">
                         {friends.filter(f => !participants.some(p => p.id === f.id)).length === 0 ? (
                           <div className="p-3 text-sm text-muted-foreground text-center">
                             추가할 친구가 없습니다
@@ -1633,14 +1629,12 @@ export default function Upload() {
                                 }}
                                 className="w-full px-3 py-2 text-left hover:bg-accent flex items-center gap-2"
                               >
-                                {friend.profile_photo_url && (
-                                  <Avatar className="w-6 h-6">
-                                    <AvatarImage src={friend.profile_photo_url} />
-                                    <AvatarFallback className="text-xs">
-                                      {friend.name?.charAt(0) || "?"}
-                                    </AvatarFallback>
-                                  </Avatar>
-                                )}
+                                <Avatar className="w-6 h-6">
+                                  <AvatarImage src={friend.profile_photo_url || undefined} />
+                                  <AvatarFallback className="text-xs">
+                                    {friend.name?.charAt(0) || "?"}
+                                  </AvatarFallback>
+                                </Avatar>
                                 <span className="text-sm">{friend.name}</span>
                               </button>
                             ))
