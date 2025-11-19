@@ -229,7 +229,13 @@ export default function Friends() {
 
           {/* 친구 목록 */}
           <TabsContent value="friends" className="space-y-3">
-            {friends.length === 0 ? (
+            {loading ? (
+              <Card>
+                <CardContent className="p-8 text-center text-muted-foreground">
+                  일기친구를 불러오는 중입니다...
+                </CardContent>
+              </Card>
+            ) : friends.length === 0 ? (
               <Card>
                 <CardContent className="p-8 text-center text-muted-foreground">
                   아직 일기친구가 없습니다
