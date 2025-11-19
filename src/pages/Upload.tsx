@@ -1782,7 +1782,6 @@ export default function Upload() {
                         {notebooks.map((notebook) => (
                           <SelectItem key={notebook.id} value={notebook.id}>
                             {notebook.name} ({notebook.visibility === 'public' ? '공개' : '비공개'})
-                            {notebook.is_default && " 기본"}
                           </SelectItem>
                         ))}
                       </SelectContent>
