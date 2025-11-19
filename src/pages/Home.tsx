@@ -972,7 +972,7 @@ export default function Home() {
               </Card>
               
               {/* 검색 영역 */}
-              <div className="bg-background px-2 sm:px-0 pt-4 pb-2">
+              <div className="px-2 sm:px-0 pt-4 pb-2">
                 <div className="flex items-center gap-2">
                   <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -1107,7 +1107,7 @@ export default function Home() {
           ) : (
             <>
               {/* 검색 영역 - 공개 일기 */}
-              <div className="bg-background px-2 sm:px-0 pb-2">
+              <div className="px-2 sm:px-0 pb-2">
                 <div className="flex items-center gap-2">
                   <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
