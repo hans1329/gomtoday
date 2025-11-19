@@ -610,17 +610,17 @@ export default function Notebooks() {
           </div>
         ) : (
           <>
-            {/* 기본 일기장 - 모바일에서 가로 스크롤 */}
+            {/* 기본 일기장 */}
             {notebooks.filter(nb => nb.is_default).length > 0 && (
-              <div className="mb-6 -mx-4 sm:mx-0">
-                <h3 className="text-sm font-medium mb-3 px-4 sm:px-1">기본 일기장</h3>
-                <div className="flex gap-2.5 overflow-x-auto pb-2 px-4 sm:px-0 scrollbar-hide snap-x snap-mandatory">
+              <div className="mb-6">
+                <h3 className="text-sm font-medium mb-3 px-1">기본 일기장</h3>
+                <div className="grid grid-cols-2 gap-3">
                   {notebooks.filter(nb => nb.is_default).map(notebook => {
                     const isMyNotebook = notebook.user_id === user?.id;
                     return (
                       <Card 
                         key={notebook.id} 
-                        className={`shadow-sm min-w-[calc(100vw-3rem)] max-w-[calc(100vw-3rem)] sm:min-w-[280px] sm:max-w-none flex-shrink-0 snap-center cursor-pointer transition-all hover:shadow-lg ${isMyNotebook ? "border-2 border-primary/50" : ""}`}
+                        className={`shadow-sm cursor-pointer transition-all hover:shadow-lg ${isMyNotebook ? "border-2 border-primary/50" : ""}`}
                         onClick={() => navigate(`/diaries?notebook=${notebook.id}`)}
                       >
                         <CardHeader className="p-3 sm:p-4">
@@ -635,7 +635,7 @@ export default function Notebooks() {
                           {notebook.notebook_members && notebook.notebook_members.length > 0 && (
                             <div className="flex items-center gap-2">
                               <div className="flex -space-x-2">
-                                {notebook.notebook_members.slice(0, 5).map((member: any) => (
+                                {notebook.notebook_members.slice(0, 3).map((member: any) => (
                                   <Avatar key={member.id} className="h-5 w-5 sm:h-6 sm:w-6 border-2 border-background relative">
                                     <AvatarImage src={member.profiles?.profile_photo_url || undefined} />
                                     <AvatarFallback className="text-[10px] sm:text-xs">
@@ -647,9 +647,9 @@ export default function Notebooks() {
                                   </Avatar>
                                 ))}
                               </div>
-                              {notebook.notebook_members.length > 5 && (
+                              {notebook.notebook_members.length > 3 && (
                                 <span className="text-[10px] sm:text-xs text-muted-foreground">
-                                  +{notebook.notebook_members.length - 5}
+                                  +{notebook.notebook_members.length - 3}
                                 </span>
                               )}
                             </div>
