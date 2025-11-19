@@ -96,7 +96,7 @@ export default function Auth() {
             <img 
               src={logoUrl} 
               alt="Logo" 
-              className="h-20 w-auto object-contain"
+              className="h-32 w-auto object-contain"
             />
           </div>
           <p className="text-base text-center text-muted-foreground font-bold">
