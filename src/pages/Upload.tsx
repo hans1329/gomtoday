@@ -1877,7 +1877,7 @@ export default function Upload() {
                       {isEditMode ? "일기 수정 중..." : "일기 저장 중..."}
                     </>
                   ) : (
-                    isEditMode ? "일기 수정하기" : "일기 작성하기"
+                    isEditMode ? "일기 수정하기" : "일기 등록하기"
                   )}
                 </Button>
                 
