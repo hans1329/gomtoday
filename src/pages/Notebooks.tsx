@@ -166,19 +166,7 @@ export default function Notebooks() {
       error
     } = await supabase
       .from("notebooks")
-      .select(`
-        *,
-        notebook_members(
-          id,
-          user_id,
-          role,
-          profiles:user_id(
-            user_id,
-            name,
-            profile_photo_url
-          )
-        )
-      `)
+      .select("*")
       .eq("user_id", user.id)
       .order("is_default", { ascending: false })
       .order("created_at");
