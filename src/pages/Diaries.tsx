@@ -76,77 +76,26 @@ export default function Diaries() {
 
     setLoading(true);
 
-    // 두 가지 쿼리를 병렬로 실행
-    const [myDiariesResult, sharedDiariesResult] = await Promise.all([
-      // 1. 내가 작성한 일기
-      supabase
-        .from("diaries")
-        .select(`
-          *,
-          photos!photos_diary_id_fkey (
-            photo_url,
-            display_order
-          ),
-          photo:photos!diaries_photo_id_fkey (
-            photo_url
-          )
-        `)
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false }),
-      
-      // 2. 내가 등장인물로 포함된 일기 (공개된 일기장의 일기)
-      supabase
-        .from("diaries")
-        .select(`
-          *,
-          photos!photos_diary_id_fkey (
-            photo_url,
-            display_order
-          ),
-          photo:photos!diaries_photo_id_fkey (
-            photo_url
-          ),
-          diary_notebooks!inner (
-            notebook_id,
-            notebooks!inner (
-              visibility
-            )
-          )
-        `)
-        .neq("user_id", user.id)
-        .order("created_at", { ascending: false })
-    ]);
+    // 모든 조회 가능한 일기 가져오기 (RLS 정책에 의해 자동 필터링됨)
+    const { data, error } = await supabase
+      .from("diaries")
+      .select(`
+        *,
+        photos!photos_diary_id_fkey (
+          photo_url,
+          display_order
+        ),
+        photo:photos!diaries_photo_id_fkey (
+          photo_url
+        )
+      `)
+      .order("created_at", { ascending: false });
 
-    if (myDiariesResult.error) {
-      console.error("Error fetching my diaries:", myDiariesResult.error);
-    }
-    
-    if (sharedDiariesResult.error) {
-      console.error("Error fetching shared diaries:", sharedDiariesResult.error);
+    if (error) {
+      console.error("Error fetching diaries:", error);
     }
 
-    // 데이터 병합
-    const myDiaries = myDiariesResult.data || [];
-    const sharedDiaries = (sharedDiariesResult.data || []).filter((diary: any) => {
-      // 등장인물에 내가 포함되어 있는지 확인
-      if (!diary.participants || !Array.isArray(diary.participants)) return false;
-      return diary.participants.some((p: any) => p.id === user.id);
-    });
-
-    // 중복 제거 및 병합
-    const allDiaries = [...myDiaries];
-    const myDiaryIds = new Set(myDiaries.map((d: any) => d.id));
-    
-    sharedDiaries.forEach((diary: any) => {
-      if (!myDiaryIds.has(diary.id)) {
-        allDiaries.push(diary);
-      }
-    });
-
-    // 날짜순으로 정렬
-    allDiaries.sort((a: any, b: any) => 
-      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-    );
+    const allDiaries = data || [];
 
     // 각 일기의 사진들을 display_order로 정렬하고, photo_id 방식도 포함
     const diariesWithSortedPhotos = allDiaries.map((diary: any) => {
