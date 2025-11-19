@@ -816,7 +816,11 @@ export default function Home() {
                     className="h-16 w-auto object-contain mb-6"
                   />
                   <p className="text-muted-foreground mb-6 text-base">
-                    {viewMode === "my" ? "첫 일기를 작성해 보세요!" : "공개된 일기가 없습니다."}
+                    {viewMode === "my"
+                      ? (allDiaries.length === 0
+                          ? "첫 일기를 작성해 보세요!"
+                          : "선택한 날짜에 작성한 일기가 없습니다.")
+                      : "공개된 일기가 없습니다."}
                   </p>
                   {viewMode === "my" && (
                     <Button
@@ -879,7 +883,7 @@ export default function Home() {
                       <h2 className="text-xl font-bold text-foreground">
                         {diaries[0].title}
                       </h2>
-                      {diaries[0].perspective && diaries[0].perspective !== 'direct' && (
+                      {diaries[0].perspective && diaries[0].photos && diaries[0].photos.length > 0 && (
                         <div className="text-sm text-muted-foreground">
                           #{(() => {
                             const perspectiveMap: Record<string, string> = {
