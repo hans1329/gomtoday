@@ -588,7 +588,7 @@ export default function Upload() {
         setUploadProgress(20 + ((i + 1) / selectedFiles.length) * 30);
       }
 
-      setUploadStatus("AI가 일기를 작성하고 있어요...");
+      setUploadStatus("누군가 일기를 작성하고 있어요...");
       setUploadProgress(60);
 
       const {
@@ -1182,7 +1182,7 @@ export default function Upload() {
           setUploadProgress(30 + ((i + 1) / selectedFiles.length) * 30);
         }
         
-        setUploadStatus("AI가 일기를 작성하고 있어요...");
+        setUploadStatus("누군가 일기를 작성하고 있어요...");
         setUploadProgress(70);
         
         const {
