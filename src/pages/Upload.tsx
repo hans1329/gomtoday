@@ -1431,21 +1431,23 @@ export default function Upload() {
               </Select>
             </div>
 
-            <div className="space-y-2">
-              <Label className="px-2">길이 선택</Label>
-              <Select value={length} onValueChange={setLength}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="short">짧게 (5-7문장)</SelectItem>
-                  <SelectItem value="medium">중간 (8-10문장)</SelectItem>
-                  <SelectItem value="long">길게 (11-15문장)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {writeMode === "ai" && (
+              <div className="space-y-2">
+                <Label className="px-2">길이 선택</Label>
+                <Select value={length} onValueChange={setLength}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="short">짧게 (5-7문장)</SelectItem>
+                    <SelectItem value="medium">중간 (8-10문장)</SelectItem>
+                    <SelectItem value="long">길게 (11-15문장)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
-            {!isEditMode && (
+            {!isEditMode && writeMode === "ai" && (
               <div className="space-y-2">
                 <Label className="px-2">시점 선택</Label>
                 <Select value={perspective} onValueChange={setPerspective}>
