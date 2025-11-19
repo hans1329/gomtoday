@@ -163,7 +163,8 @@ export default function Profile() {
 
     const { error } = await supabase
       .from("profiles")
-      .update({ 
+      .upsert({ 
+        user_id: user.id,
         name,
         bio,
         mbti: mbti || null,
@@ -171,8 +172,9 @@ export default function Profile() {
         birthday: birthday || null,
         gender: gender || null,
         location: location || null
-      })
-      .eq("user_id", user.id);
+      }, {
+        onConflict: 'user_id'
+      });
 
     if (error) {
       toast({
