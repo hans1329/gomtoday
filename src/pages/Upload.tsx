@@ -1429,9 +1429,9 @@ export default function Upload() {
               variant={writeMode === "ai" ? "default" : "ghost"}
               className={cn(
                 "flex-1 rounded-full transition-all",
-                writeMode === "ai" 
-                  ? "" 
-                  : "text-muted-foreground bg-transparent hover:bg-transparent [@media(hover:hover)]:hover:bg-accent/50"
+                writeMode === "ai"
+                  ? ""
+                  : "bg-transparent hover:bg-transparent [@media(hover:hover)]:hover:bg-accent/50"
               )}
               onClick={() => setWriteMode("ai")}
               onTouchEnd={(e) => e.currentTarget.blur()}
@@ -1442,9 +1442,9 @@ export default function Upload() {
               variant={writeMode === "manual" ? "default" : "ghost"}
               className={cn(
                 "flex-1 rounded-full transition-all",
-                writeMode === "manual" 
-                  ? "" 
-                  : "text-muted-foreground bg-transparent hover:bg-transparent [@media(hover:hover)]:hover:bg-accent/50"
+                writeMode === "manual"
+                  ? ""
+                  : "bg-transparent hover:bg-transparent [@media(hover:hover)]:hover:bg-accent/50"
               )}
               onClick={() => setWriteMode("manual")}
               onTouchEnd={(e) => e.currentTarget.blur()}
