@@ -764,7 +764,7 @@ export default function Home() {
                     className="h-16 w-auto object-contain mb-6"
                   />
                   <p className="text-muted-foreground mb-6 text-base">
-                    {viewMode === "my" ? "아직 작성한 일기가 없습니다." : "공개된 일기가 없습니다."}
+                    {viewMode === "my" ? "첫 일기를 작성해 보세요!" : "공개된 일기가 없습니다."}
                   </p>
                   {viewMode === "my" && (
                     <Button
