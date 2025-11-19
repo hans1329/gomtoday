@@ -353,7 +353,7 @@ export default function Header() {
                 )}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-80 bg-background max-h-[85vh] overflow-y-auto">
+            <DropdownMenuContent align="end" className="w-72 bg-background max-h-[85vh] overflow-y-auto">
               <DropdownMenuLabel className="font-normal">
                 <div className="flex items-center justify-end mb-2">
                   <Button
@@ -372,7 +372,7 @@ export default function Header() {
                     )}
                   </Button>
                 </div>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between pl-2">
                   <p className="text-sm font-medium leading-none">{userName || "사용자"}</p>
                   <Button
                     variant="ghost"
