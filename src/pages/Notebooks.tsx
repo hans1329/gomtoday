@@ -865,7 +865,7 @@ export default function Notebooks() {
                 
                 {!notebook.is_default && <Button variant="outline" size="sm" className="w-full text-xs sm:text-sm" onClick={() => openMemberDialog(notebook.id)}>
                     <Users className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                    멤버 관리
+                    멤버 관리 ({notebook.notebook_members?.length || 0}명)
                   </Button>}
               </CardContent>
               </Card>
