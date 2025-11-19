@@ -24,6 +24,7 @@ export type Database = {
           participants: Json | null
           perspective: string | null
           photo_id: string | null
+          status: string | null
           title: string | null
           tone: string | null
           user_id: string
@@ -38,6 +39,7 @@ export type Database = {
           participants?: Json | null
           perspective?: string | null
           photo_id?: string | null
+          status?: string | null
           title?: string | null
           tone?: string | null
           user_id: string
@@ -52,6 +54,7 @@ export type Database = {
           participants?: Json | null
           perspective?: string | null
           photo_id?: string | null
+          status?: string | null
           title?: string | null
           tone?: string | null
           user_id?: string
