@@ -936,7 +936,7 @@ export default function Home() {
                           <span className="text-2xl">{diaries[0].emoji}</span>
                         )}
                       </h2>
-                      {diaries[0].perspective && diaries[0].photos && diaries[0].photos.length > 0 && (
+                      {diaries[0].perspective && diaries[0].perspective !== 'my_view' && diaries[0].photos && diaries[0].photos.length > 0 && (
                         <div className="text-sm text-muted-foreground">
                           #{(() => {
                             const perspectiveMap: Record<string, string> = {
