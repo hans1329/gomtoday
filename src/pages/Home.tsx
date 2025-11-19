@@ -955,7 +955,7 @@ export default function Home() {
                     </>
                   )}
                   
-                  <div className="prose prose-sm max-w-none text-base text-foreground/70">
+                  <div className="prose prose-sm max-w-none text-sm text-foreground/70">
                     <p className="whitespace-pre-wrap leading-relaxed">
                       {diaries[0].content}
                     </p>
