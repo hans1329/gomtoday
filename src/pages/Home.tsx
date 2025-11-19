@@ -201,6 +201,10 @@ export default function Home() {
         ),
         photo:photos!diaries_photo_id_fkey (
           photo_url
+        ),
+        diary_notebooks(
+          notebook_id,
+          notebooks(visibility)
         )
       `)
       .eq("user_id", user.id)
@@ -215,7 +219,9 @@ export default function Home() {
       } else if (diary.photo) {
         allPhotos = [diary.photo];
       }
-      return { ...diary, photos: allPhotos };
+      // 하나라도 공개 노트북에 속하면 공개로 표시
+      const isPublic = diary.diary_notebooks?.some((dn: any) => dn.notebooks?.visibility === 'public') ?? false;
+      return { ...diary, photos: allPhotos, isPublic };
     }) : [];
 
     setAllDiaries(processedMyData);
@@ -251,6 +257,10 @@ export default function Home() {
             ),
             photo:photos!diaries_photo_id_fkey (
               photo_url
+            ),
+            diary_notebooks(
+              notebook_id,
+              notebooks(visibility)
             )
           `)
           .in("id", publicDiaryIdList)
@@ -274,6 +284,10 @@ export default function Home() {
         ),
         photo:photos!diaries_photo_id_fkey (
           photo_url
+        ),
+        diary_notebooks(
+          notebook_id,
+          notebooks(visibility)
         )
       `)
       .gte("created_at", monthStart.toISOString())
@@ -318,11 +332,14 @@ export default function Home() {
           allPhotos = [diary.photo];
         }
         const profile = profilesMap.get(diary.user_id);
+        // 하나라도 공개 노트북에 속하면 공개로 표시
+        const isPublic = diary.diary_notebooks?.some((dn: any) => dn.notebooks?.visibility === 'public') ?? false;
         return {
           ...diary,
           photos: allPhotos,
           author_name: profile?.name,
           author_photo: profile?.profile_photo_url,
+          isPublic,
         };
       });
 
