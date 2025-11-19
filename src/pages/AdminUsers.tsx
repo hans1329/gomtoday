@@ -31,6 +31,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface UserWithRole {
   user_id: string;
@@ -42,6 +52,7 @@ interface UserWithRole {
   banned: boolean;
   banned_at: string | null;
   banned_reason: string | null;
+  pencil_count: number;
 }
 
 export default function AdminUsers() {
@@ -54,6 +65,9 @@ export default function AdminUsers() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [pencilDialogOpen, setPencilDialogOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<{ id: string; name: string; currentCount: number } | null>(null);
+  const [newPencilCount, setNewPencilCount] = useState("");
 
   useEffect(() => {
     checkAdminRole();
@@ -108,7 +122,7 @@ export default function AdminUsers() {
     
     const { data: profiles, error: profilesError } = await supabase
       .from("profiles")
-      .select("user_id, name, email, profile_photo_url, created_at, banned, banned_at, banned_reason")
+      .select("user_id, name, email, profile_photo_url, created_at, banned, banned_at, banned_reason, pencil_count")
       .order("created_at", { ascending: false });
 
     if (profilesError) {
@@ -198,6 +212,50 @@ export default function AdminUsers() {
         : "해당 사용자의 계정이 복구되었습니다.",
     });
 
+    fetchUsers();
+  };
+
+  const handleOpenPencilDialog = (userId: string, userName: string, currentCount: number) => {
+    setSelectedUser({ id: userId, name: userName, currentCount });
+    setNewPencilCount(currentCount.toString());
+    setPencilDialogOpen(true);
+  };
+
+  const handleUpdatePencilCount = async () => {
+    if (!selectedUser) return;
+
+    const count = parseInt(newPencilCount);
+    if (isNaN(count) || count < 0) {
+      toast({
+        title: "잘못된 값",
+        description: "0 이상의 숫자를 입력해주세요.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const { error } = await supabase
+      .from("profiles")
+      .update({ pencil_count: count })
+      .eq("user_id", selectedUser.id);
+
+    if (error) {
+      toast({
+        title: "연필 수량 변경 실패",
+        description: error.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "연필 수량 변경 완료!",
+      description: `${selectedUser.name}님의 연필이 ${count}개로 변경되었습니다.`,
+    });
+
+    setPencilDialogOpen(false);
+    setSelectedUser(null);
+    setNewPencilCount("");
     fetchUsers();
   };
 
@@ -360,6 +418,7 @@ export default function AdminUsers() {
                       <TableHead>이름</TableHead>
                       <TableHead>이메일</TableHead>
                       <TableHead>가입일</TableHead>
+                      <TableHead className="text-center">연필</TableHead>
                       <TableHead className="text-center">상태</TableHead>
                       <TableHead className="text-center">역할</TableHead>
                       <TableHead className="text-center">관리</TableHead>
@@ -391,6 +450,16 @@ export default function AdminUsers() {
                           {user.created_at 
                             ? new Date(user.created_at).toLocaleDateString('ko-KR')
                             : "-"}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleOpenPencilDialog(user.user_id, user.name || "이름 없음", user.pencil_count)}
+                            className="font-semibold hover:text-primary"
+                          >
+                            {user.pencil_count}
+                          </Button>
                         </TableCell>
                         <TableCell className="text-center">
                           {user.banned ? (
@@ -477,6 +546,48 @@ export default function AdminUsers() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* 연필 갯수 변경 다이얼로그 */}
+      <Dialog open={pencilDialogOpen} onOpenChange={setPencilDialogOpen}>
+        <DialogContent className="mx-4">
+          <DialogHeader>
+            <DialogTitle>연필 갯수 변경</DialogTitle>
+            <DialogDescription>
+              {selectedUser?.name}님의 연필 갯수를 변경합니다.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="pencil-count">현재 연필 갯수: {selectedUser?.currentCount}개</Label>
+              <Input
+                id="pencil-count"
+                type="number"
+                min="0"
+                value={newPencilCount}
+                onChange={(e) => setNewPencilCount(e.target.value)}
+                placeholder="새로운 연필 갯수를 입력하세요"
+              />
+            </div>
+          </div>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setPencilDialogOpen(false)}
+              className="rounded-full"
+            >
+              취소
+            </Button>
+            <Button
+              type="button"
+              onClick={handleUpdatePencilCount}
+              className="rounded-full"
+            >
+              변경
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

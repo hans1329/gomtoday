@@ -151,7 +151,10 @@ export default function AdminDashboard() {
         {/* 통계 카드 */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
           {/* 전체 회원수 */}
-          <Card className="shadow-medium">
+          <Card 
+            className="shadow-medium cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => navigate("/admin/users")}
+          >
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <Users className="w-5 h-5" />
