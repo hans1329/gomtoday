@@ -233,10 +233,17 @@ export default function Notebooks() {
             .eq("notebook_id", notebook.id)
             .limit(6);
 
+          // 일기 개수 조회
+          const { count: diaryCount } = await supabase
+            .from("diary_notebooks")
+            .select("*", { count: "exact", head: true })
+            .eq("notebook_id", notebook.id);
+
           return {
             ...notebook,
             owner_profile: ownerProfile,
-            notebook_members: members || []
+            notebook_members: members || [],
+            diary_count: diaryCount || 0
           };
         })
       );
@@ -620,7 +627,7 @@ export default function Notebooks() {
                     return (
                       <Card 
                         key={notebook.id} 
-                        className={`shadow-sm cursor-pointer transition-all hover:shadow-lg min-h-[120px] sm:min-h-[130px] ${isMyNotebook ? "border-2 border-primary/50" : ""}`}
+                        className={`shadow-sm cursor-pointer transition-all hover:shadow-lg min-h-[120px] sm:min-h-[130px] relative ${isMyNotebook ? "border-2 border-primary/50" : ""}`}
                         onClick={() => navigate(`/diaries?notebook=${notebook.id}`)}
                       >
                         <CardHeader className="p-3.5 sm:p-4">
@@ -654,6 +661,10 @@ export default function Notebooks() {
                               )}
                             </div>
                           )}
+                          {/* 일기 개수 - 우하단 */}
+                          <div className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 text-xs text-muted-foreground">
+                            {notebook.diary_count || 0}개
+                          </div>
                         </CardContent>
                       </Card>
                     );
@@ -702,6 +713,9 @@ export default function Notebooks() {
                             {notebook.visibility === "private" && <Lock className="h-4 w-4 text-muted-foreground flex-shrink-0" />}
                             {notebook.visibility === "shared" && <Users className="h-4 w-4 text-muted-foreground flex-shrink-0" />}
                             {notebook.visibility === "public" && <Globe className="h-4 w-4 text-muted-foreground flex-shrink-0" />}
+                            <span className="text-xs text-muted-foreground ml-auto">
+                              {notebook.diary_count || 0}개
+                            </span>
                           </div>
                           {notebook.owner_profile && (
                             <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1">
