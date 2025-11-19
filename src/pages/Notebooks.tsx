@@ -218,7 +218,7 @@ export default function Notebooks() {
             .eq("user_id", notebook.user_id)
             .single();
 
-          // 멤버 조회
+          // 멤버 조회 (표시용 - 최대 6명)
           const { data: members } = await supabase
             .from("notebook_members")
             .select(`
@@ -233,6 +233,12 @@ export default function Notebooks() {
             .eq("notebook_id", notebook.id)
             .limit(6);
 
+          // 전체 멤버 수 조회
+          const { count: memberCount } = await supabase
+            .from("notebook_members")
+            .select("*", { count: "exact", head: true })
+            .eq("notebook_id", notebook.id);
+
           // 일기 개수 조회
           const { count: diaryCount } = await supabase
             .from("diary_notebooks")
@@ -243,6 +249,7 @@ export default function Notebooks() {
             ...notebook,
             owner_profile: ownerProfile,
             notebook_members: members || [],
+            member_count: memberCount || 0,
             diary_count: diaryCount || 0
           };
         })
@@ -865,7 +872,7 @@ export default function Notebooks() {
                 
                 {!notebook.is_default && <Button variant="outline" size="sm" className="w-full text-xs sm:text-sm" onClick={() => openMemberDialog(notebook.id)}>
                     <Users className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                    멤버 관리 ({notebook.notebook_members?.length || 0}명)
+                    멤버 관리 ({notebook.member_count || 0}명)
                   </Button>}
               </CardContent>
               </Card>
