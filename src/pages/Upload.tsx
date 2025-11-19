@@ -1428,20 +1428,26 @@ export default function Upload() {
             <Button
               variant={writeMode === "ai" ? "default" : "ghost"}
               className={cn(
-                "flex-1 rounded-full transition-all touch-none",
-                writeMode !== "ai" && "text-muted-foreground md:hover:bg-accent/50"
+                "flex-1 rounded-full transition-all",
+                writeMode === "ai" 
+                  ? "" 
+                  : "text-muted-foreground bg-transparent hover:bg-transparent [@media(hover:hover)]:hover:bg-accent/50"
               )}
               onClick={() => setWriteMode("ai")}
+              onTouchEnd={(e) => e.currentTarget.blur()}
             >
               누군가 작성
             </Button>
             <Button
               variant={writeMode === "manual" ? "default" : "ghost"}
               className={cn(
-                "flex-1 rounded-full transition-all touch-none",
-                writeMode !== "manual" && "text-muted-foreground md:hover:bg-accent/50"
+                "flex-1 rounded-full transition-all",
+                writeMode === "manual" 
+                  ? "" 
+                  : "text-muted-foreground bg-transparent hover:bg-transparent [@media(hover:hover)]:hover:bg-accent/50"
               )}
               onClick={() => setWriteMode("manual")}
+              onTouchEnd={(e) => e.currentTarget.blur()}
             >
               직접 입력
             </Button>
