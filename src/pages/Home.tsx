@@ -33,6 +33,7 @@ export default function Home() {
   const [diaries, setDiaries] = useState<any[]>([]);
   const [allDiaries, setAllDiaries] = useState<any[]>([]);
   const [publicDiaries, setPublicDiaries] = useState<any[]>([]);
+  const [hasAnyDiary, setHasAnyDiary] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [currentUserId, setCurrentUserId] = useState<string>("");
@@ -94,6 +95,23 @@ export default function Home() {
   useEffect(() => {
     checkAuth();
   }, []);
+
+  useEffect(() => {
+    if (!currentUserId) return;
+
+    const checkHasAnyDiary = async () => {
+      const { count, error } = await supabase
+        .from("diaries")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", currentUserId);
+
+      if (!error) {
+        setHasAnyDiary((count ?? 0) > 0);
+      }
+    };
+
+    checkHasAnyDiary();
+  }, [currentUserId]);
 
   useEffect(() => {
     if (currentUserId) {
@@ -803,7 +821,7 @@ export default function Home() {
           </div>
         )}
 
-        {viewMode === "my" && allDiaries.length === 0 ? (
+        {viewMode === "my" && hasAnyDiary === false ? (
           <div className="px-2 sm:px-0 flex items-center justify-center min-h-[60vh]">
             <div className="text-center flex flex-col items-center">
               <img 
