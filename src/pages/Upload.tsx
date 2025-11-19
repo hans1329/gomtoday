@@ -302,8 +302,21 @@ export default function Upload() {
       setEmotion(existingDiary.tone || "happy");
       setWeather(existingDiary.weather || "sunny");
       
-      if (existingDiary.participants) {
-        setParticipants(existingDiary.participants as Array<{id: string, name: string, profile_photo_url?: string}>);
+      // 등장인물 로드 (현재 사용자 포함)
+      if (existingDiary.participants && Array.isArray(existingDiary.participants)) {
+        const loadedParticipants = existingDiary.participants as Array<{id: string, name: string, profile_photo_url?: string}>;
+        
+        // 현재 사용자가 등장인물에 없으면 추가
+        const hasCurrentUser = loadedParticipants.some(p => p.id === user.id);
+        if (!hasCurrentUser && currentUser) {
+          setParticipants([currentUser, ...loadedParticipants]);
+        } else if (loadedParticipants.length > 0) {
+          setParticipants(loadedParticipants);
+        } else if (currentUser) {
+          setParticipants([currentUser]);
+        }
+      } else if (currentUser) {
+        setParticipants([currentUser]);
       }
 
       if (existingDiary.photos && existingDiary.photos.length > 0) {
