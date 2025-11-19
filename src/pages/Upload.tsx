@@ -634,7 +634,8 @@ export default function Upload() {
           emotion,
           length,
           perspective,
-          participants: participants
+          participants: participants,
+          userId: user.id
         }
       });
       if (aiError) throw aiError;

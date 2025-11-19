@@ -17,7 +17,7 @@ serve(async (req) => {
   }
 
   try {
-    const { photoUrl, photoUrls, emotion = 'happy', length = 'medium', perspective = 'camera', userContext, participants = [] } = await req.json();
+    const { photoUrl, photoUrls, emotion = 'happy', length = 'medium', perspective = 'camera', userContext, participants = [], userId } = await req.json();
     
     const photos = photoUrls || (photoUrl ? [photoUrl] : []);
     
@@ -27,9 +27,16 @@ serve(async (req) => {
     
     console.log('Analyzing photos:', photos.length, 'images');
     console.log('Participants:', participants);
+    console.log('Perspective:', perspective);
+    console.log('UserId:', userId);
 
-    const participantNames = participants.map((p: any) => p.name).join(', ');
-    const participantContext = participants.length > 0 
+    // 나의 시선일 때는 등장인물에서 본인 제외
+    const otherParticipants = perspective === 'my_view' && userId
+      ? participants.filter((p: any) => p.id !== userId)
+      : participants;
+
+    const participantNames = otherParticipants.map((p: any) => p.name).join(', ');
+    const participantContext = otherParticipants.length > 0 
       ? `등장인물: ${participantNames}. 이들이 함께한 하루를 자연스럽게 묘사한다.`
       : '';
     const subjectDescription = participantNames || '집사';
@@ -37,11 +44,12 @@ serve(async (req) => {
     const getPerspectiveInstruction = (perspectiveType: string) => {
       const baseInstructions: Record<string, string> = {
         my_view: `너는 일기 작성자 본인이다. ${participantContext}
-일기 첫 문장은 "[나의 시선]"으로 시작한다.
-사진 속 사실을 정확하게 바탕으로 ${subjectDescription}의 전체 하루를 1인칭 시점에서 묘사한다.
+사진 속 사실을 정확하게 바탕으로 나의 전체 하루를 1인칭 시점에서 묘사한다.
 8-12문장으로 하루의 흐름을 담은 일기 형태로 구성한다.
+'[나의 시선]' 같은 프리픽스는 절대 사용하지 않는다.
 객관적이고 사실적인 묘사에 집중하며, 과장이나 상상을 배제한다.
 실제로 보고 경험한 것만을 정확하게 기록한다.
+등장인물이 있다면 나를 제외한 다른 사람들과의 이야기로 서술한다.
 사생활은 서술하지 않는다.`,
         
         camera: `너는 핸드폰이며 집사의 삶을 관찰하는 B급 관찰자다. ${participantContext}
