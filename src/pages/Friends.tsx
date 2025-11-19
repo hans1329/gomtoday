@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -159,6 +160,11 @@ export default function Friends() {
       toast({
         title: "일기친구가 되었습니다!",
       });
+      // 캐시 무효화
+      if (currentUserId) {
+        localStorage.removeItem(`friends_${currentUserId}`);
+        localStorage.removeItem(`friends_time_${currentUserId}`);
+      }
       fetchFriendRequests();
     }
   };
@@ -178,6 +184,11 @@ export default function Friends() {
       toast({
         title: "친구 요청을 거절했습니다",
       });
+      // 캐시 무효화
+      if (currentUserId) {
+        localStorage.removeItem(`friends_${currentUserId}`);
+        localStorage.removeItem(`friends_time_${currentUserId}`);
+      }
       fetchFriendRequests();
     }
   };
@@ -197,6 +208,11 @@ export default function Friends() {
       toast({
         title: "친구 요청을 취소했습니다",
       });
+      // 캐시 무효화
+      if (currentUserId) {
+        localStorage.removeItem(`friends_${currentUserId}`);
+        localStorage.removeItem(`friends_time_${currentUserId}`);
+      }
       fetchFriendRequests();
     }
   };
@@ -244,6 +260,11 @@ export default function Friends() {
       toast({
         title: "일기친구를 삭제했습니다",
       });
+      // 캐시 무효화
+      if (currentUserId) {
+        localStorage.removeItem(`friends_${currentUserId}`);
+        localStorage.removeItem(`friends_time_${currentUserId}`);
+      }
       fetchFriendRequests();
     }
   };
@@ -264,6 +285,9 @@ export default function Friends() {
             <DialogContent className="sm:max-w-md mx-4">
               <DialogHeader>
                 <DialogTitle>일기친구 찾기</DialogTitle>
+                <DialogDescription>
+                  이름으로 일기친구를 검색하고 친구 요청을 보내세요.
+                </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <Input
