@@ -33,7 +33,7 @@ export default function Home() {
   const [diaries, setDiaries] = useState<any[]>([]);
   const [allDiaries, setAllDiaries] = useState<any[]>([]);
   const [publicDiaries, setPublicDiaries] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [currentUserId, setCurrentUserId] = useState<string>("");
   const [viewMode, setViewMode] = useState<"my" | "public">("my");
@@ -145,13 +145,14 @@ export default function Home() {
         const parsed = JSON.parse(cachedData);
         setAllDiaries(parsed.myDiaries || []);
         setPublicDiaries(parsed.publicDiaries || []);
-        setLoading(false);
         // 캐시가 유효하면 백그라운드 업데이트는 하지 않음
         return;
       } catch (e) {
         console.error('Cache parse error:', e);
       }
     }
+
+    setLoading(true);
 
     // 내 일기 가져오기
     const { data: myData } = await supabase
