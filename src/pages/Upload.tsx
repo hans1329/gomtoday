@@ -1392,7 +1392,7 @@ export default function Upload() {
                   </div>
                 </div> : <label className="flex flex-col items-center justify-center aspect-[4/3] rounded-lg border-2 border-dashed border-border hover:border-primary cursor-pointer transition-colors">
                   <UploadIcon className="w-12 h-12 text-muted-foreground mb-2" />
-                  <p className="text-sm text-muted-foreground">클릭하여 1~6장의 사진선택</p>
+                  <p className="text-sm text-muted-foreground">오늘의 사진 선택 (1~6 장)</p>
                   <input type="file" accept="image/*" multiple onChange={handleFileSelect} className="hidden" />
                 </label>}
             </div>
