@@ -220,15 +220,18 @@ export default function Home() {
 
     setAllDiaries(processedMyData);
 
-    // 전체 공개 일기 가져오기
+    // 전체 공개 일기 가져오기 (공개 일기 + 등장인물에 내가 포함된 일기)
     let finalPublicDiaries: any[] = [];
+
+    // 1) 전체 공개 일기 (기존 공개 일기 로직)
+    let basePublicDiaries: any[] = [];
     const { data: publicNotebooks } = await supabase
       .from("notebooks")
       .select("id")
       .eq("visibility", "public");
 
     if (publicNotebooks && publicNotebooks.length > 0) {
-      const publicNotebookIds = publicNotebooks.map(nb => nb.id);
+      const publicNotebookIds = publicNotebooks.map((nb: any) => nb.id);
       
       const { data: publicDiaryIds } = await supabase
         .from("diary_notebooks")
@@ -236,7 +239,7 @@ export default function Home() {
         .in("notebook_id", publicNotebookIds);
 
       if (publicDiaryIds && publicDiaryIds.length > 0) {
-        const diaryIds = publicDiaryIds.map(dn => dn.diary_id);
+        const publicDiaryIdList = publicDiaryIds.map((dn: any) => dn.diary_id);
         
         const { data: publicData } = await supabase
           .from("diaries")
@@ -250,74 +253,116 @@ export default function Home() {
               photo_url
             )
           `)
-          .in("id", diaryIds)
+          .in("id", publicDiaryIdList)
           .gte("created_at", monthStart.toISOString())
           .lte("created_at", monthEnd.toISOString());
 
         if (publicData) {
-          // 작성자 정보 가져오기
-          const userIds = [...new Set(publicData.map(d => d.user_id))];
-          const { data: profilesData } = await supabase
-            .from("profiles")
-            .select("user_id, name, profile_photo_url")
-            .in("user_id", userIds);
-
-          const profilesMap = new Map(
-            profilesData?.map(p => [p.user_id, p]) || []
-          );
-
-          const processedPublicData = publicData.map((diary: any) => {
-            let allPhotos = [];
-            if (diary.photos && diary.photos.length > 0) {
-              allPhotos = diary.photos.sort((a: any, b: any) => a.display_order - b.display_order);
-            } else if (diary.photo) {
-              allPhotos = [diary.photo];
-            }
-            const profile = profilesMap.get(diary.user_id);
-            return { 
-              ...diary, 
-              photos: allPhotos,
-              author_name: profile?.name,
-              author_photo: profile?.profile_photo_url
-            };
-          });
-
-          // 좋아요와 댓글 수 가져오기
-          const { data: likesData } = await supabase
-            .from("diary_likes")
-            .select("diary_id")
-            .in("diary_id", diaryIds);
-
-          const { data: commentsData } = await supabase
-            .from("diary_comments")
-            .select("diary_id")
-            .in("diary_id", diaryIds);
-
-          const likesCount = likesData?.reduce((acc: any, like: any) => {
-            acc[like.diary_id] = (acc[like.diary_id] || 0) + 1;
-            return acc;
-          }, {}) || {};
-
-          const commentsCount = commentsData?.reduce((acc: any, comment: any) => {
-            acc[comment.diary_id] = (acc[comment.diary_id] || 0) + 1;
-            return acc;
-          }, {}) || {};
-
-          const dataWithCounts = processedPublicData.map((diary: any) => ({
-            ...diary,
-            likesCount: likesCount[diary.id] || 0,
-            commentsCount: commentsCount[diary.id] || 0,
-          }));
-
-          finalPublicDiaries = dataWithCounts;
-          setPublicDiaries(dataWithCounts);
+          basePublicDiaries = publicData;
         }
       }
+    }
+
+    // 2) 등장인물에 내가 포함된 일기
+    const { data: participantData } = await supabase
+      .from("diaries")
+      .select(`
+        *,
+        photos!photos_diary_id_fkey (
+          photo_url,
+          display_order
+        ),
+        photo:photos!diaries_photo_id_fkey (
+          photo_url
+        )
+      `)
+      .gte("created_at", monthStart.toISOString())
+      .lte("created_at", monthEnd.toISOString());
+
+    let combinedDiaries: any[] = [...basePublicDiaries];
+
+    if (participantData && participantData.length > 0) {
+      const diariesWithMe = participantData.filter((d: any) => {
+        if (!d.participants || !Array.isArray(d.participants)) return false;
+        return d.participants.some((p: any) => p.id === user.id);
+      });
+
+      // 공개 일기 + 등장인물에 내가 포함된 일기를 합치고 중복 제거
+      const diaryMap = new Map<string, any>();
+      combinedDiaries.forEach((d: any) => diaryMap.set(d.id, d));
+      diariesWithMe.forEach((d: any) => diaryMap.set(d.id, d));
+      combinedDiaries = Array.from(diaryMap.values());
+    }
+
+    if (combinedDiaries.length > 0) {
+      const diaryIds = combinedDiaries.map((d: any) => d.id);
+      const userIds = [...new Set(combinedDiaries.map((d: any) => d.user_id))];
+
+      // 작성자 정보 가져오기
+      const { data: profilesData } = await supabase
+        .from("profiles")
+        .select("user_id, name, profile_photo_url")
+        .in("user_id", userIds);
+
+      const profilesMap = new Map(
+        (profilesData || []).map((p: any) => [p.user_id, p])
+      );
+
+      const processedPublicData = combinedDiaries.map((diary: any) => {
+        let allPhotos = [];
+        if (diary.photos && diary.photos.length > 0) {
+          allPhotos = diary.photos.sort(
+            (a: any, b: any) => a.display_order - b.display_order
+          );
+        } else if (diary.photo) {
+          allPhotos = [diary.photo];
+        }
+        const profile = profilesMap.get(diary.user_id);
+        return {
+          ...diary,
+          photos: allPhotos,
+          author_name: profile?.name,
+          author_photo: profile?.profile_photo_url,
+        };
+      });
+
+      // 좋아요와 댓글 수 가져오기
+      const { data: likesData } = await supabase
+        .from("diary_likes")
+        .select("diary_id")
+        .in("diary_id", diaryIds);
+
+      const { data: commentsData } = await supabase
+        .from("diary_comments")
+        .select("diary_id")
+        .in("diary_id", diaryIds);
+
+      const likesCount =
+        likesData?.reduce((acc: any, like: any) => {
+          acc[like.diary_id] = (acc[like.diary_id] || 0) + 1;
+          return acc;
+        }, {}) || {};
+
+      const commentsCount =
+        commentsData?.reduce((acc: any, comment: any) => {
+          acc[comment.diary_id] = (acc[comment.diary_id] || 0) + 1;
+          return acc;
+        }, {}) || {};
+
+      const dataWithCounts = processedPublicData.map((diary: any) => ({
+        ...diary,
+        likesCount: likesCount[diary.id] || 0,
+        commentsCount: commentsCount[diary.id] || 0,
+      }));
+
+      finalPublicDiaries = dataWithCounts;
+      setPublicDiaries(dataWithCounts);
     }
 
     if (finalPublicDiaries.length === 0) {
       setPublicDiaries([]);
     }
+
 
     // 데이터 캐싱
     const cacheData = {
