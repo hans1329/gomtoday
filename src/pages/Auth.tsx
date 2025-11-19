@@ -73,20 +73,32 @@ export default function Auth() {
     }
   };
   const handleSocialLogin = async (provider: 'google' | 'kakao') => {
-    const {
-      error
-    } = await supabase.auth.signInWithOAuth({
-      provider,
-      options: {
-        redirectTo: `${window.location.origin}/`
+    setLoading(true);
+    try {
+      const {
+        error
+      } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/`
+        }
+      });
+      if (error) {
+        toast({
+          title: "로그인 실패",
+          description: error.message,
+          variant: "destructive"
+        });
+        setLoading(false);
       }
-    });
-    if (error) {
+      // 성공 시에는 리다이렉트되므로 setLoading(false) 불필요
+    } catch (error: any) {
       toast({
         title: "로그인 실패",
         description: error.message,
         variant: "destructive"
       });
+      setLoading(false);
     }
   };
   return <div className="min-h-screen flex items-center justify-center gradient-soft px-4 sm:px-6 py-8">
@@ -199,7 +211,7 @@ export default function Auth() {
             </p>
             
             <div className="space-y-3">
-              <Button onClick={() => handleSocialLogin('google')} variant="outline" className="w-full h-12" size="lg">
+              <Button onClick={() => handleSocialLogin('google')} variant="outline" className="w-full h-12" size="lg" disabled={loading}>
                 <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
                   <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
                   <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
@@ -209,7 +221,7 @@ export default function Auth() {
                 Google로 시작하기
               </Button>
 
-              <Button onClick={() => handleSocialLogin('kakao')} variant="outline" className="w-full h-12 bg-[#FEE500] hover:bg-[#FEE500]/90 text-[#000000] border-[#FEE500]" size="lg">
+              <Button onClick={() => handleSocialLogin('kakao')} variant="outline" className="w-full h-12 bg-[#FEE500] hover:bg-[#FEE500]/90 text-[#000000] border-[#FEE500]" size="lg" disabled={loading}>
                 <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
                   <path fill="currentColor" d="M12 3c5.799 0 10.5 3.664 10.5 8.185 0 4.52-4.701 8.184-10.5 8.184a13.5 13.5 0 0 1-1.727-.11l-4.408 2.883c-.501.265-.678.236-.472-.413l.892-3.678c-2.88-1.46-4.785-3.99-4.785-6.866C1.5 6.665 6.201 3 12 3Z" />
                 </svg>
