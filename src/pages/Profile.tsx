@@ -136,8 +136,12 @@ export default function Profile() {
 
     const { error: updateError } = await supabase
       .from("profiles")
-      .update({ profile_photo_url: publicUrl })
-      .eq("user_id", user.id);
+      .upsert({ 
+        user_id: user.id,
+        profile_photo_url: publicUrl 
+      }, {
+        onConflict: 'user_id'
+      });
 
     setUploading(false);
 
