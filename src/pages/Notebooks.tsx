@@ -34,16 +34,23 @@ export default function Notebooks() {
   const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
   const [notebookCreateCost, setNotebookCreateCost] = useState(0);
   const [pencilCount, setPencilCount] = useState(0);
+  const [user, setUser] = useState<any>(null);
   const navigate = useNavigate();
   const {
     toast
   } = useToast();
   useEffect(() => {
+    fetchUser();
     fetchNotebooks();
     fetchPencilSettings();
     fetchUserPencilCount();
     setupPresenceTracking();
   }, []);
+
+  const fetchUser = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    setUser(user);
+  };
 
   const fetchPencilSettings = async () => {
     const { data } = await supabase
@@ -169,14 +176,21 @@ export default function Notebooks() {
       .order("is_default", { ascending: false })
       .order("created_at");
 
-    // 2. 내가 멤버로 추가된 일기장 조회
-    const { data: memberNotebooks, error: memberError } = await supabase
+    // 2. 내가 멤버로 추가된 일기장 ID 조회
+    const { data: membershipData, error: memberError } = await supabase
       .from("notebook_members")
-      .select(`
-        notebook_id,
-        notebooks (*)
-      `)
+      .select("notebook_id")
       .eq("user_id", user.id);
+
+    let sharedNotebooks = [];
+    if (membershipData && membershipData.length > 0) {
+      const notebookIds = membershipData.map(m => m.notebook_id);
+      const { data: sharedData } = await supabase
+        .from("notebooks")
+        .select("*")
+        .in("id", notebookIds);
+      sharedNotebooks = sharedData || [];
+    }
 
     if (myError || memberError) {
       console.error("Error fetching notebooks:", myError || memberError);
@@ -187,17 +201,24 @@ export default function Notebooks() {
       });
     } else {
       // 내가 만든 일기장과 멤버로 참여한 일기장을 합침
-      const sharedNotebooks = memberNotebooks?.map(m => m.notebooks).filter(Boolean) || [];
       const allNotebooks = [...(myNotebooks || []), ...sharedNotebooks];
       
-      // 중복 제거 (혹시 내가 만든 일기장에 내가 멤버로도 추가된 경우)
+      // 중복 제거
       const uniqueNotebooks = Array.from(
         new Map(allNotebooks.map(nb => [nb.id, nb])).values()
       );
 
-      // 각 일기장의 멤버 수 조회
+      // 각 일기장의 작성자 및 멤버 정보 조회
       const notebooksWithMembers = await Promise.all(
         uniqueNotebooks.map(async (notebook) => {
+          // 작성자 프로필 조회
+          const { data: ownerProfile } = await supabase
+            .from("profiles")
+            .select("user_id, name, profile_photo_url")
+            .eq("user_id", notebook.user_id)
+            .single();
+
+          // 멤버 조회
           const { data: members } = await supabase
             .from("notebook_members")
             .select(`
@@ -214,6 +235,7 @@ export default function Notebooks() {
 
           return {
             ...notebook,
+            owner_profile: ownerProfile,
             notebook_members: members || []
           };
         })
@@ -599,8 +621,13 @@ export default function Notebooks() {
             )}
 
             <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
-              {notebooks.map(notebook => (
-                <Card key={notebook.id} className="shadow-sm">
+              {notebooks.map(notebook => {
+                const isMyNotebook = notebook.user_id === user?.id;
+                return (
+                  <Card 
+                    key={notebook.id} 
+                    className={`shadow-sm ${isMyNotebook ? "border-2 border-primary/50" : ""}`}
+                  >
               <CardHeader className="p-4 sm:p-6">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
@@ -623,6 +650,17 @@ export default function Notebooks() {
                             {notebook.visibility === "shared" && <Users className="h-4 w-4 text-muted-foreground flex-shrink-0" />}
                             {notebook.visibility === "public" && <Globe className="h-4 w-4 text-muted-foreground flex-shrink-0" />}
                           </div>
+                          {notebook.owner_profile && (
+                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1">
+                              <Avatar className="h-4 w-4">
+                                <AvatarImage src={notebook.owner_profile.profile_photo_url || undefined} />
+                                <AvatarFallback className="text-[8px]">
+                                  {notebook.owner_profile.name?.[0] || "U"}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span>by {notebook.owner_profile.name || "사용자"}</span>
+                            </div>
+                          )}
                           {notebook.is_default && <CardDescription className="text-xs sm:text-sm">기본</CardDescription>}
                         </>}
                     </div>
@@ -681,7 +719,8 @@ export default function Notebooks() {
                   </Button>}
               </CardContent>
               </Card>
-            ))}
+            );
+          })}
             {notebooks.length < 5 && (
               <Card className="shadow-sm border-dashed border-2 cursor-pointer hover:border-primary hover:bg-accent/50 transition-colors group" onClick={() => setIsDialogOpen(true)}>
               <CardHeader className="p-4 sm:p-6">
