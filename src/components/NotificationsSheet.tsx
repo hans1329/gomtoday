@@ -133,7 +133,9 @@ export default function NotificationsSheet({ open, onOpenChange }: Notifications
       toast({
         title: "친구 요청을 수락했습니다!",
       });
-      fetchNotifications();
+      onOpenChange(false);
+      // 친구 페이지의 친구 탭으로 이동
+      navigate("/friends", { state: { tab: "friends" } });
     }
   };
 

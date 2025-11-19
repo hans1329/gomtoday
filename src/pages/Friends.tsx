@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -30,7 +30,9 @@ export default function Friends() {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [searching, setSearching] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("friends");
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -42,6 +44,15 @@ export default function Friends() {
       fetchFriendRequests();
     }
   }, [currentUserId]);
+
+  // location.state에서 탭 정보 확인
+  useEffect(() => {
+    if (location.state?.tab) {
+      setActiveTab(location.state.tab);
+      // state 초기화
+      window.history.replaceState({}, document.title);
+    }
+  }, [location]);
 
   const fetchCurrentUser = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -165,6 +176,8 @@ export default function Friends() {
         localStorage.removeItem(`friends_${currentUserId}`);
         localStorage.removeItem(`friends_time_${currentUserId}`);
       }
+      // 친구 탭으로 전환
+      setActiveTab("friends");
       fetchFriendRequests();
     }
   };
@@ -340,7 +353,7 @@ export default function Friends() {
           </Dialog>
         </div>
 
-        <Tabs defaultValue="friends" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="friends">
               친구 ({friends.length})
