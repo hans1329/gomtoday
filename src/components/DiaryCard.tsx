@@ -133,7 +133,7 @@ export default function DiaryCard({
                 )}
               </div>
             </div>
-            <p className="text-sm text-foreground/90 line-clamp-2 leading-relaxed">
+            <p className="text-sm text-foreground line-clamp-2 leading-relaxed">
               {diary.content}
             </p>
           </div>
