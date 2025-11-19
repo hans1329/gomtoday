@@ -161,28 +161,69 @@ export default function Notebooks() {
 
     setLoading(true);
 
-    const {
-      data,
-      error
-    } = await supabase
+    // 1. 내가 만든 일기장 조회
+    const { data: myNotebooks, error: myError } = await supabase
       .from("notebooks")
       .select("*")
       .eq("user_id", user.id)
       .order("is_default", { ascending: false })
       .order("created_at");
-    if (error) {
-      console.error("Error fetching notebooks:", error);
+
+    // 2. 내가 멤버로 추가된 일기장 조회
+    const { data: memberNotebooks, error: memberError } = await supabase
+      .from("notebook_members")
+      .select(`
+        notebook_id,
+        notebooks (*)
+      `)
+      .eq("user_id", user.id);
+
+    if (myError || memberError) {
+      console.error("Error fetching notebooks:", myError || memberError);
       toast({
         title: "일기장 로딩 실패",
-        description: error.message,
+        description: (myError || memberError)?.message,
         variant: "destructive"
       });
     } else {
-      setNotebooks(data || []);
+      // 내가 만든 일기장과 멤버로 참여한 일기장을 합침
+      const sharedNotebooks = memberNotebooks?.map(m => m.notebooks).filter(Boolean) || [];
+      const allNotebooks = [...(myNotebooks || []), ...sharedNotebooks];
+      
+      // 중복 제거 (혹시 내가 만든 일기장에 내가 멤버로도 추가된 경우)
+      const uniqueNotebooks = Array.from(
+        new Map(allNotebooks.map(nb => [nb.id, nb])).values()
+      );
+
+      // 각 일기장의 멤버 수 조회
+      const notebooksWithMembers = await Promise.all(
+        uniqueNotebooks.map(async (notebook) => {
+          const { data: members } = await supabase
+            .from("notebook_members")
+            .select(`
+              id,
+              user_id,
+              profiles:user_id (
+                user_id,
+                name,
+                profile_photo_url
+              )
+            `)
+            .eq("notebook_id", notebook.id)
+            .limit(6);
+
+          return {
+            ...notebook,
+            notebook_members: members || []
+          };
+        })
+      );
+
+      setNotebooks(notebooksWithMembers);
       
       // 데이터 캐싱
       try {
-        localStorage.setItem(cacheKey, JSON.stringify(data || []));
+        localStorage.setItem(cacheKey, JSON.stringify(notebooksWithMembers));
         localStorage.setItem(cacheTimeKey, Date.now().toString());
       } catch (e) {
         console.error('Cache save error:', e);
