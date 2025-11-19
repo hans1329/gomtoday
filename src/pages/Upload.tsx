@@ -678,6 +678,15 @@ export default function Upload() {
         title: "일기가 저장되었어요!",
         description: `연필 ${writeCost}개가 차감되었습니다.`,
       });
+      
+      // 홈 화면 캐시 무효화
+      const keys = Object.keys(localStorage);
+      keys.forEach(key => {
+        if (key.startsWith('home_data_') || key.startsWith('diaries_')) {
+          localStorage.removeItem(key);
+        }
+      });
+      
       navigate("/");
     } catch (error: any) {
       console.error("일기 저장 실패:", error);
@@ -831,6 +840,15 @@ export default function Upload() {
         title: "일기가 저장되었어요!",
         description: `연필 ${writeCost}개가 차감되었습니다.`,
       });
+      
+      // 홈 화면 캐시 무효화
+      const keys = Object.keys(localStorage);
+      keys.forEach(key => {
+        if (key.startsWith('home_data_') || key.startsWith('diaries_')) {
+          localStorage.removeItem(key);
+        }
+      });
+      
       navigate("/");
     } catch (error: any) {
       console.error("일기 저장 실패:", error);
@@ -991,6 +1009,15 @@ export default function Upload() {
         toast({
           title: "일기가 수정되었어요!",
         });
+        
+        // 홈 화면 캐시 무효화
+        const keys = Object.keys(localStorage);
+        keys.forEach(key => {
+          if (key.startsWith('home_data_') || key.startsWith('diaries_')) {
+            localStorage.removeItem(key);
+          }
+        });
+        
         navigate("/");
       } else {
         // 새로 작성 모드
@@ -1110,6 +1137,14 @@ export default function Upload() {
             });
           }
         }
+        
+        // 홈 화면 캐시 무효화
+        const keys = Object.keys(localStorage);
+        keys.forEach(key => {
+          if (key.startsWith('home_data_') || key.startsWith('diaries_')) {
+            localStorage.removeItem(key);
+          }
+        });
         
         // 작성 완료 후 홈으로 이동
         setTimeout(() => {
