@@ -1427,14 +1427,20 @@ export default function Upload() {
           <div className="flex gap-2 p-1 bg-muted rounded-full">
             <Button
               variant={writeMode === "ai" ? "default" : "ghost"}
-              className="flex-1 rounded-full"
+              className={cn(
+                "flex-1 rounded-full transition-all",
+                writeMode !== "ai" && "hover:bg-accent/50 text-muted-foreground"
+              )}
               onClick={() => setWriteMode("ai")}
             >
               누군가 작성
             </Button>
             <Button
               variant={writeMode === "manual" ? "default" : "ghost"}
-              className="flex-1 rounded-full"
+              className={cn(
+                "flex-1 rounded-full transition-all",
+                writeMode !== "manual" && "hover:bg-accent/50 text-muted-foreground"
+              )}
               onClick={() => setWriteMode("manual")}
             >
               직접 입력
