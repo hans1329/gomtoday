@@ -1941,29 +1941,14 @@ export default function Upload() {
                   )}
                 </Button>
                 
-                <div className="flex flex-col sm:flex-row gap-3 w-full">
-                  <Button 
-                    onClick={() => {
-                      toast({
-                        description: "임시저장 기능은 준비 중입니다"
-                      });
-                    }} 
-                    variant="outline"
-                    disabled={loading}
-                    className="w-full h-12 order-1 sm:order-1"
-                  >
-                    임시저장
-                  </Button>
-                  
-                  <Button 
-                    onClick={() => setConfirmCancelDialogOpen(true)} 
-                    variant="outline"
-                    disabled={loading}
-                    className="w-full h-12 order-2 sm:order-2"
-                  >
-                    작성 취소
-                  </Button>
-                </div>
+                <Button 
+                  onClick={() => setConfirmCancelDialogOpen(true)} 
+                  variant="outline"
+                  disabled={loading}
+                  className="w-full h-12"
+                >
+                  작성 취소
+                </Button>
               </>
             )}
         </div>
