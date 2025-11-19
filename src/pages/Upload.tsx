@@ -599,7 +599,8 @@ export default function Upload() {
           photoUrls: photoUrls,
           emotion,
           length,
-          perspective
+          perspective,
+          participants: participants
         }
       });
       if (aiError) throw aiError;
@@ -1534,6 +1535,36 @@ export default function Upload() {
                     <SelectItem value="future">미래의 나</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+            )}
+
+            {!isEditMode && writeMode === "ai" && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 px-2">
+                  <Label>등장인물</Label>
+                  <span className="text-xs text-muted-foreground">일기의 주인공들</span>
+                </div>
+                <div className="flex flex-wrap gap-2 px-2">
+                  {participants.map((p) => (
+                    <div key={p.id} className="flex items-center gap-1.5 bg-secondary px-3 py-1.5 rounded-full">
+                      <Avatar className="w-5 h-5">
+                        <AvatarImage src={p.profile_photo_url || undefined} />
+                        <AvatarFallback className="text-xs">
+                          {p.name?.charAt(0) || "?"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="text-sm">{p.name || "Unknown"}</span>
+                      {p.id !== currentUser?.id && (
+                        <button
+                          onClick={() => setParticipants(participants.filter(participant => participant.id !== p.id))}
+                          className="ml-1 hover:bg-destructive/10 rounded-full p-0.5"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 
