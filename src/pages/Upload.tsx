@@ -21,7 +21,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Upload as UploadIcon, Loader2, ArrowLeft, Trash2, ChevronUp, ChevronDown, CalendarIcon, X, PenLine, Pencil } from "lucide-react";
+import { Upload as UploadIcon, Loader2, ArrowLeft, Trash2, ChevronUp, ChevronDown, CalendarIcon, X, PenLine, Pencil, Plus } from "lucide-react";
 import { format } from "date-fns";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { ko } from "date-fns/locale";
@@ -37,7 +37,7 @@ export default function Upload() {
   const [existingPhotos, setExistingPhotos] = useState<any[]>([]);
   const [emotion, setEmotion] = useState("happy");
   const [length, setLength] = useState("medium");
-  const [perspective, setPerspective] = useState("camera");
+  const [perspective, setPerspective] = useState("my_view");
   const [weather, setWeather] = useState("sunny");
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -50,6 +50,8 @@ export default function Upload() {
   const [notebooks, setNotebooks] = useState<any[]>([]);
   const [selectedNotebook, setSelectedNotebook] = useState<string | null>(null);
   const [participants, setParticipants] = useState<Array<{id: string, name: string, profile_photo_url?: string}>>([]);
+  const [friends, setFriends] = useState<Array<{id: string, name: string, profile_photo_url?: string}>>([]);
+  const [showFriendsList, setShowFriendsList] = useState(false);
   const [currentUser, setCurrentUser] = useState<{id: string, name: string, profile_photo_url?: string} | null>(null);
   const [isGenerated, setIsGenerated] = useState(false);
   const [generatedContent, setGeneratedContent] = useState("");
@@ -70,6 +72,7 @@ export default function Upload() {
   useEffect(() => {
     loadCurrentUser();
     fetchPencilInfo();
+    fetchFriends();
     if (isEditMode) {
       loadDiaryData();
       fetchNotebooks();
@@ -454,6 +457,39 @@ export default function Upload() {
         }
       }
     }
+  };
+
+  const fetchFriends = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from('friend_requests')
+      .select(`
+        from_user_id,
+        to_user_id,
+        from_profile:profiles!friend_requests_from_user_id_fkey(user_id, name, profile_photo_url),
+        to_profile:profiles!friend_requests_to_user_id_fkey(user_id, name, profile_photo_url)
+      `)
+      .eq('status', 'accepted')
+      .or(`from_user_id.eq.${user.id},to_user_id.eq.${user.id}`);
+
+    if (error) {
+      console.error('Error fetching friends:', error);
+      return;
+    }
+
+    const friendsList = data?.map((fr: any) => {
+      const isSender = fr.from_user_id === user.id;
+      const profile = isSender ? fr.to_profile : fr.from_profile;
+      return {
+        id: profile.user_id,
+        name: profile.name || '이름 없음',
+        profile_photo_url: profile.profile_photo_url
+      };
+    }) || [];
+
+    setFriends(friendsList);
   };
 
   // 일기장의 멤버를 가져오는 함수
@@ -1526,13 +1562,14 @@ export default function Upload() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="camera">내 핸드폰의 시점</SelectItem>
-                    <SelectItem value="pet">애완동물</SelectItem>
-                    <SelectItem value="friend">친구</SelectItem>
-                    <SelectItem value="family">가족</SelectItem>
-                    <SelectItem value="stranger">낯선 사람</SelectItem>
-                    <SelectItem value="old_man">동네 꼰대 아저씨</SelectItem>
-                    <SelectItem value="future">미래의 나</SelectItem>
+                    <SelectItem value="my_view">👁️ 나의 시선</SelectItem>
+                    <SelectItem value="camera">📱 내 핸드폰의 시점</SelectItem>
+                    <SelectItem value="pet">🐶 애완동물</SelectItem>
+                    <SelectItem value="friend">👫 친구</SelectItem>
+                    <SelectItem value="family">👨‍👩‍👧‍👦 가족</SelectItem>
+                    <SelectItem value="stranger">🚶 낯선 사람</SelectItem>
+                    <SelectItem value="old_man">👴 동네 꼰대 아저씨</SelectItem>
+                    <SelectItem value="future">🔮 미래의 나</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -1544,26 +1581,73 @@ export default function Upload() {
                   <Label>등장인물</Label>
                   <span className="text-xs text-muted-foreground">일기의 주인공들</span>
                 </div>
-                <div className="flex flex-wrap gap-2 px-2">
-                  {participants.map((p) => (
-                    <div key={p.id} className="flex items-center gap-1.5 bg-secondary px-3 py-1.5 rounded-full">
-                      <Avatar className="w-5 h-5">
-                        <AvatarImage src={p.profile_photo_url || undefined} />
-                        <AvatarFallback className="text-xs">
-                          {p.name?.charAt(0) || "?"}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span className="text-sm">{p.name || "Unknown"}</span>
-                      {p.id !== currentUser?.id && (
-                        <button
-                          onClick={() => setParticipants(participants.filter(participant => participant.id !== p.id))}
-                          className="ml-1 hover:bg-destructive/10 rounded-full p-0.5"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      )}
-                    </div>
-                  ))}
+                <div className="space-y-2 px-2">
+                  <div className="flex flex-wrap gap-2 min-h-[32px]">
+                    {participants.map((p) => (
+                      <div key={p.id} className="flex items-center gap-1.5 bg-secondary px-3 py-1.5 rounded-full">
+                        <Avatar className="w-5 h-5">
+                          <AvatarImage src={p.profile_photo_url || undefined} />
+                          <AvatarFallback className="text-xs">
+                            {p.name?.charAt(0) || "?"}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="text-sm">{p.name || "Unknown"}</span>
+                        {p.id !== currentUser?.id && (
+                          <button
+                            onClick={() => setParticipants(participants.filter(participant => participant.id !== p.id))}
+                            className="ml-1 hover:bg-destructive/10 rounded-full p-0.5"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="relative">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowFriendsList(!showFriendsList)}
+                      className="w-full"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      친구 추가
+                    </Button>
+                    {showFriendsList && (
+                      <div className="absolute z-10 w-full mt-1 bg-background border rounded-md shadow-lg max-h-48 overflow-y-auto">
+                        {friends.filter(f => !participants.some(p => p.id === f.id)).length === 0 ? (
+                          <div className="p-3 text-sm text-muted-foreground text-center">
+                            추가할 친구가 없습니다
+                          </div>
+                        ) : (
+                          friends
+                            .filter(f => !participants.some(p => p.id === f.id))
+                            .map(friend => (
+                              <button
+                                key={friend.id}
+                                type="button"
+                                onClick={() => {
+                                  setParticipants([...participants, friend]);
+                                  setShowFriendsList(false);
+                                }}
+                                className="w-full px-3 py-2 text-left hover:bg-accent flex items-center gap-2"
+                              >
+                                {friend.profile_photo_url && (
+                                  <Avatar className="w-6 h-6">
+                                    <AvatarImage src={friend.profile_photo_url} />
+                                    <AvatarFallback className="text-xs">
+                                      {friend.name?.charAt(0) || "?"}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                )}
+                                <span className="text-sm">{friend.name}</span>
+                              </button>
+                            ))
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             )}

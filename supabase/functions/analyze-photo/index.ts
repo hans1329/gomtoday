@@ -36,6 +36,14 @@ serve(async (req) => {
 
     const getPerspectiveInstruction = (perspectiveType: string) => {
       const baseInstructions: Record<string, string> = {
+        my_view: `너는 일기 작성자 본인이다. ${participantContext}
+일기 첫 문장은 "[나의 시선]"으로 시작한다.
+사진 속 사실을 정확하게 바탕으로 ${subjectDescription}의 전체 하루를 1인칭 시점에서 묘사한다.
+8-12문장으로 하루의 흐름을 담은 일기 형태로 구성한다.
+객관적이고 사실적인 묘사에 집중하며, 과장이나 상상을 배제한다.
+실제로 보고 경험한 것만을 정확하게 기록한다.
+사생활은 서술하지 않는다.`,
+        
         camera: `너는 핸드폰이며 집사의 삶을 관찰하는 B급 관찰자다. ${participantContext}
 일기 첫 문장은 "[핸드폰의 시점]"으로 시작한다.
 사진 속 사실을 바탕으로 ${subjectDescription}의 전체 하루를 묘사한다.
@@ -91,6 +99,7 @@ B급 감성으로 가볍게 비꼬되 결국 따뜻하게 마무리한다.
     };
 
     const perspectiveMap: Record<string, { name: string; instruction: string }> = {
+      my_view: { name: '나의 시선', instruction: getPerspectiveInstruction('my_view') },
       camera: { name: '핸드폰', instruction: getPerspectiveInstruction('camera') },
       pet: { name: '애완동물', instruction: getPerspectiveInstruction('pet') },
       friend: { name: '친구', instruction: getPerspectiveInstruction('friend') },
