@@ -50,6 +50,8 @@ export default function Home() {
   const [showComments, setShowComments] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string>("");
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [displayCount, setDisplayCount] = useState(30);
+  const [filteredDiaries, setFilteredDiaries] = useState<any[]>([]);
   const isLikingRef = useRef(false);
   const isMobile = useIsMobile();
   const navigate = useNavigate();
@@ -123,7 +125,12 @@ export default function Home() {
     if (currentUserId && (allDiaries.length > 0 || publicDiaries.length > 0)) {
       filterAndSetDiaries();
     }
-  }, [selectedDate, sortBy, selectedEmoji, searchQuery, allDiaries, publicDiaries, viewMode]);
+  }, [selectedDate, sortBy, selectedEmoji, searchQuery, allDiaries, publicDiaries, viewMode, displayCount]);
+
+  useEffect(() => {
+    // 필터나 보기 모드가 변경되면 displayCount 초기화
+    setDisplayCount(30);
+  }, [selectedDate, sortBy, selectedEmoji, searchQuery, viewMode]);
 
   useEffect(() => {
     if (viewMode === "my" && diaries.length > 0) {
@@ -354,7 +361,10 @@ export default function Home() {
       filtered.sort((a, b) => (b.commentsCount || 0) - (a.commentsCount || 0));
     }
 
-    setDiaries(filtered);
+    // 필터링된 전체 일기 저장
+    setFilteredDiaries(filtered);
+    // 페이지네이션 적용
+    setDiaries(filtered.slice(0, displayCount));
   };
 
   const renderCalendar = () => {
@@ -706,9 +716,9 @@ export default function Home() {
           {isCalendarExpanded && renderCalendar()}
         </div>
 
-        <div className="p-2 sm:p-4 space-y-4">
-        {viewMode === "public" && (
-          <div className="flex items-center gap-2 px-2 sm:px-0">
+        {/* 검색 영역 - 날짜 바로 아래 */}
+        <div className="bg-background md:max-w-2xl md:mx-auto px-6 pb-4">
+          <div className="flex items-center gap-2">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -752,33 +762,37 @@ export default function Home() {
                     <Clock className="h-4 w-4 mr-2" />
                     오래된순
                   </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setSortBy("likes")}
-                    className={cn("justify-start", sortBy === "likes" && "bg-accent")}
-                  >
-                    <Heart className="h-4 w-4 mr-2" />
-                    좋아요순
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setSortBy("comments")}
-                    className={cn("justify-start", sortBy === "comments" && "bg-accent")}
-                  >
-                    <MessageCircle className="h-4 w-4 mr-2" />
-                    댓글순
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setSortBy("friends")}
-                    className={cn("justify-start", sortBy === "friends" && "bg-accent")}
-                  >
-                    <Users className="h-4 w-4 mr-2" />
-                    친구 우선
-                  </Button>
+                  {viewMode === "public" && (
+                    <>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setSortBy("likes")}
+                        className={cn("justify-start", sortBy === "likes" && "bg-accent")}
+                      >
+                        <Heart className="h-4 w-4 mr-2" />
+                        좋아요순
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setSortBy("comments")}
+                        className={cn("justify-start", sortBy === "comments" && "bg-accent")}
+                      >
+                        <MessageCircle className="h-4 w-4 mr-2" />
+                        댓글순
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setSortBy("friends")}
+                        className={cn("justify-start", sortBy === "friends" && "bg-accent")}
+                      >
+                        <Users className="h-4 w-4 mr-2" />
+                        친구순
+                      </Button>
+                    </>
+                  )}
                 </div>
               </PopoverContent>
             </Popover>
@@ -790,15 +804,13 @@ export default function Home() {
                   size="icon"
                   className="rounded-full h-9 w-9 p-0 hover:bg-transparent border-0 flex-shrink-0"
                 >
-                  {selectedEmoji ? (
-                    <div className="bg-background/90 rounded-full w-9 h-9 flex items-center justify-center text-base shadow-sm border border-border">
-                      {selectedEmoji}
-                    </div>
-                  ) : (
-                    <div className="bg-background/90 rounded-full w-9 h-9 flex items-center justify-center shadow-sm border border-border">
+                  <div className="bg-background/90 rounded-full w-9 h-9 flex items-center justify-center shadow-sm border border-border">
+                    {selectedEmoji ? (
+                      <span className="text-lg">{selectedEmoji}</span>
+                    ) : (
                       <Smile className="h-4 w-4" />
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-3 bg-background" align="end">
@@ -840,8 +852,9 @@ export default function Home() {
               </PopoverContent>
             </Popover>
           </div>
-        )}
+        </div>
 
+        <div className="p-2 sm:p-4 space-y-4">
         {viewMode === "my" && hasAnyDiary === false ? (
           <div className="px-2 sm:px-0 flex items-center justify-center min-h-[60vh]">
             <div className="text-center flex flex-col items-center">
@@ -1124,6 +1137,19 @@ export default function Home() {
                   currentUserId={currentUserId}
                 />
               ))}
+            </div>
+          )}
+
+          {/* 더 불러오기 버튼 */}
+          {filteredDiaries.length > displayCount && (
+            <div className="flex justify-center pt-4">
+              <Button
+                variant="outline"
+                onClick={() => setDisplayCount(prev => prev + 30)}
+                className="rounded-full"
+              >
+                더 불러오기 ({filteredDiaries.length - displayCount}개 남음)
+              </Button>
             </div>
           )}
           </div>
