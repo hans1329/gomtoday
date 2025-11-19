@@ -63,6 +63,7 @@ export default function Upload() {
   const [generationCost, setGenerationCost] = useState(0);
   const [regenerationCost, setRegenerationCost] = useState(0);
   const [confirmRegenerateDialogOpen, setConfirmRegenerateDialogOpen] = useState(false);
+  const [confirmCancelDialogOpen, setConfirmCancelDialogOpen] = useState(false);
   const [writeCost, setWriteCost] = useState(0);
   const navigate = useNavigate();
   const {
@@ -1936,7 +1937,7 @@ export default function Upload() {
                       {isEditMode ? "일기 수정 중..." : "일기 저장 중..."}
                     </>
                   ) : (
-                    isEditMode ? "일기 수정하기" : "일기 저장하기"
+                    isEditMode ? "일기 수정하기" : "일기 작성하기"
                   )}
                 </Button>
                 
@@ -1955,27 +1956,12 @@ export default function Upload() {
                   </Button>
                   
                   <Button 
-                    onClick={() => {
-                      // 초기화
-                      setIsGenerated(false);
-                      setCurrentDiaryId(null);
-                      setContent("");
-                      setTitle("");
-                      setGeneratedContent("");
-                      setGeneratedTitle("");
-                      setGeneratedEmoji("");
-                      setSelectedFiles([]);
-                      setPreviewUrls([]);
-                      setExistingPhotos([]);
-                      
-                      // 메인으로 이동
-                      navigate("/");
-                    }} 
+                    onClick={() => setConfirmCancelDialogOpen(true)} 
                     variant="outline"
                     disabled={loading}
                     className="w-full h-12 order-2 sm:order-2"
                   >
-                    취소하기
+                    작성 취소
                   </Button>
                 </div>
               </>
@@ -2124,5 +2110,41 @@ export default function Upload() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* 작성 취소 확인 대화상자 */}
+      <AlertDialog open={confirmCancelDialogOpen} onOpenChange={setConfirmCancelDialogOpen}>
+        <AlertDialogContent className="max-w-[calc(100%-2rem)] sm:max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle>작성 취소</AlertDialogTitle>
+            <AlertDialogDescription>
+              작성 중인 내용이 모두 삭제됩니다. 정말 취소하시겠습니까?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-col-reverse sm:flex-row sm:justify-end gap-2">
+            <AlertDialogCancel className="w-full sm:w-auto">아니오</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => {
+                // 초기화
+                setIsGenerated(false);
+                setCurrentDiaryId(null);
+                setContent("");
+                setTitle("");
+                setGeneratedContent("");
+                setGeneratedTitle("");
+                setGeneratedEmoji("");
+                setSelectedFiles([]);
+                setPreviewUrls([]);
+                setExistingPhotos([]);
+                
+                // 메인으로 이동
+                navigate("/");
+              }}
+              className="w-full sm:w-auto"
+            >
+              네, 취소합니다
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>;
 }
