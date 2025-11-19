@@ -39,73 +39,83 @@ export default function NotificationsSheet({ open, onOpenChange }: Notifications
   const fetchNotifications = async () => {
     setLoading(true);
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    // 친구 요청 가져오기
-    const { data: requests } = await supabase
-      .from("friend_requests" as any)
-      .select(`
-        *,
-        from_profile:profiles!friend_requests_from_user_id_fkey(name, profile_photo_url)
-      `)
-      .eq("to_user_id", user.id)
-      .eq("status", "pending")
-      .order("created_at", { ascending: false });
-
-    if (requests) setFriendRequests(requests);
-
-    // 내 일기에 대한 좋아요 가져오기
-    const { data: myDiaries } = await supabase
-      .from("diaries")
-      .select("id")
-      .eq("user_id", user.id);
-
-    if (myDiaries) {
-      const diaryIds = myDiaries.map(d => d.id);
-      
-      const { data: likesData } = await supabase
-        .from("diary_likes")
-        .select(`
-          *,
-          profile:profiles!diary_likes_user_id_fkey(name, profile_photo_url),
-          diary:diaries!diary_likes_diary_id_fkey(title, content)
-        `)
-        .in("diary_id", diaryIds)
-        .neq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(20);
-
-      if (likesData) setLikes(likesData);
-
-      // 내 일기에 대한 댓글 가져오기
-      const { data: commentsData } = await supabase
-        .from("diary_comments")
-        .select(`
-          *,
-          profile:profiles!diary_comments_user_id_fkey(name, profile_photo_url),
-          diary:diaries!diary_comments_diary_id_fkey(title, content)
-        `)
-        .in("diary_id", diaryIds)
-        .neq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(20);
-
-      if (commentsData) setComments(commentsData);
+    if (!user) {
+      setLoading(false);
+      return;
     }
 
-    // 일기 등장 알림 가져오기
-    const { data: mentionsData } = await supabase
-      .from("notifications")
-      .select("*")
-      .eq("user_id", user.id)
-      .eq("type", "diary_mention")
-      .eq("read", false)
-      .order("created_at", { ascending: false })
-      .limit(20);
+    try {
+      // 모든 쿼리를 병렬로 실행
+      const [requestsResult, diariesResult, mentionsResult] = await Promise.all([
+        // 친구 요청 가져오기
+        supabase
+          .from("friend_requests" as any)
+          .select(`
+            *,
+            from_profile:profiles!friend_requests_from_user_id_fkey(name, profile_photo_url)
+          `)
+          .eq("to_user_id", user.id)
+          .eq("status", "pending")
+          .order("created_at", { ascending: false }),
+        
+        // 내 일기 목록 가져오기
+        supabase
+          .from("diaries")
+          .select("id")
+          .eq("user_id", user.id),
+        
+        // 일기 등장 알림 가져오기
+        supabase
+          .from("notifications")
+          .select("*")
+          .eq("user_id", user.id)
+          .eq("type", "diary_mention")
+          .eq("read", false)
+          .order("created_at", { ascending: false })
+          .limit(20)
+      ]);
 
-    if (mentionsData) setMentions(mentionsData);
+      if (requestsResult.data) setFriendRequests(requestsResult.data);
+      if (mentionsResult.data) setMentions(mentionsResult.data);
 
-    setLoading(false);
+      // 일기 ID가 있으면 좋아요와 댓글을 병렬로 가져오기
+      if (diariesResult.data && diariesResult.data.length > 0) {
+        const diaryIds = diariesResult.data.map(d => d.id);
+        
+        const [likesResult, commentsResult] = await Promise.all([
+          supabase
+            .from("diary_likes")
+            .select(`
+              *,
+              profile:profiles!diary_likes_user_id_fkey(name, profile_photo_url),
+              diary:diaries!diary_likes_diary_id_fkey(title, content)
+            `)
+            .in("diary_id", diaryIds)
+            .neq("user_id", user.id)
+            .order("created_at", { ascending: false })
+            .limit(20),
+          
+          supabase
+            .from("diary_comments")
+            .select(`
+              *,
+              profile:profiles!diary_comments_user_id_fkey(name, profile_photo_url),
+              diary:diaries!diary_comments_diary_id_fkey(title, content)
+            `)
+            .in("diary_id", diaryIds)
+            .neq("user_id", user.id)
+            .order("created_at", { ascending: false })
+            .limit(20)
+        ]);
+
+        if (likesResult.data) setLikes(likesResult.data);
+        if (commentsResult.data) setComments(commentsResult.data);
+      }
+    } catch (error) {
+      console.error("알림 불러오기 실패:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleAcceptRequest = async (requestId: string) => {
