@@ -60,6 +60,16 @@ export default function Home() {
   
   const commonEmojis = ["😊", "😢", "😡", "😍", "🤔", "😴", "😱", "🤗", "😎", "🥳", "😤", "😭"];
 
+  const hasDiaryOnSelectedDate =
+    !!selectedDate &&
+    (viewMode === "my"
+      ? allDiaries.some((diary) =>
+          isSameDay(new Date(diary.created_at), selectedDate)
+        )
+      : publicDiaries.some((diary) =>
+          isSameDay(new Date(diary.created_at), selectedDate)
+        ));
+
   useEffect(() => {
     const fetchLogo = async () => {
       // 캐시된 로고 확인
@@ -330,39 +340,34 @@ export default function Home() {
     let sourceDiaries = viewMode === "my" ? allDiaries : publicDiaries;
     let filtered = [...sourceDiaries];
 
-    // 내 일기 모드에서는 선택된 날짜의 일기만 필터
-    if (selectedDate && viewMode === "my") {
-      filtered = filtered.filter(diary => 
-        isSameDay(new Date(diary.created_at), selectedDate)
-      );
-    }
-
     if (selectedEmoji) {
-      filtered = filtered.filter(diary => diary.emoji === selectedEmoji);
+      filtered = filtered.filter((diary) => diary.emoji === selectedEmoji);
     }
 
     if (searchQuery.trim()) {
-      filtered = filtered.filter(diary => 
+      filtered = filtered.filter((diary) =>
         diary.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         diary.content?.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
-    // 공개 일기 모드에서는 날짜 필터를 적용하지 않음 (전체 일기 표시)
+    // 공개 일기 모드에서는 선택한 날짜의 일기만 필터
     if (selectedDate && viewMode === "public") {
-      filtered = filtered.filter(diary => 
+      filtered = filtered.filter((diary) =>
         isSameDay(new Date(diary.created_at), selectedDate)
       );
     }
 
     // 정렬
     if (sortBy === "latest") {
-      filtered.sort((a, b) => 
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      filtered.sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       );
     } else if (sortBy === "oldest") {
-      filtered.sort((a, b) => 
-        new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      filtered.sort(
+        (a, b) =>
+          new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
       );
     } else if (sortBy === "likes") {
       filtered.sort((a, b) => (b.likesCount || 0) - (a.likesCount || 0));
@@ -753,6 +758,25 @@ export default function Home() {
             {loading || isFilteringDiaries ? (
               <div className="flex items-center justify-center min-h-[60vh]">
                 <LoadingBar />
+              </div>
+            ) : viewMode === "my" && !hasDiaryOnSelectedDate ? (
+              <div className="text-center flex flex-col items-center">
+                <img 
+                  src={logoUrl} 
+                  alt="Logo" 
+                  className="h-16 w-auto object-contain mb-6"
+                />
+                <p className="text-muted-foreground mb-6 text-base">
+                  선택한 날짜에 작성한 일기가 없습니다.
+                </p>
+                <Button
+                  onClick={() => navigate("/upload")}
+                  size="lg"
+                  className="rounded-full gap-2 shadow-medium"
+                >
+                  <Pencil className="h-5 w-5" />
+                  일기 쓰기
+                </Button>
               </div>
             ) : diaries.length === 0 ? (
               <div className="text-center flex flex-col items-center">
