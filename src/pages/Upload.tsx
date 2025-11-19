@@ -1288,43 +1288,12 @@ export default function Upload() {
 
   // 다시 생성하기 확인
   const handleRegenerateClick = () => {
-    if (pencilCount < regenerationCost) {
-      toast({
-        title: "연필이 부족해요",
-        description: `일기 다시 생성에는 연필 ${regenerationCost}개가 필요합니다. (현재: ${pencilCount}개)`,
-        variant: "destructive",
-      });
-      return;
-    }
     setConfirmRegenerateDialogOpen(true);
   };
 
-  // 연필 차감 후 초기화 및 리셋
+  // 초기화 및 리셋
   const handleConfirmRegenerate = async () => {
     setConfirmRegenerateDialogOpen(false);
-    
-    // 연필 차감
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    const { error: deductError } = await supabase
-      .from("profiles")
-      .update({ pencil_count: pencilCount - regenerationCost })
-      .eq("user_id", user.id);
-
-    if (deductError) {
-      toast({
-        title: "연필 차감 실패",
-        description: "다시 시도해주세요.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // 연필 개수 업데이트 이벤트 발생
-    window.dispatchEvent(new CustomEvent('pencil-updated'));
-
-    setPencilCount(pencilCount - regenerationCost);
     
     // 초기 상태로 리셋
     setIsGenerated(false);
@@ -1992,10 +1961,7 @@ export default function Upload() {
       <AlertDialog open={confirmRegenerateDialogOpen} onOpenChange={setConfirmRegenerateDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <Pencil className="h-5 w-5" />
-              처음부터 다시 시작하시겠습니까?
-            </AlertDialogTitle>
+            <AlertDialogTitle>처음부터 다시 시작하시겠습니까?</AlertDialogTitle>
             <AlertDialogDescription>
               <div className="space-y-2">
                 <p>다음 내용이 모두 초기화됩니다:</p>
@@ -2004,14 +1970,6 @@ export default function Upload() {
                   <li>작성된 제목과 내용</li>
                   <li>생성된 이모지</li>
                 </ul>
-                <p className="mt-3">일기 다시 생성에는 연필 {regenerationCost}개가 차감됩니다.</p>
-                <div className="mt-2 p-3 rounded-lg bg-muted">
-                  <p className="text-sm">
-                    현재 연필: <span className="font-bold">{pencilCount}개</span>
-                    {" → "}
-                    <span className="font-bold">{pencilCount - regenerationCost}개</span>
-                  </p>
-                </div>
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
