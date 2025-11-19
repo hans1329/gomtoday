@@ -9,9 +9,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2, Users, X, Pencil, MoreVertical, Lock, Globe, Loader2 } from "lucide-react";
+import { Plus, Trash2, Users, X, Pencil, MoreVertical, Lock, Globe, Loader2, Calendar } from "lucide-react";
 import LoadingBar from "@/components/LoadingBar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { format } from "date-fns";
+import { ko } from "date-fns/locale";
 export default function Notebooks() {
   const [notebooks, setNotebooks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true); // 초기 로딩 상태를 true로 설정
@@ -25,18 +28,49 @@ export default function Notebooks() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [searching, setSearching] = useState(false);
-  const [addingMember, setAddingMember] = useState<string | null>(null); // 멤버 추가 중인 user_id
+  const [addingMember, setAddingMember] = useState<string | null>(null);
   const [editingNotebookId, setEditingNotebookId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
   const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
+  const [notebookCreateCost, setNotebookCreateCost] = useState(0);
+  const [pencilCount, setPencilCount] = useState(0);
   const navigate = useNavigate();
   const {
     toast
   } = useToast();
   useEffect(() => {
     fetchNotebooks();
+    fetchPencilSettings();
+    fetchUserPencilCount();
     setupPresenceTracking();
   }, []);
+
+  const fetchPencilSettings = async () => {
+    const { data } = await supabase
+      .from("pencil_settings")
+      .select("setting_value")
+      .eq("setting_key", "notebook_create_cost")
+      .single();
+    
+    if (data) {
+      setNotebookCreateCost(data.setting_value);
+    }
+  };
+
+  const fetchUserPencilCount = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data } = await supabase
+      .from("profiles")
+      .select("pencil_count")
+      .eq("user_id", user.id)
+      .single();
+    
+    if (data) {
+      setPencilCount(data.pencil_count);
+    }
+  };
   const setupPresenceTracking = async () => {
     const {
       data: {
@@ -130,7 +164,19 @@ export default function Notebooks() {
     const {
       data,
       error
-    } = await supabase.from("notebooks").select("*").eq("user_id", user.id).order("is_default", {
+    } = await supabase.from("notebooks").select(`
+        *,
+        notebook_members!notebook_members_notebook_id_fkey(
+          id,
+          user_id,
+          role,
+          profiles:user_id(
+            user_id,
+            name,
+            profile_photo_url
+          )
+        )
+      `).eq("user_id", user.id).order("is_default", {
       ascending: false
     }).order("created_at");
     if (error) {
@@ -170,6 +216,17 @@ export default function Notebooks() {
       });
       return;
     }
+
+    // 연필 개수 확인
+    if (pencilCount < notebookCreateCost) {
+      toast({
+        title: "연필이 부족합니다",
+        description: `일기장 생성에는 ${notebookCreateCost}개의 연필이 필요합니다.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     setCreating(true);
     const {
       data: {
@@ -196,8 +253,21 @@ export default function Notebooks() {
         variant: "destructive"
       });
     } else {
+      // 연필 차감
+      const { error: pencilError } = await supabase
+        .from("profiles")
+        .update({ pencil_count: pencilCount - notebookCreateCost })
+        .eq("user_id", user.id);
+
+      if (pencilError) {
+        console.error("Error deducting pencils:", pencilError);
+      } else {
+        setPencilCount(pencilCount - notebookCreateCost);
+      }
+
       toast({
-        title: "일기장이 생성되었어요!"
+        title: "일기장이 생성되었어요!",
+        description: `${notebookCreateCost}개의 연필이 차감되었습니다.`,
       });
       setNewName("");
       setNewVisibility("shared");
@@ -423,14 +493,14 @@ export default function Notebooks() {
             <DialogTrigger asChild>
               <Button disabled={notebooks.length >= 5} className="w-full sm:w-auto text-sm sm:text-base">
                 <Plus className="mr-2 h-4 w-4" />
-                새 일기장
+                새 일기장 ({notebookCreateCost}연필)
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-[calc(100%-1rem)] sm:max-w-md mx-2 sm:mx-auto">
               <DialogHeader>
                 <DialogTitle className="text-base sm:text-lg">새 일기장 만들기</DialogTitle>
                 <DialogDescription className="text-xs sm:text-sm">
-                  새로운 일기장을 만들어보세요. 최대 5개까지 만들 수 있어요.
+                  새로운 일기장을 만들어보세요. 최대 5개까지 만들 수 있어요. (비용: {notebookCreateCost}연필)
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-3 sm:space-y-4 py-3 sm:py-4">
@@ -451,13 +521,29 @@ export default function Notebooks() {
                     </SelectContent>
                   </Select>
                 </div>
+                <div className="p-3 bg-muted rounded-md">
+                  <p className="text-sm">
+                    현재 연필: <span className="font-bold">{pencilCount}개</span>
+                  </p>
+                </div>
               </div>
               <DialogFooter className="flex-col sm:flex-row gap-2">
                 <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="w-full sm:w-auto text-sm sm:text-base order-2 sm:order-1" disabled={creating}>
                   취소
                 </Button>
-                <Button onClick={handleCreate} className="w-full sm:w-auto text-sm sm:text-base order-1 sm:order-2" disabled={creating}>
-                  {creating ? "만드는 중..." : "만들기"}
+                <Button
+                  onClick={handleCreate}
+                  disabled={creating || !newName.trim() || pencilCount < notebookCreateCost}
+                  className="w-full sm:w-auto text-sm sm:text-base order-1 sm:order-2"
+                >
+                  {creating ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      생성 중...
+                    </>
+                  ) : (
+                    "만들기"
+                  )}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -527,8 +613,36 @@ export default function Notebooks() {
                       </DropdownMenuContent>
                     </DropdownMenu>}
                 </div>
+                <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
+                  <Calendar className="h-3 w-3" />
+                  {format(new Date(notebook.created_at), "yyyy년 M월 d일", { locale: ko })}
+                </div>
+                {notebook.is_default && (
+                  <CardDescription className="text-xs sm:text-sm mt-1">기본</CardDescription>
+                )}
               </CardHeader>
-              <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
+              <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0 space-y-3">
+                {/* 멤버 표시 */}
+                {notebook.notebook_members && notebook.notebook_members.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <div className="flex -space-x-2">
+                      {notebook.notebook_members.slice(0, 5).map((member: any) => (
+                        <Avatar key={member.id} className="h-7 w-7 border-2 border-background">
+                          <AvatarImage src={member.profiles?.profile_photo_url} />
+                          <AvatarFallback className="text-xs">
+                            {member.profiles?.name?.charAt(0) || "?"}
+                          </AvatarFallback>
+                        </Avatar>
+                      ))}
+                    </div>
+                    {notebook.notebook_members.length > 5 && (
+                      <span className="text-xs text-muted-foreground">
+                        +{notebook.notebook_members.length - 5}
+                      </span>
+                    )}
+                  </div>
+                )}
+                
                 {!notebook.is_default && <Button variant="outline" size="sm" className="w-full text-xs sm:text-sm" onClick={() => openMemberDialog(notebook.id)}>
                     <Users className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     멤버 관리
