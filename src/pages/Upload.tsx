@@ -82,10 +82,10 @@ export default function Upload() {
 
   // 직접입력 모드에서 날짜 변경 시 해당 날짜의 일기 확인
   useEffect(() => {
-    if (!isEditMode && writeMode === "manual") {
+    if (!isEditMode && writeMode === "manual" && currentUser) {
       checkExistingDiaryForDate();
     }
-  }, [selectedDate, writeMode, isEditMode]);
+  }, [selectedDate, writeMode, isEditMode, currentUser]);
 
   // currentUser가 로드된 후 일기 데이터 다시 처리
   useEffect(() => {
@@ -322,14 +322,12 @@ export default function Upload() {
         description: "수정 모드로 전환됩니다."
       });
     } else {
-      // 해당 날짜에 일기가 없으면 초기화
-      if (!currentDiaryId) {
-        setContent("");
-        setTitle("");
-        setExistingPhotos([]);
-        setPreviewUrls([]);
-        setParticipants(currentUser ? [currentUser] : []);
-      }
+      // 해당 날짜에 일기가 없으면 초기화 (등장인물은 유지)
+      setCurrentDiaryId(null);
+      setContent("");
+      setTitle("");
+      setExistingPhotos([]);
+      setPreviewUrls([]);
     }
   };
 
