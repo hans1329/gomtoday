@@ -3,8 +3,18 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 
-import { ChevronLeft, ChevronRight, User, Globe, Calendar as CalendarIcon, Heart, MessageCircle, Clock, Users, Search, Smile, ChevronDown, ChevronUp, ArrowUpDown, Send, Edit, Pencil } from "lucide-react";
+import { ChevronLeft, ChevronRight, User, Globe, Calendar as CalendarIcon, Heart, MessageCircle, Clock, Users, Search, Smile, ChevronDown, ChevronUp, ArrowUpDown, Send, Edit, Pencil, Trash2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { format, startOfMonth, endOfMonth, isSameDay, addMonths, subMonths } from "date-fns";
 import { ko } from "date-fns/locale";
 import LoadingBar from "@/components/LoadingBar";
@@ -38,6 +48,7 @@ export default function Home() {
   const [newComment, setNewComment] = useState("");
   const [showComments, setShowComments] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string>("");
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const isLikingRef = useRef(false);
   const isMobile = useIsMobile();
   const navigate = useNavigate();
@@ -550,6 +561,46 @@ export default function Home() {
     }
   };
 
+  const handleDeleteDiary = async () => {
+    if (diaries.length === 0) return;
+    
+    const diaryId = diaries[0].id;
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user || user.id !== diaries[0].user_id) {
+      toast({
+        title: "삭제 권한이 없습니다",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const { error } = await supabase
+      .from("diaries")
+      .delete()
+      .eq("id", diaryId);
+
+    if (!error) {
+      toast({
+        title: "일기가 삭제되었습니다",
+      });
+      setShowDeleteDialog(false);
+      // 캐시 초기화
+      const monthKey = format(currentMonth, 'yyyy-MM');
+      const cacheKey = `home_data_${user.id}_${monthKey}`;
+      const cacheTimeKey = `home_data_time_${user.id}_${monthKey}`;
+      localStorage.removeItem(cacheKey);
+      localStorage.removeItem(cacheTimeKey);
+      // 데이터 다시 가져오기
+      fetchMonthData();
+    } else {
+      toast({
+        title: "삭제에 실패했습니다",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (loading) {
     return <LoadingBar />;
   }
@@ -853,15 +904,6 @@ export default function Home() {
                     </p>
                   </div>
 
-                  {/* Edit Button - 본인의 일기일 경우에만 표시 */}
-                  {currentUserId === diaries[0].user_id && (
-                    <div className="flex gap-2 pt-2 justify-end">
-                      <Button variant="ghost" size="icon" onClick={() => navigate(`/upload/${diaries[0].id}`)} className="rounded-full">
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  )}
-
                 <div className="flex items-center gap-4 pt-1">
                   <Button
                     variant="ghost"
@@ -948,6 +990,30 @@ export default function Home() {
                     </div>
                   </>
                 )}
+
+                  {/* Edit/Delete Buttons - 본인의 일기일 경우에만 표시 */}
+                  {currentUserId === diaries[0].user_id && (
+                    <div className="flex gap-2 pt-4 border-t mt-4 justify-end">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => navigate(`/upload/${diaries[0].id}`)} 
+                        className="rounded-full gap-2"
+                      >
+                        <Edit className="h-4 w-4" />
+                        편집
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => setShowDeleteDialog(true)}
+                        className="rounded-full gap-2 text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        삭제
+                      </Button>
+                    </div>
+                  )}
               </div>
             </CardContent>
           </Card>
@@ -968,6 +1034,24 @@ export default function Home() {
         </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>일기를 삭제하시겠습니까?</AlertDialogTitle>
+            <AlertDialogDescription>
+              이 작업은 취소할 수 없습니다. 일기가 영구적으로 삭제됩니다.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>취소</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteDiary} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              삭제
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

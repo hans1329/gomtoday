@@ -24,7 +24,7 @@ type Diary = {
 export default function Diaries() {
   const [diaries, setDiaries] = useState<Diary[]>([]);
   const [filteredDiaries, setFilteredDiaries] = useState<Diary[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [emotionFilter, setEmotionFilter] = useState("all");
   const [sortBy, setSortBy] = useState("latest");
