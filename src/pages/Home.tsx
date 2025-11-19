@@ -326,6 +326,8 @@ export default function Home() {
         };
       });
 
+      console.log("[Home] Public view diaries sample:", processedPublicData.slice(0, 3));
+
       // 좋아요와 댓글 수 가져오기
       const { data: likesData } = await supabase
         .from("diary_likes")
@@ -805,23 +807,25 @@ export default function Home() {
                 <LoadingBar />
               </div>
             ) : viewMode === "my" && !hasDiaryOnSelectedDate ? (
-              <div className="text-center flex flex-col items-center">
-                <img 
-                  src={logoUrl} 
-                  alt="Logo" 
-                  className="h-16 w-auto object-contain mb-6"
-                />
-                <p className="text-muted-foreground mb-6 text-base">
-                  선택한 날짜에 작성한 일기가 없습니다.
-                </p>
-                <Button
-                  onClick={() => navigate("/upload")}
-                  size="lg"
-                  className="rounded-full gap-2 shadow-medium"
-                >
-                  <Pencil className="h-5 w-5" />
-                  일기 쓰기
-                </Button>
+              <div className="flex items-center justify-center min-h-[60vh]">
+                <div className="text-center flex flex-col items-center">
+                  <img 
+                    src={logoUrl} 
+                    alt="Logo" 
+                    className="h-16 w-auto object-contain mb-6"
+                  />
+                  <p className="text-muted-foreground mb-6 text-base">
+                    선택한 날짜에 작성한 일기가 없습니다.
+                  </p>
+                  <Button
+                    onClick={() => navigate("/upload")}
+                    size="lg"
+                    className="rounded-full gap-2 shadow-medium"
+                  >
+                    <Pencil className="h-5 w-5" />
+                    일기 쓰기
+                  </Button>
+                </div>
               </div>
             ) : diaries.length === 0 ? (
               <div className="text-center flex flex-col items-center">
