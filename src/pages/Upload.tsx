@@ -782,6 +782,7 @@ export default function Upload() {
         emoji: generatedEmoji || "📝",
         tone: emotion,
         weather,
+        perspective: null,  // 직접 입력은 시점 없음
         participants: participants,
         created_at: selectedDate.toISOString()
       }).select().single();
