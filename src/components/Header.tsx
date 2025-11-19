@@ -254,7 +254,16 @@ export default function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm">
+    <>
+      {/* Backdrop */}
+      {dropdownOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 transition-opacity"
+          onClick={() => setDropdownOpen(false)}
+        />
+      )}
+      
+      <header className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm">
       <div className="flex h-14 items-center px-4 relative">
         <div className="flex-1 flex">
           {currentPath === "/" ? (
@@ -514,6 +523,7 @@ export default function Header() {
         </DialogContent>
       </Dialog>
     </header>
+    </>
   );
 }
 
