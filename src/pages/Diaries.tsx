@@ -91,6 +91,19 @@ export default function Diaries() {
       `)
       .order("created_at", { ascending: false });
 
+    console.log("=== Diaries Query Result ===");
+    console.log("Error:", error);
+    console.log("Total diaries count:", data?.length);
+    console.log("User ID:", user.id);
+    
+    // 등장인물 포함 일기 확인
+    const diariesWithMe = data?.filter((d: any) => {
+      if (!d.participants || !Array.isArray(d.participants)) return false;
+      return d.participants.some((p: any) => p.id === user.id);
+    });
+    console.log("Diaries with me as participant:", diariesWithMe?.length);
+    console.log("Sample diary participants:", data?.[0]?.participants);
+
     if (error) {
       console.error("Error fetching diaries:", error);
     }
