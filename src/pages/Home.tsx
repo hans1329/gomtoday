@@ -52,6 +52,7 @@ export default function Home() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [displayCount, setDisplayCount] = useState(30);
   const [filteredDiaries, setFilteredDiaries] = useState<any[]>([]);
+  const [isFilteringDiaries, setIsFilteringDiaries] = useState(false);
   const isLikingRef = useRef(false);
   const isMobile = useIsMobile();
   const navigate = useNavigate();
@@ -325,8 +326,16 @@ export default function Home() {
   };
 
   const filterAndSetDiaries = () => {
+    setIsFilteringDiaries(true);
     let sourceDiaries = viewMode === "my" ? allDiaries : publicDiaries;
     let filtered = [...sourceDiaries];
+
+    // 내 일기 모드에서는 선택된 날짜의 일기만 필터
+    if (selectedDate && viewMode === "my") {
+      filtered = filtered.filter(diary => 
+        isSameDay(new Date(diary.created_at), selectedDate)
+      );
+    }
 
     if (selectedEmoji) {
       filtered = filtered.filter(diary => diary.emoji === selectedEmoji);
@@ -339,7 +348,7 @@ export default function Home() {
       );
     }
 
-    // 내 일기 모드에서는 날짜 필터를 적용하지 않음 (전체 일기 표시)
+    // 공개 일기 모드에서는 날짜 필터를 적용하지 않음 (전체 일기 표시)
     if (selectedDate && viewMode === "public") {
       filtered = filtered.filter(diary => 
         isSameDay(new Date(diary.created_at), selectedDate)
@@ -365,6 +374,7 @@ export default function Home() {
     setFilteredDiaries(filtered);
     // 페이지네이션 적용
     setDiaries(filtered.slice(0, displayCount));
+    setIsFilteringDiaries(false);
   };
 
   const renderCalendar = () => {
@@ -740,7 +750,11 @@ export default function Home() {
           </div>
         ) : (
           <div className={cn("px-2 sm:px-0", diaries.length === 0 ? "flex items-center justify-center min-h-[60vh]" : "space-y-3")}>
-            {diaries.length === 0 ? (
+            {loading || isFilteringDiaries ? (
+              <div className="flex items-center justify-center min-h-[60vh]">
+                <LoadingBar />
+              </div>
+            ) : diaries.length === 0 ? (
               (() => {
                 const isFutureDate = selectedDate && selectedDate > new Date();
                 return !isFutureDate ? (
