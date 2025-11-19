@@ -1682,6 +1682,58 @@ export default function Upload() {
                   </div>
                 </div>
 
+                {/* 등장인물 선택 - 공개 일기장일 때만 표시 */}
+                {selectedNotebook && notebooks.find(nb => nb.id === selectedNotebook)?.visibility === 'public' && (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 px-2">
+                      <Label>등장인물</Label>
+                      <span className="text-xs text-muted-foreground">멤버에게 알립니다!</span>
+                    </div>
+                    <TooltipProvider>
+                      <div className="flex flex-wrap gap-2 p-3 border rounded-md min-h-[48px] items-center">
+                        {participants.map((p) => (
+                          <div key={p.id} className="relative group">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="relative">
+                                  <Avatar className="h-10 w-10 cursor-pointer border-2 border-border">
+                                    <AvatarImage src={p.profile_photo_url} />
+                                    <AvatarFallback>{p.name.charAt(0)}</AvatarFallback>
+                                  </Avatar>
+                                  <button
+                                    onClick={() => removeParticipant(p.id)}
+                                    className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-destructive text-destructive-foreground opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </button>
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>{p.name}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </div>
+                        ))}
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-10 w-10 rounded-full p-0"
+                          onClick={async () => {
+                            const { data: { user } } = await supabase.auth.getUser();
+                            if (user) {
+                              await fetchFriends(user.id);
+                              setShowMemberDialog(true);
+                            }
+                          }}
+                        >
+                          <UserPlus className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TooltipProvider>
+                  </div>
+                )}
+
                 <div className="space-y-2">
                   <Label htmlFor="content" className="px-2">일기 내용</Label>
                   <Textarea
@@ -1722,55 +1774,6 @@ export default function Upload() {
 
             {(isEditMode || isGenerated || (writeMode === "manual" && !isGenerated)) && (
               <>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 px-2">
-                    <Label>등장인물</Label>
-                    <span className="text-xs text-muted-foreground">멤버에게 알립니다!</span>
-                  </div>
-                  <TooltipProvider>
-                    <div className="flex flex-wrap gap-2 p-3 border rounded-md min-h-[48px] items-center">
-                      {participants.map((p) => (
-                        <div key={p.id} className="relative group">
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <div className="relative">
-                                <Avatar className="h-10 w-10 cursor-pointer border-2 border-border">
-                                  <AvatarImage src={p.profile_photo_url} />
-                                  <AvatarFallback>{p.name.charAt(0)}</AvatarFallback>
-                                </Avatar>
-                                <button
-                                  onClick={() => removeParticipant(p.id)}
-                                  className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-destructive text-destructive-foreground opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
-                                >
-                                  <X className="h-3 w-3" />
-                                </button>
-                              </div>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>{p.name}</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </div>
-                      ))}
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="h-10 w-10 rounded-full p-0"
-                        onClick={async () => {
-                          const { data: { user } } = await supabase.auth.getUser();
-                          if (user) {
-                            await fetchFriends(user.id);
-                            setShowMemberDialog(true);
-                          }
-                        }}
-                      >
-                        <UserPlus className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TooltipProvider>
-                </div>
-
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label className="px-2">일기장 선택</Label>
