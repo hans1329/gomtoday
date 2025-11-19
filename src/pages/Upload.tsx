@@ -678,7 +678,7 @@ export default function Upload() {
         title: "일기가 저장되었어요!",
         description: `연필 ${writeCost}개가 차감되었습니다.`,
       });
-      navigate(`/diary/${currentDiaryId}`);
+      navigate("/");
     } catch (error: any) {
       console.error("일기 저장 실패:", error);
       toast({
@@ -831,7 +831,7 @@ export default function Upload() {
         title: "일기가 저장되었어요!",
         description: `연필 ${writeCost}개가 차감되었습니다.`,
       });
-      navigate(`/diary/${diaryData.id}`);
+      navigate("/");
     } catch (error: any) {
       console.error("일기 저장 실패:", error);
       toast({
@@ -991,7 +991,7 @@ export default function Upload() {
         toast({
           title: "일기가 수정되었어요!",
         });
-        navigate(`/diary/${id}`);
+        navigate("/");
       } else {
         // 새로 작성 모드
         setUploadStatus("일기 생성 중...");
@@ -1111,9 +1111,9 @@ export default function Upload() {
           }
         }
         
-        // 작성 완료 후 상세 페이지로 이동
+        // 작성 완료 후 홈으로 이동
         setTimeout(() => {
-          navigate(`/diary/${diaryData.id}`);
+          navigate("/");
         }, 500);
       }
     } catch (error: any) {
