@@ -1428,8 +1428,8 @@ export default function Upload() {
             <Button
               variant={writeMode === "ai" ? "default" : "ghost"}
               className={cn(
-                "flex-1 rounded-full transition-all",
-                writeMode !== "ai" && "hover:bg-accent/50 text-muted-foreground"
+                "flex-1 rounded-full transition-all touch-none",
+                writeMode !== "ai" && "text-muted-foreground md:hover:bg-accent/50"
               )}
               onClick={() => setWriteMode("ai")}
             >
@@ -1438,8 +1438,8 @@ export default function Upload() {
             <Button
               variant={writeMode === "manual" ? "default" : "ghost"}
               className={cn(
-                "flex-1 rounded-full transition-all",
-                writeMode !== "manual" && "hover:bg-accent/50 text-muted-foreground"
+                "flex-1 rounded-full transition-all touch-none",
+                writeMode !== "manual" && "text-muted-foreground md:hover:bg-accent/50"
               )}
               onClick={() => setWriteMode("manual")}
             >
