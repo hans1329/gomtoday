@@ -247,7 +247,7 @@ export default function Diaries() {
                 <p className="text-muted-foreground">
                   {searchQuery || emotionFilter !== "all"
                     ? "검색 조건에 맞는 일기가 없습니다."
-                    : "아직 작성된 일기가 없습니다."}
+                    : "첫 일기를 작성해 보세요!"}
                 </p>
                 <Button
                   onClick={() => navigate("/upload")}
