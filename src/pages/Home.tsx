@@ -34,7 +34,7 @@ export default function Home() {
   const [allDiaries, setAllDiaries] = useState<any[]>([]);
   const [publicDiaries, setPublicDiaries] = useState<any[]>([]);
   const [hasAnyDiary, setHasAnyDiary] = useState<boolean | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [currentUserId, setCurrentUserId] = useState<string>("");
   const [viewMode, setViewMode] = useState<"my" | "public">("my");
@@ -123,9 +123,8 @@ export default function Home() {
   }, [currentUserId, currentMonth]);
 
   useEffect(() => {
-    if (currentUserId && (allDiaries.length > 0 || publicDiaries.length > 0)) {
-      filterAndSetDiaries();
-    }
+    if (!currentUserId) return;
+    filterAndSetDiaries();
   }, [selectedDate, sortBy, selectedEmoji, searchQuery, allDiaries, publicDiaries, viewMode, displayCount]);
 
   useEffect(() => {
@@ -153,6 +152,8 @@ export default function Home() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
+    setLoading(true);
+
     const monthStart = startOfMonth(currentMonth);
     const monthEnd = endOfMonth(currentMonth);
     const monthKey = format(currentMonth, 'yyyy-MM');
@@ -171,14 +172,13 @@ export default function Home() {
         const parsed = JSON.parse(cachedData);
         setAllDiaries(parsed.myDiaries || []);
         setPublicDiaries(parsed.publicDiaries || []);
+        setLoading(false);
         // 캐시가 유효하면 백그라운드 업데이트는 하지 않음
         return;
       } catch (e) {
         console.error('Cache parse error:', e);
       }
     }
-
-    setLoading(true);
 
     // 내 일기 가져오기
     const { data: myData } = await supabase
@@ -755,33 +755,28 @@ export default function Home() {
                 <LoadingBar />
               </div>
             ) : diaries.length === 0 ? (
-              (() => {
-                const isFutureDate = selectedDate && selectedDate > new Date();
-                return !isFutureDate ? (
-                  <div className="text-center flex flex-col items-center">
-                    <img 
-                      src={logoUrl} 
-                      alt="Logo" 
-                      className="h-16 w-auto object-contain mb-6"
-                    />
-                    <p className="text-muted-foreground mb-6 text-base">
-                      {viewMode === "my"
-                        ? "선택한 날짜에 작성한 일기가 없습니다."
-                        : "공개된 일기가 없습니다."}
-                    </p>
-                    {viewMode === "my" && (
-                      <Button
-                        onClick={() => navigate("/upload")}
-                        size="lg"
-                        className="rounded-full gap-2 shadow-medium"
-                      >
-                        <Pencil className="h-5 w-5" />
-                        일기 쓰기
-                      </Button>
-                    )}
-                  </div>
-                ) : null;
-              })()
+              <div className="text-center flex flex-col items-center">
+                <img 
+                  src={logoUrl} 
+                  alt="Logo" 
+                  className="h-16 w-auto object-contain mb-6"
+                />
+                <p className="text-muted-foreground mb-6 text-base">
+                  {viewMode === "my"
+                    ? "선택한 날짜에 작성한 일기가 없습니다."
+                    : "공개된 일기가 없습니다."}
+                </p>
+                {viewMode === "my" && (
+                  <Button
+                    onClick={() => navigate("/upload")}
+                    size="lg"
+                    className="rounded-full gap-2 shadow-medium"
+                  >
+                    <Pencil className="h-5 w-5" />
+                    일기 쓰기
+                  </Button>
+                )}
+              </div>
             ) : viewMode === "my" ? (
               <>
                 <Card className="shadow-medium overflow-hidden">
