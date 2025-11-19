@@ -1686,8 +1686,9 @@ export default function Upload() {
                 {(() => {
                   if (!selectedNotebook) return false;
                   const selectedNotebookData = notebooks.find(nb => nb.id === selectedNotebook);
+                  console.log("[DEBUG participants]", { selectedNotebook, selectedNotebookData });
                   if (!selectedNotebookData) return false;
-                  const isMyPrivateNotebook = selectedNotebookData.name === "나만의 일기장";
+                  const isMyPrivateNotebook = selectedNotebookData.visibility === 'private' && selectedNotebookData.is_default === true;
                   return !isMyPrivateNotebook;
                 })() && (
                   <div className="space-y-2">
