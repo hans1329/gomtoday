@@ -113,13 +113,14 @@ export default function Home() {
     if (!currentUserId) return;
 
     const checkHasAnyDiary = async () => {
-      const { count, error } = await supabase
-        .from("diaries")
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", currentUserId);
+      // 일기장에 연결된 일기만 카운트
+      const { data, error } = await supabase
+        .from("diary_notebooks")
+        .select("diary_id, diaries!inner(user_id)", { count: "exact", head: false })
+        .eq("diaries.user_id", currentUserId);
 
       if (!error) {
-        setHasAnyDiary((count ?? 0) > 0);
+        setHasAnyDiary((data?.length ?? 0) > 0);
       }
     };
 
@@ -190,7 +191,7 @@ export default function Home() {
       }
     }
 
-    // 내 일기 가져오기
+    // 내 일기 가져오기 (일기장에 연결된 일기만)
     const { data: myData } = await supabase
       .from("diaries")
       .select(`
@@ -202,7 +203,7 @@ export default function Home() {
         photo:photos!diaries_photo_id_fkey (
           photo_url
         ),
-        diary_notebooks(
+        diary_notebooks!inner(
           notebook_id,
           notebooks(visibility)
         )
@@ -273,7 +274,7 @@ export default function Home() {
       }
     }
 
-    // 2) 등장인물에 내가 포함된 일기
+    // 2) 등장인물에 내가 포함된 일기 (일기장에 연결된 일기만)
     const { data: participantData } = await supabase
       .from("diaries")
       .select(`
@@ -285,7 +286,7 @@ export default function Home() {
         photo:photos!diaries_photo_id_fkey (
           photo_url
         ),
-        diary_notebooks(
+        diary_notebooks!inner(
           notebook_id,
           notebooks(visibility)
         )

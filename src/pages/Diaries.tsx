@@ -76,7 +76,7 @@ export default function Diaries() {
 
     setLoading(true);
 
-    // 모든 조회 가능한 일기 가져오기 (RLS 정책에 의해 자동 필터링됨)
+    // 모든 조회 가능한 일기 가져오기 (일기장에 연결된 일기만, RLS 정책에 의해 자동 필터링됨)
     const { data, error } = await supabase
       .from("diaries")
       .select(`
@@ -87,6 +87,9 @@ export default function Diaries() {
         ),
         photo:photos!diaries_photo_id_fkey (
           photo_url
+        ),
+        diary_notebooks!inner(
+          notebook_id
         )
       `)
       .order("created_at", { ascending: false });
