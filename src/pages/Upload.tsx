@@ -1940,14 +1940,44 @@ export default function Upload() {
                   )}
                 </Button>
                 
-                <Button 
-                  onClick={() => navigate(-1)} 
-                  variant="outline"
-                  disabled={loading}
-                  className="w-full h-12"
-                >
-                  취소하기
-                </Button>
+                <div className="flex flex-col sm:flex-row gap-3 w-full">
+                  <Button 
+                    onClick={() => {
+                      toast({
+                        description: "임시저장 기능은 준비 중입니다"
+                      });
+                    }} 
+                    variant="outline"
+                    disabled={loading}
+                    className="w-full h-12 order-1 sm:order-1"
+                  >
+                    임시저장
+                  </Button>
+                  
+                  <Button 
+                    onClick={() => {
+                      // 초기화
+                      setIsGenerated(false);
+                      setCurrentDiaryId(null);
+                      setContent("");
+                      setTitle("");
+                      setGeneratedContent("");
+                      setGeneratedTitle("");
+                      setGeneratedEmoji("");
+                      setSelectedFiles([]);
+                      setPreviewUrls([]);
+                      setExistingPhotos([]);
+                      
+                      // 메인으로 이동
+                      navigate("/");
+                    }} 
+                    variant="outline"
+                    disabled={loading}
+                    className="w-full h-12 order-2 sm:order-2"
+                  >
+                    취소하기
+                  </Button>
+                </div>
               </>
             )}
         </div>
