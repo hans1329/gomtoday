@@ -293,6 +293,7 @@ export default function Notebooks() {
   };
   const addMember = async (userId: string) => {
     if (!selectedNotebookId) return;
+    
     const {
       error
     } = await supabase.from("notebook_members").insert({
@@ -300,6 +301,7 @@ export default function Notebooks() {
       user_id: userId,
       role: "viewer"
     });
+    
     if (error) {
       toast({
         title: "멤버 추가 실패",
@@ -307,6 +309,36 @@ export default function Notebooks() {
         variant: "destructive"
       });
     } else {
+      // 노트북 정보 가져오기
+      const { data: notebookData } = await supabase
+        .from("notebooks")
+        .select("name, user_id")
+        .eq("id", selectedNotebookId)
+        .single();
+      
+      // 현재 사용자 정보 가져오기
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data: currentUserProfile } = await supabase
+        .from("profiles")
+        .select("name")
+        .eq("user_id", user?.id)
+        .single();
+      
+      // 알림 전송
+      if (notebookData && currentUserProfile) {
+        await supabase.from("notifications").insert({
+          user_id: userId,
+          type: "notebook_member",
+          title: "노트북 멤버 초대",
+          message: `${currentUserProfile.name}님이 '${notebookData.name}' 노트북에 초대했습니다.`,
+          link: "/notebooks",
+          metadata: {
+            notebook_id: selectedNotebookId,
+            inviter_id: user?.id
+          }
+        });
+      }
+      
       toast({
         title: "멤버가 추가되었어요"
       });
