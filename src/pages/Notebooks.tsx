@@ -9,12 +9,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2, Users, X, Pencil, MoreVertical, Lock, Globe } from "lucide-react";
+import { Plus, Trash2, Users, X, Pencil, MoreVertical, Lock, Globe, Loader2 } from "lucide-react";
 import LoadingBar from "@/components/LoadingBar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 export default function Notebooks() {
   const [notebooks, setNotebooks] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true); // 초기 로딩 상태를 true로 설정
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState("");
   const [newVisibility, setNewVisibility] = useState<"private" | "shared" | "public">("shared");
@@ -25,6 +25,7 @@ export default function Notebooks() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [searching, setSearching] = useState(false);
+  const [addingMember, setAddingMember] = useState<string | null>(null); // 멤버 추가 중인 user_id
   const [editingNotebookId, setEditingNotebookId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
   const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
@@ -294,6 +295,8 @@ export default function Notebooks() {
   const addMember = async (userId: string) => {
     if (!selectedNotebookId) return;
     
+    setAddingMember(userId); // 로딩 시작
+    
     const {
       error
     } = await supabase.from("notebook_members").insert({
@@ -308,6 +311,7 @@ export default function Notebooks() {
         description: error.message,
         variant: "destructive"
       });
+      setAddingMember(null); // 로딩 종료
     } else {
       // 노트북 정보 가져오기
       const { data: notebookData } = await supabase
@@ -344,7 +348,10 @@ export default function Notebooks() {
       });
       setSearchQuery("");
       setSearchResults([]);
-      fetchMembers(selectedNotebookId);
+      if (selectedNotebookId) {
+        fetchMembers(selectedNotebookId);
+      }
+      setAddingMember(null); // 로딩 종료
     }
   };
   const removeMember = async (memberId: string) => {
@@ -457,16 +464,25 @@ export default function Notebooks() {
           </Dialog>
         </div>
 
-        {notebooks.length >= 5 && <Card className="bg-amber-50 border-amber-200">
-            <CardContent className="p-3 sm:p-4 sm:pt-6">
-              <p className="text-xs sm:text-sm text-amber-800">
-                일기장을 최대 5개까지 만들었어요. 더 만들려면 기존 일기장을 삭제해주세요.
-              </p>
-            </CardContent>
-          </Card>}
+        {loading ? (
+          <div className="text-center py-12">
+            <LoadingBar />
+          </div>
+        ) : (
+          <>
+            {notebooks.length >= 5 && (
+              <Card className="bg-amber-50 border-amber-200">
+                <CardContent className="p-3 sm:p-4 sm:pt-6">
+                  <p className="text-xs sm:text-sm text-amber-800">
+                    일기장을 최대 5개까지 만들었어요. 더 만들려면 기존 일기장을 삭제해주세요.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
 
-        <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
-          {notebooks.map(notebook => <Card key={notebook.id} className="shadow-sm">
+            <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
+              {notebooks.map(notebook => (
+                <Card key={notebook.id} className="shadow-sm">
               <CardHeader className="p-4 sm:p-6">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
@@ -518,8 +534,10 @@ export default function Notebooks() {
                     멤버 관리
                   </Button>}
               </CardContent>
-            </Card>)}
-          {notebooks.length < 5 && <Card className="shadow-sm border-dashed border-2 cursor-pointer hover:border-primary hover:bg-accent/50 transition-colors group" onClick={() => setIsDialogOpen(true)}>
+              </Card>
+            ))}
+            {notebooks.length < 5 && (
+              <Card className="shadow-sm border-dashed border-2 cursor-pointer hover:border-primary hover:bg-accent/50 transition-colors group" onClick={() => setIsDialogOpen(true)}>
               <CardHeader className="p-4 sm:p-6">
                 <div className="flex items-center justify-center gap-3 min-h-[80px]">
                   <Plus className="h-8 w-8 sm:h-10 sm:w-10 text-muted-foreground group-hover:text-white transition-colors" />
@@ -531,10 +549,11 @@ export default function Notebooks() {
                   </div>
                 </div>
               </CardHeader>
-            </Card>}
-        </div>
-
-        
+              </Card>
+            )}
+          </div>
+          </>
+        )}
       </div>
 
       <Dialog open={memberDialogOpen} onOpenChange={setMemberDialogOpen}>
@@ -571,8 +590,15 @@ export default function Notebooks() {
                           <p className="text-sm font-medium truncate">{user.name}</p>
                           <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                         </div>
-                        <Button size="sm" onClick={() => addMember(user.user_id)}>
-                          추가
+                        <Button size="sm" onClick={() => addMember(user.user_id)} disabled={addingMember === user.user_id}>
+                          {addingMember === user.user_id ? (
+                            <>
+                              <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                              추가 중...
+                            </>
+                          ) : (
+                            "추가"
+                          )}
                         </Button>
                       </div>)}
                   </div>
