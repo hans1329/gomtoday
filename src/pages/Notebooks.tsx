@@ -504,6 +504,67 @@ export default function Notebooks() {
       }
     }
   };
+
+  const leaveNotebook = async (notebookId: string, notebookName: string, ownerId: string) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    // 내 멤버십 찾기
+    const { data: membership } = await supabase
+      .from("notebook_members")
+      .select("id")
+      .eq("notebook_id", notebookId)
+      .eq("user_id", user.id)
+      .single();
+
+    if (!membership) {
+      toast({
+        title: "멤버십을 찾을 수 없습니다",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const { error } = await supabase
+      .from("notebook_members")
+      .delete()
+      .eq("id", membership.id);
+
+    if (error) {
+      toast({
+        title: "일기장 나가기 실패",
+        description: error.message,
+        variant: "destructive"
+      });
+    } else {
+      // 현재 사용자 정보 가져오기
+      const { data: currentUserProfile } = await supabase
+        .from("profiles")
+        .select("name")
+        .eq("user_id", user.id)
+        .single();
+
+      // 소유자에게 알림 전송
+      if (currentUserProfile) {
+        await supabase.from("notifications").insert({
+          user_id: ownerId,
+          type: "notebook_member_leave",
+          title: "멤버가 나갔습니다",
+          message: `${currentUserProfile.name}님이 '${notebookName}' 일기장을 나갔습니다.`,
+          link: "/notebooks",
+          metadata: {
+            notebook_id: notebookId,
+            left_user_id: user.id
+          }
+        });
+      }
+
+      toast({
+        title: "일기장을 나갔습니다"
+      });
+      fetchNotebooks();
+    }
+  };
   const startEditingName = (notebookId: string, currentName: string) => {
     setEditingNotebookId(notebookId);
     setEditingName(currentName);
@@ -739,14 +800,26 @@ export default function Notebooks() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => startEditingName(notebook.id, notebook.name)}>
-                          <Pencil className="h-4 w-4 mr-2" />
-                          이름 변경
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleDelete(notebook.id, notebook.is_default)} className="text-destructive focus:text-destructive">
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          삭제
-                        </DropdownMenuItem>
+                        {isMyNotebook ? (
+                          <>
+                            <DropdownMenuItem onClick={() => startEditingName(notebook.id, notebook.name)}>
+                              <Pencil className="h-4 w-4 mr-2" />
+                              이름 변경
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleDelete(notebook.id, notebook.is_default)} className="text-destructive focus:text-destructive">
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              삭제
+                            </DropdownMenuItem>
+                          </>
+                        ) : (
+                          <DropdownMenuItem 
+                            onClick={() => leaveNotebook(notebook.id, notebook.name, notebook.user_id)} 
+                            className="text-destructive focus:text-destructive"
+                          >
+                            <X className="h-4 w-4 mr-2" />
+                            나가기
+                          </DropdownMenuItem>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>}
                 </div>
