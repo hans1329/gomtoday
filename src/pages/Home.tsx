@@ -891,6 +891,21 @@ export default function Home() {
                       <div className="text-sm text-muted-foreground">
                         {format(new Date(diaries[0].created_at), "yyyy년 M월 d일 (EEE) a h:mm", { locale: ko })}
                       </div>
+                      {diaries[0].weather && (
+                        <span className="text-xl">
+                          {(() => {
+                            const weatherEmojis: Record<string, string> = {
+                              sunny: '☀️',
+                              partly_cloudy: '⛅',
+                              cloudy: '☁️',
+                              rainy: '🌧️',
+                              stormy: '⛈️',
+                              snowy: '🌨️'
+                            };
+                            return weatherEmojis[diaries[0].weather] || diaries[0].weather;
+                          })()}
+                        </span>
+                      )}
                       {diaries[0].emoji && (
                         <span className="text-2xl">{diaries[0].emoji}</span>
                       )}
