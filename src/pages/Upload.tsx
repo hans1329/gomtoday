@@ -1575,7 +1575,7 @@ export default function Upload() {
               </div>
             )}
 
-            {!isEditMode && writeMode === "ai" && (
+            {!isEditMode && (
               <div className="space-y-2">
                 <div className="flex items-center gap-2 px-2">
                   <Label>등장인물</Label>
@@ -1615,7 +1615,7 @@ export default function Upload() {
                       친구 추가
                     </Button>
                     {showFriendsList && (
-                      <div className="absolute z-10 w-full mt-1 bg-background border rounded-md shadow-lg max-h-48 overflow-y-auto">
+                      <div className="absolute z-50 w-full mt-1 bg-background border rounded-md shadow-lg max-h-48 overflow-y-auto">
                         {friends.filter(f => !participants.some(p => p.id === f.id)).length === 0 ? (
                           <div className="p-3 text-sm text-muted-foreground text-center">
                             추가할 친구가 없습니다
