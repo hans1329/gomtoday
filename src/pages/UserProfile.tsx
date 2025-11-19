@@ -99,14 +99,18 @@ export default function UserProfile() {
         description: error.message,
         variant: "destructive",
       });
+      setRequesting(false);
     } else {
       setFriendRequestStatus("pending");
       toast({
         title: "일기친구 요청을 보냈습니다!",
       });
+      setRequesting(false);
+      // 친구 페이지로 이동
+      setTimeout(() => {
+        navigate("/friends");
+      }, 500);
     }
-    
-    setRequesting(false);
   };
 
   if (loading) {
