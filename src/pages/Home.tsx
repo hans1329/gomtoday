@@ -36,6 +36,7 @@ export default function Home() {
   const [comments, setComments] = useState<any[]>([]);
   const [isLiked, setIsLiked] = useState(false);
   const [newComment, setNewComment] = useState("");
+  const [showComments, setShowComments] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string>("");
   const isLikingRef = useRef(false);
   const isMobile = useIsMobile();
@@ -874,67 +875,79 @@ export default function Home() {
                     <Heart className={cn("h-4 w-4", isLiked && "fill-current")} />
                     <span className="text-sm">{likes.length}</span>
                   </Button>
-                  <div className="flex items-center gap-2 text-muted-foreground h-9 px-3">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowComments(!showComments);
+                    }}
+                    className="flex items-center gap-2 text-muted-foreground hover:text-foreground h-9 px-3 rounded-full"
+                  >
                     <MessageCircle className="h-4 w-4" />
                     <span className="text-sm">{comments.length}</span>
-                  </div>
+                  </Button>
                 </div>
 
-                {comments.length > 0 && (
-                  <div className="space-y-4 pt-2">
-                    <h3 className="font-semibold">댓글 {comments.length}개</h3>
-                    <div className="space-y-3">
-                      {comments.map((comment: any) => (
-                        <div key={comment.id} className="flex gap-3">
-                          <Avatar className="h-8 w-8 flex-shrink-0">
-                            <AvatarImage src={comment.profiles?.profile_photo_url} />
-                            <AvatarFallback>
-                              {comment.profiles?.name?.[0] || "?"}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="font-semibold text-sm">
-                                {comment.profiles?.name || "익명"}
-                              </span>
-                              <span className="text-xs text-muted-foreground">
-                                {format(new Date(comment.created_at), "M월 d일 HH:mm", { locale: ko })}
-                              </span>
+                {showComments && (
+                  <>
+                    {comments.length > 0 && (
+                      <div className="space-y-4 pt-2">
+                        <h3 className="font-semibold">댓글 {comments.length}개</h3>
+                        <div className="space-y-3">
+                          {comments.map((comment: any) => (
+                            <div key={comment.id} className="flex gap-3">
+                              <Avatar className="h-8 w-8 flex-shrink-0">
+                                <AvatarImage src={comment.profiles?.profile_photo_url} />
+                                <AvatarFallback>
+                                  {comment.profiles?.name?.[0] || "?"}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="font-semibold text-sm">
+                                    {comment.profiles?.name || "익명"}
+                                  </span>
+                                  <span className="text-xs text-muted-foreground">
+                                    {format(new Date(comment.created_at), "M월 d일 HH:mm", { locale: ko })}
+                                  </span>
+                                </div>
+                                <p className="text-sm text-foreground break-words">
+                                  {comment.content}
+                                </p>
+                              </div>
                             </div>
-                            <p className="text-sm text-foreground break-words">
-                              {comment.content}
-                            </p>
-                          </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                      </div>
+                    )}
 
-                <div className="pt-2">
-                  <div className="relative">
-                    <Input
-                      placeholder="댓글을 입력하세요..."
-                      value={newComment}
-                      onChange={(e) => setNewComment(e.target.value)}
-                      className="pr-12 h-11 text-sm placeholder:text-sm"
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" && !e.shiftKey) {
-                          e.preventDefault();
-                          handleCommentSubmit();
-                        }
-                      }}
-                    />
-                    <Button
-                      onClick={handleCommentSubmit}
-                      disabled={!newComment.trim()}
-                      size="icon"
-                      className="absolute right-1 top-1 h-9 w-9 rounded-full"
-                    >
-                      <Send className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
+                    <div className="pt-2">
+                      <div className="relative">
+                        <Input
+                          placeholder="댓글을 입력하세요..."
+                          value={newComment}
+                          onChange={(e) => setNewComment(e.target.value)}
+                          className="pr-12 h-11 text-sm placeholder:text-sm"
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" && !e.shiftKey) {
+                              e.preventDefault();
+                              handleCommentSubmit();
+                            }
+                          }}
+                        />
+                        <Button
+                          onClick={handleCommentSubmit}
+                          disabled={!newComment.trim()}
+                          size="icon"
+                          className="absolute right-1 top-1 h-9 w-9 rounded-full"
+                        >
+                          <Send className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             </CardContent>
           </Card>
