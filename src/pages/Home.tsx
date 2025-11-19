@@ -911,14 +911,12 @@ export default function Home() {
                   
                   {diaries[0].title && (
                     <>
-                      <div className="flex items-center justify-between gap-2">
-                        <h2 className="text-xl font-bold text-foreground">
-                          {diaries[0].title}
-                        </h2>
+                      <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
+                        {diaries[0].title}
                         {diaries[0].emoji && (
-                          <span className="text-2xl flex-shrink-0">{diaries[0].emoji}</span>
+                          <span className="text-2xl">{diaries[0].emoji}</span>
                         )}
-                      </div>
+                      </h2>
                       {diaries[0].perspective && diaries[0].photos && diaries[0].photos.length > 0 && (
                         <div className="text-sm text-muted-foreground">
                           #{(() => {
