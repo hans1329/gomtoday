@@ -122,7 +122,7 @@ export default function Auth() {
                   <Label htmlFor="signin-password">비밀번호</Label>
                   <Input id="signin-password" type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} />
                 </div>
-                <Button onClick={() => handleEmailAuth(false)} className="w-full h-12" disabled={loading}>
+                <Button onClick={() => handleEmailAuth(false)} disabled={loading} className="w-full h-13">
                   로그인
                 </Button>
               </TabsContent>
