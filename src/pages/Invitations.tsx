@@ -22,6 +22,7 @@ export default function Invitations() {
   const [loading, setLoading] = useState(true);
   const [invitationCount, setInvitationCount] = useState(6);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
 
   useEffect(() => {
     checkAuthAndFetch();
@@ -91,44 +92,52 @@ export default function Invitations() {
       return;
     }
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    if (isCreating) return;
 
-    const invitationCode = generateInvitationCode();
+    setIsCreating(true);
 
-    const { error: insertError } = await supabase
-      .from("invitations")
-      .insert({
-        inviter_id: user.id,
-        invitation_code: invitationCode,
-      });
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
 
-    if (insertError) {
-      console.error("초대장 생성 에러:", insertError);
+      const invitationCode = generateInvitationCode();
+
+      const { error: insertError } = await supabase
+        .from("invitations")
+        .insert({
+          inviter_id: user.id,
+          invitation_code: invitationCode,
+        });
+
+      if (insertError) {
+        console.error("초대장 생성 에러:", insertError);
+        toast({
+          title: "초대장 생성 실패",
+          description: "초대장을 생성하는데 실패했습니다.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ invitation_count: invitationCount - 1 })
+        .eq("user_id", user.id);
+
+      if (updateError) {
+        console.error("초대장 개수 업데이트 에러:", updateError);
+      }
+
       toast({
-        title: "초대장 생성 실패",
-        description: "초대장을 생성하는데 실패했습니다.",
-        variant: "destructive",
+        title: "초대장 생성 완료",
+        description: "새로운 초대장이 생성되었습니다.",
       });
-      return;
+
+      fetchInvitationCount();
+      fetchInvitations();
+    } finally {
+      setIsCreating(false);
     }
-
-    const { error: updateError } = await supabase
-      .from("profiles")
-      .update({ invitation_count: invitationCount - 1 })
-      .eq("user_id", user.id);
-
-    if (updateError) {
-      console.error("초대장 개수 업데이트 에러:", updateError);
-    }
-
-    toast({
-      title: "초대장 생성 완료",
-      description: "새로운 초대장이 생성되었습니다.",
-    });
-
-    fetchInvitationCount();
-    fetchInvitations();
   };
 
   const copyInvitationLink = async (code: string) => {
@@ -202,12 +211,12 @@ export default function Invitations() {
           <CardContent>
             <Button
               onClick={createInvitation}
-              disabled={invitationCount <= 0}
+              disabled={invitationCount <= 0 || isCreating}
               className="w-full rounded-full"
               size="lg"
             >
               <Gift className="mr-2 h-5 w-5" />
-              새 초대장 만들기
+              {isCreating ? "생성 중..." : "새 초대장 만들기"}
             </Button>
           </CardContent>
         </Card>
