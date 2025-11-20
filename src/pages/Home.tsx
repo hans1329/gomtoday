@@ -34,7 +34,7 @@ export default function Home() {
   const [allDiaries, setAllDiaries] = useState<any[]>([]);
   const [publicDiaries, setPublicDiaries] = useState<any[]>([]);
   const [hasAnyDiary, setHasAnyDiary] = useState<boolean | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [currentUserId, setCurrentUserId] = useState<string>("");
   const [viewMode, setViewMode] = useState<"my" | "public">(() => {
@@ -195,20 +195,19 @@ export default function Home() {
     const cacheAge = cachedTime ? Date.now() - parseInt(cachedTime) : Infinity;
     const CACHE_DURATION = 5 * 60 * 1000; // 5분
 
-    // 캐시가 유효하면 먼저 보여주기 (로딩 없이)
+    // 캐시가 유효하면 즉시 표시 (로딩 없음)
     if (cachedData && cacheAge < CACHE_DURATION) {
       try {
         const parsed = JSON.parse(cachedData);
         setAllDiaries(parsed.myDiaries || []);
         setPublicDiaries(parsed.publicDiaries || []);
-        setLoading(false);
         return;
       } catch (e) {
         console.error('Cache parse error:', e);
       }
     }
 
-    // 캐시가 없거나 만료된 경우에만 로딩 표시
+    // 캐시가 없거나 만료된 경우만 로딩 표시
     setLoading(true);
 
     // 내 일기 가져오기 (status가 published인 일기만)
