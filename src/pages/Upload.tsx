@@ -681,10 +681,17 @@ export default function Upload() {
       }
 
       setUploadProgress(100);
-      setGeneratedContent(aiResponse.diary);
+      
+      // 텍스트를 HTML로 변환 (줄바꿈 처리)
+      const htmlContent = aiResponse.diary
+        .split('\n\n')
+        .map((paragraph: string) => `<p>${paragraph.trim()}</p>`)
+        .join('');
+      
+      setGeneratedContent(htmlContent);
       setGeneratedTitle(aiResponse.title);
       setGeneratedEmoji(aiResponse.emoji);
-      setContent(aiResponse.diary);
+      setContent(htmlContent);
       setTitle(aiResponse.title);
       setCurrentDiaryId(diaryData.id);
       setIsGenerated(true);
