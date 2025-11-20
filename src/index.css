@@ -147,6 +147,12 @@ All colors MUST be HSL.
   margin: 0.5rem 0;
 }
 
+.ProseMirror h1 {
+  font-size: 1.875rem;
+  font-weight: 700;
+  margin: 2rem 0 1.25rem;
+}
+
 .ProseMirror h2 {
   font-size: 1.5rem;
   font-weight: 600;
@@ -216,6 +222,13 @@ All colors MUST be HSL.
 
 .ProseMirror s {
   text-decoration: line-through;
+}
+
+.ProseMirror img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+  margin: 1rem 0;
 }
 
 .ProseMirror p.is-editor-empty:first-child::before {
