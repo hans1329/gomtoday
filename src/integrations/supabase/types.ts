@@ -424,6 +424,7 @@ export type Database = {
           cost: number
           created_at: string
           display_order: number
+          emoji: string | null
           id: string
           is_active: boolean
           is_new: boolean
@@ -436,6 +437,7 @@ export type Database = {
           cost?: number
           created_at?: string
           display_order?: number
+          emoji?: string | null
           id?: string
           is_active?: boolean
           is_new?: boolean
@@ -448,6 +450,7 @@ export type Database = {
           cost?: number
           created_at?: string
           display_order?: number
+          emoji?: string | null
           id?: string
           is_active?: boolean
           is_new?: boolean

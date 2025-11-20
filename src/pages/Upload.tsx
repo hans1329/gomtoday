@@ -67,6 +67,7 @@ export default function Upload() {
   const [perspectives, setPerspectives] = useState<Array<{
     perspective_key: string;
     label: string;
+    emoji: string | null;
     is_new: boolean;
   }>>([]);
   const navigate = useNavigate();
@@ -132,7 +133,7 @@ export default function Upload() {
   const fetchPerspectives = async () => {
     const { data } = await supabase
       .from("perspectives")
-      .select("perspective_key, label, is_new")
+      .select("perspective_key, label, emoji, is_new")
       .eq("is_active", true)
       .order("display_order", { ascending: true });
 
@@ -1605,6 +1606,7 @@ export default function Upload() {
                     {perspectives.map((p) => (
                       <SelectItem key={p.perspective_key} value={p.perspective_key}>
                         <div className="flex items-center gap-2">
+                          {p.emoji && <span>{p.emoji}</span>}
                           <span>{p.label}</span>
                           {p.is_new && (
                             <Badge variant="default" className="text-xs px-1.5 py-0">

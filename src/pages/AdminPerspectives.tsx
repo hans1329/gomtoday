@@ -33,6 +33,7 @@ interface Perspective {
   id: string;
   perspective_key: string;
   label: string;
+  emoji: string | null;
   cost: number;
   display_order: number;
   is_active: boolean;
@@ -52,6 +53,7 @@ export default function AdminPerspectives() {
   const [formData, setFormData] = useState({
     perspective_key: "",
     label: "",
+    emoji: "",
     cost: 1,
     display_order: 0,
     is_active: true,
@@ -116,6 +118,7 @@ export default function AdminPerspectives() {
       setFormData({
         perspective_key: perspective.perspective_key,
         label: perspective.label,
+        emoji: perspective.emoji || "",
         cost: perspective.cost,
         display_order: perspective.display_order,
         is_active: perspective.is_active,
@@ -127,6 +130,7 @@ export default function AdminPerspectives() {
       setFormData({
         perspective_key: "",
         label: "",
+        emoji: "",
         cost: 1,
         display_order: perspectives.length,
         is_active: true,
@@ -249,7 +253,10 @@ export default function AdminPerspectives() {
             <Card key={perspective.id}>
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
-                  <span>{perspective.label}</span>
+                  <div className="flex items-center gap-2">
+                    {perspective.emoji && <span className="text-2xl">{perspective.emoji}</span>}
+                    <span>{perspective.label}</span>
+                  </div>
                   <div className="flex gap-2">
                     <Button
                       variant="ghost"
@@ -330,6 +337,17 @@ export default function AdminPerspectives() {
                   setFormData({ ...formData, label: e.target.value })
                 }
                 placeholder="예: 나의 시선"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="emoji">이모지</Label>
+              <Input
+                id="emoji"
+                value={formData.emoji}
+                onChange={(e) =>
+                  setFormData({ ...formData, emoji: e.target.value })
+                }
+                placeholder="예: 👁️"
               />
             </div>
             <div className="space-y-2">
