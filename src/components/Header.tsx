@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { User, PenLine, Settings, LogOut, ArrowLeft, BookOpen, Shield, List, Bell, Users, Globe, Pencil } from "lucide-react";
+import { User, PenLine, Settings, LogOut, ArrowLeft, BookOpen, Shield, List, Bell, Users, Globe, Pencil, Gift } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -50,6 +50,7 @@ export default function Header() {
     price: number;
     display_order: number;
   }>>([]);
+  const [invitationCount, setInvitationCount] = useState(0);
 
   useEffect(() => {
     fetchProfile();
@@ -58,6 +59,7 @@ export default function Header() {
     fetchPencilCount();
     fetchProducts();
     fetchLogos();
+    fetchInvitationCount();
     
     // 프로필 업데이트 이벤트 리스너
     const handleProfileUpdate = () => {
@@ -193,6 +195,21 @@ export default function Header() {
       setProducts(data || []);
     } catch (error) {
       console.error("Error fetching products:", error);
+    }
+  };
+
+  const fetchInvitationCount = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("invitation_count")
+      .eq("user_id", user.id)
+      .single();
+
+    if (profile?.invitation_count !== undefined) {
+      setInvitationCount(profile.invitation_count);
     }
   };
 
@@ -366,7 +383,20 @@ export default function Header() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-72 bg-background max-h-[85vh] overflow-y-auto">
               <DropdownMenuLabel className="font-normal">
-                <div className="flex items-center justify-end mb-2">
+                <div className="flex items-center justify-between mb-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 px-2 gap-1.5"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setDropdownOpen(false);
+                      navigate("/invitations");
+                    }}
+                  >
+                    <Gift className="h-4 w-4" />
+                    <span className="text-xs font-semibold">{invitationCount}</span>
+                  </Button>
                   <Button
                     variant="ghost"
                     size="icon"

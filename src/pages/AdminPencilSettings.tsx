@@ -135,9 +135,13 @@ export default function AdminPencilSettings() {
   }
 
   // 지급과 차감 설정 분리
-  const grantSettings = settings.filter(s => s.setting_key === 'signup_initial_pencils');
+  const grantSettings = settings.filter(s => 
+    s.setting_key === 'signup_initial_pencils' || 
+    s.setting_key === 'invitation_bonus_inviter' || 
+    s.setting_key === 'invitation_bonus_invitee'
+  );
   const deductSettings = settings.filter(s => 
-    s.setting_key !== 'signup_initial_pencils'
+    !grantSettings.includes(s)
   );
 
   return (
@@ -191,9 +195,21 @@ export default function AdminPencilSettings() {
                   />
                   <span className="text-sm text-muted-foreground">개</span>
                 </div>
-                <p className="text-sm text-muted-foreground pl-1">
-                  새로 가입한 사용자에게 지급되는 초기 연필 개수입니다.
-                </p>
+                {setting.setting_key === "signup_initial_pencils" && (
+                  <p className="text-sm text-muted-foreground pl-1">
+                    새로 가입한 사용자에게 지급되는 초기 연필 개수입니다.
+                  </p>
+                )}
+                {setting.setting_key === "invitation_bonus_inviter" && (
+                  <p className="text-sm text-muted-foreground pl-1">
+                    초대한 사람이 받는 연필 보너스입니다.
+                  </p>
+                )}
+                {setting.setting_key === "invitation_bonus_invitee" && (
+                  <p className="text-sm text-muted-foreground pl-1">
+                    초대받은 사람이 받는 연필 보너스입니다.
+                  </p>
+                )}
               </div>
             ))}
           </CardContent>

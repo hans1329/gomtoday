@@ -1,4 +1,4 @@
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,15 +9,25 @@ import { useState, useEffect } from "react";
 import ContactDialog from "@/components/ContactDialog";
 export default function Auth() {
   const navigate = useNavigate();
-  const {
-    toast
-  } = useToast();
+  const [searchParams] = useSearchParams();
+  const { toast } = useToast();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string>("");
   const [contactDialogOpen, setContactDialogOpen] = useState(false);
+  const [invitationCode, setInvitationCode] = useState<string | null>(null);
   useEffect(() => {
+    // 초대 코드 확인
+    const invitation = searchParams.get("invitation");
+    if (invitation) {
+      setInvitationCode(invitation);
+      toast({
+        title: "초대장 코드 확인됨",
+        description: "회원가입하시면 연필 보너스를 받을 수 있습니다!",
+      });
+    }
+
     const fetchLogo = async () => {
       // 캐시된 로고 확인
       const cachedLogo = localStorage.getItem("auth_logo_url");
@@ -26,30 +36,34 @@ export default function Auth() {
       }
 
       // 브랜드 에셋에서 로고 가져오기
-      const {
-        data
-      } = supabase.storage.from("brand-assets").getPublicUrl("3rdme-logo-auth.png");
+      const { data } = supabase.storage.from("brand-assets").getPublicUrl("3rdme-logo-auth.png");
       if (data) {
         setLogoUrl(data.publicUrl);
         localStorage.setItem("auth_logo_url", data.publicUrl);
       }
     };
     fetchLogo();
-  }, []);
+  }, [searchParams]);
   const handleEmailAuth = async (isSignUp: boolean) => {
     setLoading(true);
     try {
       if (isSignUp) {
-        const {
-          data: signUpData,
-          error
-        } = await supabase.auth.signUp({
+        const signUpOptions: any = {
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/`
+            emailRedirectTo: `${window.location.origin}/`,
           }
-        });
+        };
+
+        // 초대 코드가 있으면 메타데이터에 추가
+        if (invitationCode) {
+          signUpOptions.options.data = {
+            invitation_code: invitationCode
+          };
+        }
+
+        const { data: signUpData, error } = await supabase.auth.signUp(signUpOptions);
         if (error) throw error;
 
         // 자동 확인된 경우 프로필 체크
