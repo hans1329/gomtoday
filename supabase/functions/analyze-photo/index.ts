@@ -117,23 +117,49 @@ ${userContext ? `추가 맥락: ${userContext}` : ''}
     console.log('Final perspectiveInstruction:', perspectiveInstruction);
     console.log('Full systemPrompt:', systemPrompt);
 
-    // Remove cache busting query parameters from URLs for OpenAI
-    const cleanedPhotos = photos.map((url: string) => {
-      try {
-        const urlObj = new URL(url);
-        return `${urlObj.origin}${urlObj.pathname}`; // Remove query params
-      } catch {
-        return url; // Return original if URL parsing fails
-      }
-    });
+    // Download images and convert to base64 to avoid OpenAI timeout issues
+    console.log('Downloading images from storage...');
+    const imageContents = await Promise.all(
+      photos.map(async (url: string) => {
+        try {
+          // Download the image
+          const imageResponse = await fetch(url);
+          if (!imageResponse.ok) {
+            throw new Error(`Failed to download image: ${imageResponse.statusText}`);
+          }
+          
+          // Convert to base64
+          const arrayBuffer = await imageResponse.arrayBuffer();
+          const base64 = btoa(
+            new Uint8Array(arrayBuffer).reduce(
+              (data, byte) => data + String.fromCharCode(byte),
+              ''
+            )
+          );
+          
+          // Determine mime type from URL
+          const mimeType = url.toLowerCase().endsWith('.png') 
+            ? 'image/png' 
+            : url.toLowerCase().endsWith('.webp')
+            ? 'image/webp'
+            : 'image/jpeg';
+          
+          console.log(`Image downloaded and converted: ${url.substring(0, 50)}... (${mimeType})`);
+          
+          return {
+            type: "image_url",
+            image_url: { 
+              url: `data:${mimeType};base64,${base64}`
+            }
+          };
+        } catch (error) {
+          console.error(`Error processing image ${url}:`, error);
+          throw error;
+        }
+      })
+    );
     
-    console.log('Original URLs:', photos);
-    console.log('Cleaned URLs:', cleanedPhotos);
-    
-    const imageContents = cleanedPhotos.map((url: string) => ({
-      type: "image_url",
-      image_url: { url }
-    }));
+    console.log(`Successfully processed ${imageContents.length} images`);
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
