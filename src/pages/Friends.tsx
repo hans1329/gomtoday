@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 import LoadingBar from "@/components/LoadingBar";
 import { useToast } from "@/hooks/use-toast";
 import { Check, X, UserX, Search } from "lucide-react";
@@ -369,11 +370,22 @@ export default function Friends() {
           {/* 친구 목록 */}
           <TabsContent value="friends" className="space-y-3">
             {loading ? (
-              <Card>
-                <CardContent className="p-8 text-center text-muted-foreground">
-                  일기친구를 불러오는 중입니다...
-                </CardContent>
-              </Card>
+              <>
+                {[1, 2, 3, 4].map((i) => (
+                  <Card key={i}>
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3">
+                        <Skeleton className="w-12 h-12 rounded-full" />
+                        <div className="flex-1 space-y-2">
+                          <Skeleton className="h-4 w-24" />
+                          <Skeleton className="h-3 w-32" />
+                        </div>
+                        <Skeleton className="w-8 h-8 rounded-full" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </>
             ) : friends.length === 0 ? (
               <Card>
                 <CardContent className="p-8 text-center text-muted-foreground">
@@ -419,7 +431,27 @@ export default function Friends() {
 
           {/* 받은 요청 */}
           <TabsContent value="received" className="space-y-3">
-            {receivedRequests.length === 0 ? (
+            {loading ? (
+              <>
+                {[1, 2, 3].map((i) => (
+                  <Card key={i}>
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-3">
+                        <Skeleton className="w-12 h-12 rounded-full" />
+                        <div className="flex-1 space-y-2">
+                          <Skeleton className="h-4 w-28" />
+                          <Skeleton className="h-3 w-36" />
+                          <div className="flex gap-2 mt-3">
+                            <Skeleton className="h-8 flex-1 rounded-full" />
+                            <Skeleton className="h-8 flex-1 rounded-full" />
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </>
+            ) : receivedRequests.length === 0 ? (
               <Card>
                 <CardContent className="p-8 text-center text-muted-foreground">
                   받은 친구 요청이 없습니다
@@ -475,7 +507,24 @@ export default function Friends() {
 
           {/* 보낸 요청 */}
           <TabsContent value="sent" className="space-y-3">
-            {sentRequests.length === 0 ? (
+            {loading ? (
+              <>
+                {[1, 2, 3].map((i) => (
+                  <Card key={i}>
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3">
+                        <Skeleton className="w-12 h-12 rounded-full" />
+                        <div className="flex-1 space-y-2">
+                          <Skeleton className="h-4 w-24" />
+                          <Skeleton className="h-3 w-32" />
+                        </div>
+                        <Skeleton className="h-8 w-16 rounded-full" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </>
+            ) : sentRequests.length === 0 ? (
               <Card>
                 <CardContent className="p-8 text-center text-muted-foreground">
                   보낸 친구 요청이 없습니다
