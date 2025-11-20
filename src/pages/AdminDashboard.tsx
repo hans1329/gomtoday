@@ -111,6 +111,12 @@ export default function AdminDashboard() {
       path: "/admin/brand-assets",
     },
     {
+      title: "이미지 최적화",
+      description: "기존 업로드된 이미지를 일괄 최적화합니다",
+      icon: Image,
+      path: "/admin/image-optimize",
+    },
+    {
       title: "사용자 관리",
       description: "모든 사용자와 역할을 관리합니다",
       icon: Users,
