@@ -14,6 +14,7 @@ import { Camera } from "lucide-react";
 export default function Profile() {
   const [profile, setProfile] = useState<any>(null);
   const [name, setName] = useState("");
+  const [isNameFocused, setIsNameFocused] = useState(false);
   const [bio, setBio] = useState("");
   const [mbti, setMbti] = useState("");
   const [bloodType, setBloodType] = useState("");
@@ -239,7 +240,9 @@ export default function Profile() {
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="이름을 입력해주세요"
+                onFocus={() => setIsNameFocused(true)}
+                onBlur={() => setIsNameFocused(name.trim() !== "" ? true : false)}
+                placeholder={isNameFocused ? "" : "이름을 입력해주세요"}
                 className="text-center text-lg font-semibold"
               />
             </div>
