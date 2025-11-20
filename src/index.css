@@ -139,10 +139,12 @@ All colors MUST be HSL.
 /* Tiptap Editor Styles */
 .ProseMirror {
   outline: none;
+  font-size: 0.875rem;
+  line-height: 1.5;
 }
 
 .ProseMirror p {
-  margin: 0.75rem 0;
+  margin: 0.5rem 0;
 }
 
 .ProseMirror h2 {
