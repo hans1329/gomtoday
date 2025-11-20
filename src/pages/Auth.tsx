@@ -38,27 +38,46 @@ export default function Auth() {
     setLoading(true);
     try {
       if (isSignUp) {
-        const {
-          error
-        } = await supabase.auth.signUp({
+        const { data: signUpData, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/`
-          }
+            emailRedirectTo: `${window.location.origin}/`,
+          },
         });
+
         if (error) throw error;
+
+        // Check if user was created and auto-confirmed
+        if (signUpData.user) {
+          // Fetch profile to check if it needs completion
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('name, profile_photo_url')
+            .eq('user_id', signUpData.user.id)
+            .single();
+
+          // If profile name is email or photo is missing, redirect to profile page
+          if (profile && (profile.name === email || !profile.profile_photo_url)) {
+            toast({
+              title: "회원가입 완료",
+              description: "프로필을 완성해주세요.",
+            });
+            navigate("/profile");
+            return;
+          }
+        }
+
         toast({
           title: "회원가입 완료",
-          description: "이메일을 확인해주세요."
+          description: "이메일을 확인해주세요.",
         });
       } else {
-        const {
-          error
-        } = await supabase.auth.signInWithPassword({
+        const { error } = await supabase.auth.signInWithPassword({
           email,
-          password
+          password,
         });
+
         if (error) throw error;
         navigate("/");
       }
@@ -66,7 +85,7 @@ export default function Auth() {
       toast({
         title: isSignUp ? "회원가입 실패" : "로그인 실패",
         description: error.message,
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
