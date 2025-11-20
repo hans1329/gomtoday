@@ -14,9 +14,11 @@ export default function AdminBrandAssets() {
   const [uploading, setUploading] = useState(false);
   const [uploadingMobile, setUploadingMobile] = useState(false);
   const [uploadingFavicon, setUploadingFavicon] = useState(false);
+  const [uploadingAuth, setUploadingAuth] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string>("");
   const [mobileLogoUrl, setMobileLogoUrl] = useState<string>("");
   const [faviconUrl, setFaviconUrl] = useState<string>("");
+  const [authLogoUrl, setAuthLogoUrl] = useState<string>("");
 
   useEffect(() => {
     checkAdminRole();
@@ -74,6 +76,14 @@ export default function AdminBrandAssets() {
 
     if (faviconData) {
       setFaviconUrl(faviconData.publicUrl);
+    }
+
+    const { data: authData } = supabase.storage
+      .from("brand-assets")
+      .getPublicUrl("3rdme-logo-auth.png");
+
+    if (authData) {
+      setAuthLogoUrl(authData.publicUrl);
     }
   };
 
@@ -173,6 +183,39 @@ export default function AdminBrandAssets() {
       });
     } finally {
       setUploadingFavicon(false);
+    }
+  };
+
+  const handleAuthLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploadingAuth(true);
+
+    try {
+      const { error: uploadError } = await supabase.storage
+        .from("brand-assets")
+        .upload("3rdme-logo-auth.png", file, {
+          cacheControl: "3600",
+          upsert: true,
+        });
+
+      if (uploadError) throw uploadError;
+
+      toast({
+        title: "로그인 페이지 로고 업로드 완료",
+        description: "로그인 페이지 로고가 성공적으로 업데이트되었습니다.",
+      });
+
+      fetchCurrentLogo();
+    } catch (error: any) {
+      toast({
+        title: "업로드 실패",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingAuth(false);
     }
   };
 
@@ -350,6 +393,58 @@ export default function AdminBrandAssets() {
                 
                 <p className="text-xs text-muted-foreground pl-1">
                   * PNG/ICO 형식 권장, 32x32 또는 64x64 픽셀 권장, 파일명은 자동으로 favicon.png로 저장됩니다
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-medium">
+            <CardHeader>
+              <CardTitle>로그인 페이지 로고</CardTitle>
+              <CardDescription>
+                로그인 및 회원가입 페이지에 표시되는 로고입니다
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {authLogoUrl && (
+                <div className="flex items-center justify-center p-8 bg-muted rounded-lg">
+                  <img 
+                    src={authLogoUrl} 
+                    alt="현재 로그인 페이지 로고" 
+                    className="max-w-[200px] max-h-[200px] object-contain"
+                  />
+                </div>
+              )}
+
+              <div className="flex flex-col gap-4">
+                <label
+                  htmlFor="auth-logo-upload"
+                  className="cursor-pointer"
+                >
+                  <div className="flex items-center justify-center gap-2 p-4 border-2 border-dashed border-border rounded-lg hover:bg-muted/50 transition-colors">
+                    {uploadingAuth ? (
+                      <p className="text-sm text-muted-foreground">업로드 중...</p>
+                    ) : (
+                      <>
+                        <Upload className="w-5 h-5 text-muted-foreground" />
+                        <span className="text-sm text-muted-foreground">
+                          클릭하여 새 로그인 페이지 로고 업로드
+                        </span>
+                      </>
+                    )}
+                  </div>
+                  <input
+                    id="auth-logo-upload"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleAuthLogoUpload}
+                    disabled={uploadingAuth}
+                  />
+                </label>
+                
+                <p className="text-xs text-muted-foreground pl-1">
+                  * PNG 형식 권장, 파일명은 자동으로 3rdme-logo-auth.png로 저장됩니다
                 </p>
               </div>
             </CardContent>
