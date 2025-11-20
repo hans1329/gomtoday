@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 
-import { ChevronLeft, ChevronRight, User, Globe, Calendar as CalendarIcon, Heart, MessageCircle, Clock, Users, Search, Smile, ChevronDown, ChevronUp, ArrowUpDown, Send, Edit, Pencil, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, User, Globe, Calendar as CalendarIcon, Heart, MessageCircle, Clock, Users, Search, Smile, ChevronDown, ChevronUp, ArrowUpDown, Send, Edit, Pencil, Trash2, Lock, Unlock } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   AlertDialog,
@@ -944,6 +944,13 @@ export default function Home() {
                     <>
                       <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
                         {diaries[0].title}
+                        {diaries[0].isPublic !== undefined && (
+                          diaries[0].isPublic ? (
+                            <Unlock className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                          ) : (
+                            <Lock className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                          )
+                        )}
                         {diaries[0].emoji && (
                           <span className="text-2xl">{diaries[0].emoji}</span>
                         )}
