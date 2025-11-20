@@ -17,15 +17,14 @@ serve(async (req) => {
   }
 
   try {
-    const { photoUrl, photoUrls, emotion = 'happy', length = 'medium', perspective = 'camera', userContext, participants = [], userId } = await req.json();
+    const { photoIds, emotion = 'happy', length = 'medium', perspective = 'camera', userContext, participants = [], userId } = await req.json();
     
-    const photos = photoUrls || (photoUrl ? [photoUrl] : []);
-    
-    if (photos.length === 0) {
-      throw new Error('No photos provided');
+    if (!photoIds || photoIds.length === 0) {
+      throw new Error('No photo IDs provided');
     }
     
-    console.log('Analyzing photos:', photos.length, 'images');
+    console.log('Analyzing photos:', photoIds.length, 'images');
+    console.log('Photo IDs:', photoIds);
     console.log('Participants:', participants);
     console.log('Perspective:', perspective);
     console.log('UserId:', userId);
@@ -117,47 +116,38 @@ ${userContext ? `추가 맥락: ${userContext}` : ''}
     console.log('Final perspectiveInstruction:', perspectiveInstruction);
     console.log('Full systemPrompt:', systemPrompt);
 
-    // Download images and convert to base64 to avoid OpenAI timeout issues
-    console.log('Downloading images from storage...');
-    const imageContents = await Promise.all(
-      photos.map(async (url: string) => {
-        try {
-          // Download the image
-          const imageResponse = await fetch(url);
-          if (!imageResponse.ok) {
-            throw new Error(`Failed to download image: ${imageResponse.statusText}`);
-          }
-          
-          // Convert to base64
-          const arrayBuffer = await imageResponse.arrayBuffer();
-          const base64 = btoa(
-            new Uint8Array(arrayBuffer).reduce(
-              (data, byte) => data + String.fromCharCode(byte),
-              ''
-            )
-          );
-          
-          // Determine mime type from URL
-          const mimeType = url.toLowerCase().endsWith('.png') 
-            ? 'image/png' 
-            : url.toLowerCase().endsWith('.webp')
-            ? 'image/webp'
-            : 'image/jpeg';
-          
-          console.log(`Image downloaded and converted: ${url.substring(0, 50)}... (${mimeType})`);
-          
-          return {
-            type: "image_url",
-            image_url: { 
-              url: `data:${mimeType};base64,${base64}`
-            }
-          };
-        } catch (error) {
-          console.error(`Error processing image ${url}:`, error);
-          throw error;
+    // Fetch base64 data from database
+    console.log('Fetching images from database...');
+    const { data: photos, error: photosError } = await supabase
+      .from('photos')
+      .select('id, metadata')
+      .in('id', photoIds);
+    
+    if (photosError || !photos || photos.length === 0) {
+      console.error('Failed to fetch photos:', photosError);
+      throw new Error('Failed to fetch photos from database');
+    }
+    
+    console.log(`Fetched ${photos.length} photos from database`);
+    
+    const imageContents = photos.map((photo: any) => {
+      const metadata = photo.metadata || {};
+      const base64 = metadata.base64;
+      const mimeType = metadata.mimeType || 'image/jpeg';
+      
+      if (!base64) {
+        throw new Error(`Photo ${photo.id} does not have base64 data`);
+      }
+      
+      console.log(`Using photo ${photo.id} with mime type: ${mimeType}`);
+      
+      return {
+        type: "image_url",
+        image_url: { 
+          url: `data:${mimeType};base64,${base64}`
         }
-      })
-    );
+      };
+    });
     
     console.log(`Successfully processed ${imageContents.length} images`);
 

@@ -613,10 +613,22 @@ export default function Upload() {
       setUploadProgress(20);
 
       const photoUrls: string[] = [];
+      const photoIds: string[] = [];
       for (let i = 0; i < selectedFiles.length; i++) {
         const file = selectedFiles[i];
         const fileExt = file.name.split('.').pop() || 'jpg';
         const fileName = `${user.id}/${Date.now()}-${i}.${fileExt}`;
+        
+        // Convert to base64
+        const base64Data = await new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            const base64 = reader.result as string;
+            resolve(base64.split(',')[1]); // Remove data:image/xxx;base64, prefix
+          };
+          reader.readAsDataURL(file);
+        });
+        
         const {
           error: uploadError
         } = await supabase.storage.from("photos").upload(fileName, file);
@@ -626,7 +638,25 @@ export default function Upload() {
             publicUrl
           }
         } = supabase.storage.from("photos").getPublicUrl(fileName);
+        
+        // Insert photo with base64 in metadata
+        const { data: photoData, error: photoError } = await supabase
+          .from("photos")
+          .insert({
+            user_id: user.id,
+            photo_url: publicUrl,
+            metadata: {
+              base64: base64Data,
+              mimeType: file.type || 'image/jpeg'
+            }
+          })
+          .select()
+          .single();
+        
+        if (photoError) throw photoError;
+        
         photoUrls.push(publicUrl);
+        photoIds.push(photoData.id);
         setUploadProgress(20 + ((i + 1) / selectedFiles.length) * 30);
       }
 
@@ -638,6 +668,7 @@ export default function Upload() {
         error: aiError
       } = await supabase.functions.invoke("analyze-photo", {
         body: {
+          photoIds,
           photoUrls: photoUrls,
           emotion,
           length,
