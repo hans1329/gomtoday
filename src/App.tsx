@@ -22,6 +22,7 @@ import NotFound from "./pages/NotFound";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminBrandAssets from "./pages/AdminBrandAssets";
 import AdminUsers from "./pages/AdminUsers";
+import AdminInquiries from "./pages/AdminInquiries";
 import AdminPencilSettings from "./pages/AdminPencilSettings";
 import AdminPencilProducts from "./pages/AdminPencilProducts";
 import Privacy from "./pages/Privacy";
@@ -81,6 +82,7 @@ function AppContent() {
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/admin/brand-assets" element={<AdminBrandAssets />} />
         <Route path="/admin/users" element={<AdminUsers />} />
+        <Route path="/admin/inquiries" element={<AdminInquiries />} />
         <Route path="/admin/pencil-settings" element={<AdminPencilSettings />} />
         <Route path="/admin/pencil-products" element={<AdminPencilProducts />} />
         <Route path="/privacy" element={<Privacy />} />

@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
+import ContactDialog from "@/components/ContactDialog";
 export default function Auth() {
   const navigate = useNavigate();
   const {
@@ -15,6 +16,7 @@ export default function Auth() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string>("");
+  const [contactDialogOpen, setContactDialogOpen] = useState(false);
   useEffect(() => {
     const fetchLogo = async () => {
       // 캐시된 로고 확인
@@ -252,14 +254,18 @@ export default function Auth() {
               개인정보 처리방침
             </Link>
             <span>•</span>
-            <a href="mailto:support@3rdme.com" className="hover:text-foreground transition-colors">
+            <button
+              onClick={() => setContactDialogOpen(true)}
+              className="hover:text-foreground transition-colors"
+            >
               문의하기
-            </a>
+            </button>
           </div>
           <p className="text-center text-xs text-muted-foreground mt-4">
             © 2024 3rdME. All rights reserved.
           </p>
         </div>
       </div>
+      <ContactDialog open={contactDialogOpen} onOpenChange={setContactDialogOpen} />
     </div>;
 }
