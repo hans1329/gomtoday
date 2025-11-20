@@ -428,6 +428,7 @@ export type Database = {
           is_active: boolean
           label: string
           perspective_key: string
+          prompt_template: string | null
           updated_at: string
         }
         Insert: {
@@ -438,6 +439,7 @@ export type Database = {
           is_active?: boolean
           label: string
           perspective_key: string
+          prompt_template?: string | null
           updated_at?: string
         }
         Update: {
@@ -448,6 +450,7 @@ export type Database = {
           is_active?: boolean
           label?: string
           perspective_key?: string
+          prompt_template?: string | null
           updated_at?: string
         }
         Relationships: []
