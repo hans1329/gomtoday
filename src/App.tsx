@@ -18,6 +18,7 @@ import DiaryReview from "./pages/DiaryReview";
 import Diaries from "./pages/Diaries";
 import Notebooks from "./pages/Notebooks";
 import Friends from "./pages/Friends";
+import Invitations from "./pages/Invitations";
 import NotFound from "./pages/NotFound";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminBrandAssets from "./pages/AdminBrandAssets";
@@ -80,6 +81,7 @@ function AppContent() {
         <Route path="/diaries" element={<Diaries />} />
         <Route path="/notebooks" element={<Notebooks />} />
         <Route path="/friends" element={<Friends />} />
+        <Route path="/invitations" element={<Invitations />} />
         <Route path="/diary/:id" element={<DiaryDetail />} />
         <Route path="/diary-review/:id" element={<DiaryReview />} />
         <Route path="/admin" element={<AdminDashboard />} />

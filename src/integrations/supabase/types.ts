@@ -252,6 +252,51 @@ export type Database = {
         }
         Relationships: []
       }
+      invitations: {
+        Row: {
+          created_at: string
+          id: string
+          invitation_code: string
+          invitee_id: string | null
+          inviter_id: string
+          used: boolean
+          used_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          invitation_code: string
+          invitee_id?: string | null
+          inviter_id: string
+          used?: boolean
+          used_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          invitation_code?: string
+          invitee_id?: string | null
+          inviter_id?: string
+          used?: boolean
+          used_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invitations_invitee_id_fkey"
+            columns: ["invitee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "invitations_inviter_id_fkey"
+            columns: ["inviter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       notebook_members: {
         Row: {
           created_at: string | null
@@ -511,6 +556,7 @@ export type Database = {
           email: string | null
           gender: string | null
           id: string
+          invitation_count: number
           location: string | null
           mbti: string | null
           name: string | null
@@ -530,6 +576,7 @@ export type Database = {
           email?: string | null
           gender?: string | null
           id?: string
+          invitation_count?: number
           location?: string | null
           mbti?: string | null
           name?: string | null
@@ -549,6 +596,7 @@ export type Database = {
           email?: string | null
           gender?: string | null
           id?: string
+          invitation_count?: number
           location?: string | null
           mbti?: string | null
           name?: string | null
