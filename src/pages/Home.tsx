@@ -37,7 +37,10 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [currentUserId, setCurrentUserId] = useState<string>("");
-  const [viewMode, setViewMode] = useState<"my" | "public">("my");
+  const [viewMode, setViewMode] = useState<"my" | "public">(() => {
+    const saved = localStorage.getItem("diary_view_mode");
+    return (saved === "public" ? "public" : "my") as "my" | "public";
+  });
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [sortBy, setSortBy] = useState<"latest" | "oldest" | "likes" | "comments" | "friends">("latest");
   const [selectedEmoji, setSelectedEmoji] = useState<string>("");
@@ -89,6 +92,10 @@ export default function Home() {
     };
     fetchLogo();
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem("diary_view_mode", viewMode);
+  }, [viewMode]);
 
   useEffect(() => {
     const handleViewModeChange = (e: CustomEvent<"my" | "public">) => {
