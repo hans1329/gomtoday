@@ -271,99 +271,103 @@ export default function Profile() {
           </div>
 
           {/* 프로필 정보 */}
-          <div className="space-y-4 px-4 w-full overflow-x-hidden">
+          <div className="space-y-4 w-full overflow-x-hidden max-w-full">
             <div className="space-y-2">
-              <Label htmlFor="bio" className="pl-2">나에 대한 한마디</Label>
-              <Textarea
-                id="bio"
-                value={bio}
-                onChange={(e) => {
-                  if (e.target.value.length <= 200) {
-                    setBio(e.target.value);
-                  }
-                }}
-                placeholder="나를 표현하는 한마디를 입력하세요"
-                rows={3}
-                maxLength={200}
-              />
-              <p className="text-xs text-muted-foreground text-right">
+              <Label htmlFor="bio" className="pl-2 px-4">나에 대한 한마디</Label>
+              <div className="px-4">
+                <Textarea
+                  id="bio"
+                  value={bio}
+                  onChange={(e) => {
+                    if (e.target.value.length <= 200) {
+                      setBio(e.target.value);
+                    }
+                  }}
+                  placeholder="나를 표현하는 한마디를 입력하세요"
+                  rows={3}
+                  maxLength={200}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground text-right px-4">
                 {bio.length}/200
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-full">
-              <div className="space-y-2">
-                <Label htmlFor="mbti" className="pl-2">MBTI</Label>
-                <Select value={mbti} onValueChange={setMbti}>
-                  <SelectTrigger id="mbti">
-                    <SelectValue placeholder="선택하세요" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-background">
-                    <SelectItem value="ISTJ">ISTJ</SelectItem>
-                    <SelectItem value="ISFJ">ISFJ</SelectItem>
-                    <SelectItem value="INFJ">INFJ</SelectItem>
-                    <SelectItem value="INTJ">INTJ</SelectItem>
-                    <SelectItem value="ISTP">ISTP</SelectItem>
-                    <SelectItem value="ISFP">ISFP</SelectItem>
-                    <SelectItem value="INFP">INFP</SelectItem>
-                    <SelectItem value="INTP">INTP</SelectItem>
-                    <SelectItem value="ESTP">ESTP</SelectItem>
-                    <SelectItem value="ESFP">ESFP</SelectItem>
-                    <SelectItem value="ENFP">ENFP</SelectItem>
-                    <SelectItem value="ENTP">ENTP</SelectItem>
-                    <SelectItem value="ESTJ">ESTJ</SelectItem>
-                    <SelectItem value="ESFJ">ESFJ</SelectItem>
-                    <SelectItem value="ENFJ">ENFJ</SelectItem>
-                    <SelectItem value="ENTJ">ENTJ</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="px-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="mbti" className="pl-2">MBTI</Label>
+                  <Select value={mbti} onValueChange={setMbti}>
+                    <SelectTrigger id="mbti">
+                      <SelectValue placeholder="선택하세요" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background">
+                      <SelectItem value="ISTJ">ISTJ</SelectItem>
+                      <SelectItem value="ISFJ">ISFJ</SelectItem>
+                      <SelectItem value="INFJ">INFJ</SelectItem>
+                      <SelectItem value="INTJ">INTJ</SelectItem>
+                      <SelectItem value="ISTP">ISTP</SelectItem>
+                      <SelectItem value="ISFP">ISFP</SelectItem>
+                      <SelectItem value="INFP">INFP</SelectItem>
+                      <SelectItem value="INTP">INTP</SelectItem>
+                      <SelectItem value="ESTP">ESTP</SelectItem>
+                      <SelectItem value="ESFP">ESFP</SelectItem>
+                      <SelectItem value="ENFP">ENFP</SelectItem>
+                      <SelectItem value="ENTP">ENTP</SelectItem>
+                      <SelectItem value="ESTJ">ESTJ</SelectItem>
+                      <SelectItem value="ESFJ">ESFJ</SelectItem>
+                      <SelectItem value="ENFJ">ENFJ</SelectItem>
+                      <SelectItem value="ENTJ">ENTJ</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="bloodType" className="pl-2">혈액형</Label>
-                <Select value={bloodType} onValueChange={setBloodType}>
-                  <SelectTrigger id="bloodType">
-                    <SelectValue placeholder="선택하세요" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-background">
-                    <SelectItem value="A">A형</SelectItem>
-                    <SelectItem value="B">B형</SelectItem>
-                    <SelectItem value="AB">AB형</SelectItem>
-                    <SelectItem value="O">O형</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full min-w-0">
-              <div className="space-y-2 w-full min-w-0">
-                <Label htmlFor="birthday" className="pl-2">생일</Label>
-                <Input
-                  id="birthday"
-                  type="date"
-                  value={birthday}
-                  onChange={(e) => setBirthday(e.target.value)}
-                  style={{ minWidth: 0 }}
-                  className="w-full max-w-full min-w-0"
-                />
-              </div>
-
-              <div className="space-y-2 w-full">
-                <Label htmlFor="gender" className="pl-2">성별</Label>
-                <Select value={gender} onValueChange={setGender}>
-                  <SelectTrigger id="gender">
-                    <SelectValue placeholder="선택하세요" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-background">
-                    <SelectItem value="남성">남성</SelectItem>
-                    <SelectItem value="여성">여성</SelectItem>
-                    <SelectItem value="기타">기타</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="space-y-2">
+                  <Label htmlFor="bloodType" className="pl-2">혈액형</Label>
+                  <Select value={bloodType} onValueChange={setBloodType}>
+                    <SelectTrigger id="bloodType">
+                      <SelectValue placeholder="선택하세요" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background">
+                      <SelectItem value="A">A형</SelectItem>
+                      <SelectItem value="B">B형</SelectItem>
+                      <SelectItem value="AB">AB형</SelectItem>
+                      <SelectItem value="O">O형</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="px-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="birthday" className="pl-2">생일</Label>
+                  <Input
+                    id="birthday"
+                    type="date"
+                    value={birthday}
+                    onChange={(e) => setBirthday(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="gender" className="pl-2">성별</Label>
+                  <Select value={gender} onValueChange={setGender}>
+                    <SelectTrigger id="gender">
+                      <SelectValue placeholder="선택하세요" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background">
+                      <SelectItem value="남성">남성</SelectItem>
+                      <SelectItem value="여성">여성</SelectItem>
+                      <SelectItem value="기타">기타</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-2 px-4">
               <Label htmlFor="location" className="pl-2">위치</Label>
               <Input
                 id="location"
@@ -371,13 +375,14 @@ export default function Profile() {
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
                 placeholder="예: 서울특별시"
-                className="w-full max-w-full"
               />
             </div>
 
-            <Button onClick={handleUpdateProfile} className="w-full">
-              저장
-            </Button>
+            <div className="px-4">
+              <Button onClick={handleUpdateProfile} className="w-full">
+                저장
+              </Button>
+            </div>
           </div>
         </div>
       </div>
