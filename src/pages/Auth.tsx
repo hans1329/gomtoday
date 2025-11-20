@@ -76,7 +76,14 @@ export default function Auth() {
     if (provider === 'kakao') {
       // Custom Kakao OAuth flow
       const KAKAO_REST_API_KEY = '204c3007fa32fd49cfcbe18dd6b8a3ab';
-      const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?client_id=${KAKAO_REST_API_KEY}&redirect_uri=${encodeURIComponent(`${window.location.origin}/kakao-callback`)}&response_type=code`;
+      const redirectUri = `${window.location.origin}/kakao-callback`;
+      const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?client_id=${KAKAO_REST_API_KEY}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code`;
+      
+      console.log('=== Kakao Login Debug ===');
+      console.log('Redirect URI:', redirectUri);
+      console.log('Full Auth URL:', kakaoAuthUrl);
+      console.log('========================');
+      
       window.location.href = kakaoAuthUrl;
       return;
     }
