@@ -237,16 +237,6 @@ export default function AdminPencilSettings() {
                     일기 생성을 시도할 때마다 차감되는 연필 개수입니다.
                   </p>
                 )}
-                {setting.setting_key === "diary_regeneration_cost" && (
-                  <p className="text-sm text-muted-foreground pl-1">
-                    일기 다시 생성을 시도할 때마다 차감되는 연필 개수입니다.
-                  </p>
-                )}
-                {setting.setting_key === "ai_generation_cost" && (
-                  <p className="text-sm text-muted-foreground pl-1">
-                    AI로 일기를 생성할 때마다 차감되는 연필 개수입니다.
-                  </p>
-                )}
               </div>
             ))}
           </CardContent>
