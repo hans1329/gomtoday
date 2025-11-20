@@ -116,7 +116,7 @@ export default function Upload() {
     const userData = {
       id: user.id,
       name: profile?.name || "나",
-      profile_photo_url: profile?.profile_photo_url
+      profile_photo_url: profile?.profile_photo_url ? `${profile.profile_photo_url}?t=${Date.now()}` : undefined
     };
     setCurrentUser(userData);
     // 디폴트로 현재 사용자를 등장인물에 추가
@@ -483,7 +483,7 @@ export default function Upload() {
       return {
         id: profile.user_id,
         name: profile.name || '이름 없음',
-        profile_photo_url: profile.profile_photo_url
+        profile_photo_url: profile.profile_photo_url ? `${profile.profile_photo_url}?t=${Date.now()}` : undefined
       };
     }) || [];
 
@@ -510,7 +510,7 @@ export default function Upload() {
       const membersList = profiles?.map((profile: any) => ({
         id: profile.user_id,
         name: profile.name || "사용자",
-        profile_photo_url: profile.profile_photo_url
+        profile_photo_url: profile.profile_photo_url ? `${profile.profile_photo_url}?t=${Date.now()}` : undefined
       })) || [];
 
       // 현재 사용자가 포함되어 있지 않으면 추가
