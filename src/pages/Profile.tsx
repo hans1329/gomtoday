@@ -343,6 +343,7 @@ export default function Profile() {
                   type="date"
                   value={birthday}
                   onChange={(e) => setBirthday(e.target.value)}
+                  className="w-full"
                 />
               </div>
 
