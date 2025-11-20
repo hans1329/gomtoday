@@ -152,7 +152,7 @@ export default function Auth() {
             <img src={logoUrl} alt="Logo" className="h-32 w-auto object-contain" />
           </div>
           <p className="text-base text-center text-muted-foreground font-bold">
-            GomToday | 누군가가 써주는 나의 일기
+            GomToday | 누군가 써주는 나의 일기
           </p>
         </div>
 
