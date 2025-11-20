@@ -165,7 +165,15 @@ export default function Auth() {
       <div className="w-full max-w-md">
         <div className="space-y-6 mb-8">
           <div className="flex items-center justify-center mb-4">
-            <img src={logoUrl} alt="Logo" className="h-16 sm:h-20 w-auto object-contain" />
+            <img 
+              src={logoUrl} 
+              alt="Logo" 
+              className="h-16 sm:h-20 w-auto object-contain"
+              width="910"
+              height="231"
+              loading="eager"
+              fetchPriority="high"
+            />
           </div>
           <p className="text-muted-foreground font-bold text-lg text-center">
             누군가 써주는 나의 일기
