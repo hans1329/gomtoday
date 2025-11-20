@@ -68,8 +68,8 @@ const KakaoCallback = () => {
 
         toast.success("카카오 로그인 성공!");
         
-        // Redirect based on whether it's a new user
-        if (data.is_new_user) {
+        // Redirect based on whether it's first login
+        if (data.is_first_login) {
           navigate("/profile");
         } else {
           navigate("/");

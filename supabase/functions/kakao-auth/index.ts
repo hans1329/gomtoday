@@ -84,12 +84,12 @@ serve(async (req) => {
       .single();
 
     let userId: string;
-    let isNewUser = false;
+    let isFirstLogin = false;
 
     if (existingProfile) {
-      // User exists, update their profile
+      // Returning user - update their profile
       userId = existingProfile.user_id;
-      console.log('Existing user found, updating profile', { userId });
+      console.log('Returning user login', { userId });
       
       await supabase
         .from('profiles')
@@ -100,8 +100,8 @@ serve(async (req) => {
         })
         .eq('user_id', userId);
     } else {
-      // Create new user
-      isNewUser = true;
+      // First login - create new user account
+      isFirstLogin = true;
       const WELCOME_PENCILS = 10;
       
       const { data: authData, error: authError } = await supabase.auth.admin.createUser({
@@ -121,7 +121,7 @@ serve(async (req) => {
       }
 
       userId = authData.user.id;
-      console.log('New user created, updating profile', { userId });
+      console.log('First login - user created', { userId });
       
       // Update profile with Kakao data and welcome pencils
       await supabase
@@ -135,19 +135,19 @@ serve(async (req) => {
         })
         .eq('user_id', userId);
       
-      // Create welcome notification
+      // Create welcome notification for first login
       await supabase
         .from('notifications')
         .insert({
           user_id: userId,
           type: 'welcome',
-          title: '가입 축하 선물',
-          message: `GomToday에 오신 것을 환영합니다! 가입 축하 선물로 연필 ${WELCOME_PENCILS}자루를 드렸어요.`,
+          title: '첫 로그인 축하 선물',
+          message: `GomToday에 오신 것을 환영합니다! 첫 로그인 축하 선물로 연필 ${WELCOME_PENCILS}자루를 드렸어요.`,
           link: '/profile',
           read: false,
         });
       
-      console.log('Welcome notification created');
+      console.log('Welcome notification created for first login');
     }
 
     // 4. Generate Supabase session
@@ -172,7 +172,7 @@ serve(async (req) => {
           name: kakaoUser.properties?.nickname || kakaoUser.kakao_account?.profile?.nickname,
         },
         session_url: sessionData.properties.action_link,
-        is_new_user: isNewUser,
+        is_first_login: isFirstLogin,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
