@@ -75,7 +75,8 @@ export default function Auth() {
   const handleSocialLogin = async (provider: 'google' | 'kakao') => {
     if (provider === 'kakao') {
       // Custom Kakao OAuth flow
-      const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?client_id=${import.meta.env.VITE_KAKAO_REST_API_KEY || 'YOUR_KAKAO_REST_API_KEY'}&redirect_uri=${encodeURIComponent(`${window.location.origin}/kakao-callback`)}&response_type=code`;
+      const KAKAO_REST_API_KEY = '204c3007fa32fd49cfcbe18dd6b8a3ab';
+      const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?client_id=${KAKAO_REST_API_KEY}&redirect_uri=${encodeURIComponent(`${window.location.origin}/kakao-callback`)}&response_type=code`;
       window.location.href = kakaoAuthUrl;
       return;
     }
