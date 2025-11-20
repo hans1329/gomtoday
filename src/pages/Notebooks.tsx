@@ -947,7 +947,6 @@ export default function Notebooks() {
                     {searchResults.map(user => <div key={user.user_id} className="flex items-center justify-between p-2 rounded-lg border bg-card">
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-medium truncate">{user.name}</p>
-                          <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                         </div>
                         <Button size="sm" onClick={() => addMember(user.user_id)} disabled={addingMember === user.user_id}>
                           {addingMember === user.user_id ? (
@@ -981,7 +980,7 @@ export default function Notebooks() {
                           <div className="min-w-0 flex-1">
                             <p className="text-sm font-medium truncate">{member.profiles?.name}</p>
                             <p className="text-xs text-muted-foreground truncate">
-                              {member.profiles?.email} • {onlineUsers.has(member.user_id) ? '온라인' : '오프라인'}
+                              {onlineUsers.has(member.user_id) ? '온라인' : '오프라인'}
                             </p>
                           </div>
                         </div>
