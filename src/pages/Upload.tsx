@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -31,6 +31,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 export default function Upload() {
   const { id } = useParams();
   const isEditMode = !!id;
+  const contentSectionRef = useRef<HTMLDivElement>(null);
   const [writeMode, setWriteMode] = useState<"ai" | "manual">("ai");
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
@@ -686,6 +687,14 @@ export default function Upload() {
       setTitle(aiResponse.title);
       setCurrentDiaryId(diaryData.id);
       setIsGenerated(true);
+      
+      // 일기 내용 섹션으로 스크롤
+      setTimeout(() => {
+        contentSectionRef.current?.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'start' 
+        });
+      }, 100);
       
       toast({
         title: "일기가 생성되었어요!",
@@ -1746,7 +1755,7 @@ export default function Upload() {
 
             {(isEditMode || isGenerated) && (
               <>
-                <div className="border-t pt-6 mt-6" />
+                <div className="border-t pt-6 mt-6" ref={contentSectionRef} />
 
                 <div className="space-y-2">
                   <Label htmlFor="title" className="px-2">일기 제목</Label>
