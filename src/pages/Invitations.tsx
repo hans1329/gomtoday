@@ -141,7 +141,7 @@ export default function Invitations() {
   };
 
   const copyInvitationLink = async (code: string) => {
-    const invitationLink = `${window.location.origin}/auth?invitation=${code}`;
+    const invitationLink = `https://gom.today/auth?invitation=${code}`;
     
     try {
       await navigator.clipboard.writeText(invitationLink);
@@ -241,7 +241,7 @@ export default function Invitations() {
                 >
                   <div className="flex-1 min-w-0 mr-4">
                     <p className="text-sm font-mono truncate text-muted-foreground">
-                      {window.location.origin}/auth?invitation={invitation.invitation_code}
+                      gom.today/auth?invitation={invitation.invitation_code}
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
                       생성일: {new Date(invitation.created_at).toLocaleDateString()}
