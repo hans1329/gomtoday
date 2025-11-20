@@ -47,6 +47,23 @@ export default function DiaryDetail() {
   };
 
   const fetchDiary = async () => {
+    const cacheKey = `diaryCache_${id}`;
+    const now = Date.now();
+    const cacheExpiry = 5 * 60 * 1000; // 5분
+    
+    // 캐시 확인
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) {
+      const { data: cachedData, timestamp } = JSON.parse(cached);
+      if (now - timestamp < cacheExpiry) {
+        setDiary(cachedData);
+        fetchLikes();
+        fetchComments();
+        setLoading(false);
+        return;
+      }
+    }
+
     const { data, error } = await supabase
       .from("diaries")
       .select(`
@@ -85,12 +102,21 @@ export default function DiaryDetail() {
         allPhotos = [data.photo];
       }
       
-      setDiary({
+      const diaryData = {
         ...data,
         photos: allPhotos,
         author_name: authorProfile?.name,
         author_photo: authorProfile?.profile_photo_url
-      });
+      };
+      
+      setDiary(diaryData);
+      
+      // 캐시 저장
+      localStorage.setItem(cacheKey, JSON.stringify({ 
+        data: diaryData, 
+        timestamp: now 
+      }));
+      
       fetchLikes();
       fetchComments();
     }
