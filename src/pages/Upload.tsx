@@ -61,7 +61,6 @@ export default function Upload() {
   const [confirmGenerateDialogOpen, setConfirmGenerateDialogOpen] = useState(false);
   const [pencilCount, setPencilCount] = useState(0);
   const [generationCost, setGenerationCost] = useState(0);
-  const [regenerationCost, setRegenerationCost] = useState(0);
   const [confirmRegenerateDialogOpen, setConfirmRegenerateDialogOpen] = useState(false);
   const [confirmCancelDialogOpen, setConfirmCancelDialogOpen] = useState(false);
   const [writeCost, setWriteCost] = useState(0);
@@ -148,17 +147,6 @@ export default function Upload() {
 
     if (generationSetting) {
       setGenerationCost(generationSetting.setting_value);
-    }
-
-    // 일기 다시 생성 비용 가져오기
-    const { data: regenerationSetting } = await supabase
-      .from("pencil_settings")
-      .select("setting_value")
-      .eq("setting_key", "diary_regeneration_cost")
-      .single();
-
-    if (regenerationSetting) {
-      setRegenerationCost(regenerationSetting.setting_value);
     }
 
     // 일기 작성 비용 가져오기
