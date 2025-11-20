@@ -134,6 +134,23 @@ All colors MUST be HSL.
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+
+  /* Date input 너비 제한 */
+  input[type="date"] {
+    max-width: 100%;
+    min-width: 0;
+    width: 100%;
+  }
+
+  input[type="date"]::-webkit-datetime-edit {
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    flex-shrink: 0;
+    margin-left: auto;
+  }
 }
 
 /* Tiptap Editor Styles */
