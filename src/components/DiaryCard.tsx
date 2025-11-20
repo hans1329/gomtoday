@@ -36,7 +36,7 @@ export default function DiaryCard({
   
   const sizeClasses = imageSize === "md" 
     ? "w-24 h-24 md:w-96 md:h-full md:min-h-[400px]" 
-    : "w-20 h-20";
+    : "w-20 h-20 md:w-32 md:h-full md:min-h-[200px]";
   
   const emojiSizeClasses = imageSize === "md"
     ? "text-3xl"
