@@ -20,7 +20,7 @@ export default function Auth() {
   useEffect(() => {
     const fetchLogo = async () => {
       // 캐시된 로고 확인
-      const cachedLogo = localStorage.getItem("desktop_logo_url");
+      const cachedLogo = localStorage.getItem("auth_logo_url");
       if (cachedLogo) {
         setLogoUrl(cachedLogo);
       }
@@ -28,10 +28,10 @@ export default function Auth() {
       // 브랜드 에셋에서 로고 가져오기
       const {
         data
-      } = supabase.storage.from("brand-assets").getPublicUrl("3rdme-logo.png");
+      } = supabase.storage.from("brand-assets").getPublicUrl("3rdme-logo-auth.png");
       if (data) {
         setLogoUrl(data.publicUrl);
-        localStorage.setItem("desktop_logo_url", data.publicUrl);
+        localStorage.setItem("auth_logo_url", data.publicUrl);
       }
     };
     fetchLogo();
@@ -154,7 +154,7 @@ export default function Auth() {
             <img src={logoUrl} alt="Logo" className="h-20 sm:h-32 w-auto object-contain" />
           </div>
           <p className="text-muted-foreground font-bold text-lg text-center">
-            GomToday | 누군가 써주는 나의 일기
+            누군가 써주는 나의 일기
           </p>
         </div>
 
