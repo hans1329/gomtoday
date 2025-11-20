@@ -77,6 +77,8 @@ export default function DiaryCard({
                   src={photoUrl}
                   alt="일기 사진"
                   className="w-full h-full object-cover"
+                  loading="lazy"
+                  decoding="async"
                 />
                 {diary.emoji && (
                   <div className="absolute bottom-1 right-1 bg-background/90 rounded-full w-7 h-7 flex items-center justify-center text-base shadow-sm">

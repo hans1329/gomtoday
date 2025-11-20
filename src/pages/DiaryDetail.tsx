@@ -338,6 +338,8 @@ export default function DiaryDetail() {
                             src={photo.photo_url}
                             alt={`Photo ${index + 1}`}
                             className="w-full h-full object-cover"
+                            loading="lazy"
+                            decoding="async"
                           />
                         </div>
                       </CarouselItem>
