@@ -26,6 +26,7 @@ import AdminPencilSettings from "./pages/AdminPencilSettings";
 import AdminPencilProducts from "./pages/AdminPencilProducts";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
+import KakaoCallback from "./pages/KakaoCallback";
 
 function AppContent() {
   const location = useLocation();
@@ -67,6 +68,7 @@ function AppContent() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/auth" element={<Auth />} />
+        <Route path="/kakao-callback" element={<KakaoCallback />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/user/:userId" element={<UserProfile />} />
         <Route path="/upload" element={<Upload />} />
