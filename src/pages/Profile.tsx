@@ -153,9 +153,22 @@ export default function Profile() {
         variant: "destructive",
       });
     } else {
+      // 로컬 상태 즉시 업데이트
+      setProfile((prev: any) => ({
+        ...prev,
+        profile_photo_url: publicUrl
+      }));
+      
+      // 캐시 삭제 및 새로고침
+      const cacheKey = `profile_${user.id}`;
+      const cacheTimeKey = `profile_time_${user.id}`;
+      localStorage.removeItem(cacheKey);
+      localStorage.removeItem(cacheTimeKey);
+      
       toast({
         title: "프로필 사진 업데이트 완료!",
       });
+      
       fetchProfile();
       // Header에 프로필 업데이트 알림
       window.dispatchEvent(new Event('profile-updated'));
