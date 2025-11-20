@@ -68,24 +68,10 @@ const KakaoCallback = () => {
 
         toast.success("카카오 로그인 성공!");
         
-        // 프로필 체크 후 리다이렉트
+        // 첫 로그인 시에만 프로필 페이지로 이동
         if (data.is_first_login) {
           navigate("/profile");
         } else {
-          // 기존 사용자도 프로필 미완성 시 프로필 페이지로
-          const { data: { user } } = await supabase.auth.getUser();
-          if (user) {
-            const { data: profile } = await supabase
-              .from('profiles')
-              .select('name, profile_photo_url, email')
-              .eq('user_id', user.id)
-              .single();
-
-            if (profile && (profile.name === profile.email || !profile.profile_photo_url)) {
-              navigate("/profile");
-              return;
-            }
-          }
           navigate("/");
         }
       } catch (err: any) {
