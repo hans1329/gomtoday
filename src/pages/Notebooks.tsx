@@ -40,16 +40,50 @@ export default function Notebooks() {
     toast
   } = useToast();
   useEffect(() => {
-    fetchUser();
-    fetchNotebooks();
-    fetchPencilSettings();
-    fetchUserPencilCount();
-    setupPresenceTracking();
+    const init = async () => {
+      // 1. 사용자 정보 먼저 가져오기
+      const userData = await fetchUser();
+      if (!userData) {
+        navigate("/auth");
+        return;
+      }
+
+      // 2. 캐시된 노트북 데이터가 있으면 먼저 표시
+      const cacheKey = `notebooks_${userData.id}`;
+      const cacheTimeKey = `notebooks_time_${userData.id}`;
+      const cachedData = localStorage.getItem(cacheKey);
+      const cachedTime = localStorage.getItem(cacheTimeKey);
+      const cacheAge = cachedTime ? Date.now() - parseInt(cachedTime) : Infinity;
+      const CACHE_DURATION = 5 * 60 * 1000; // 5분
+
+      if (cachedData && cacheAge < CACHE_DURATION) {
+        try {
+          const parsed = JSON.parse(cachedData);
+          setNotebooks(parsed || []);
+          setLoading(false);
+        } catch (e) {
+          console.error('Cache parse error:', e);
+        }
+      }
+
+      // 3. 병렬로 데이터 가져오기 (캐시가 있어도 백그라운드에서 갱신)
+      await Promise.all([
+        fetchPencilSettings(),
+        fetchUserPencilCount(userData.id),
+        fetchNotebooks(userData.id, cachedData && cacheAge < CACHE_DURATION),
+      ]);
+      
+      setupPresenceTracking(userData.id);
+      setLoading(false);
+    };
+    
+    init();
   }, []);
 
   const fetchUser = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     setUser(user);
+    return user;
   };
 
   const fetchPencilSettings = async () => {
@@ -64,27 +98,24 @@ export default function Notebooks() {
     }
   };
 
-  const fetchUserPencilCount = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+  const fetchUserPencilCount = async (userId?: string) => {
+    const uid = userId || user?.id;
+    if (!uid) return;
 
     const { data } = await supabase
       .from("profiles")
       .select("pencil_count")
-      .eq("user_id", user.id)
+      .eq("user_id", uid)
       .single();
     
     if (data) {
       setPencilCount(data.pencil_count);
     }
   };
-  const setupPresenceTracking = async () => {
-    const {
-      data: {
-        user
-      }
-    } = await supabase.auth.getUser();
-    if (!user) return;
+  const setupPresenceTracking = async (userId?: string) => {
+    const uid = userId || user?.id;
+    if (!uid) return;
+    
     const channel = supabase.channel('online-users');
     channel.on('presence', {
       event: 'sync'
@@ -126,7 +157,7 @@ export default function Notebooks() {
     }).subscribe(async status => {
       if (status === 'SUBSCRIBED') {
         await channel.track({
-          user_id: user.id,
+          user_id: uid,
           online_at: new Date().toISOString()
         });
       }
@@ -135,44 +166,31 @@ export default function Notebooks() {
       channel.unsubscribe();
     };
   };
-  const fetchNotebooks = async () => {
-    const {
-      data: {
-        user
-      }
-    } = await supabase.auth.getUser();
-    if (!user) {
+  const fetchNotebooks = async (userId?: string, skipIfCached = false) => {
+    const uid = userId || user?.id;
+    if (!uid) {
       navigate("/auth");
       return;
     }
 
-    // 캐시된 데이터 확인
-    const cacheKey = `notebooks_${user.id}`;
-    const cacheTimeKey = `notebooks_time_${user.id}`;
+    // 캐시 확인
+    const cacheKey = `notebooks_${uid}`;
+    const cacheTimeKey = `notebooks_time_${uid}`;
     const cachedData = localStorage.getItem(cacheKey);
     const cachedTime = localStorage.getItem(cacheTimeKey);
     const cacheAge = cachedTime ? Date.now() - parseInt(cachedTime) : Infinity;
     const CACHE_DURATION = 5 * 60 * 1000; // 5분
 
-    // 캐시가 유효하면 먼저 보여주기
-    if (cachedData && cacheAge < CACHE_DURATION) {
-      try {
-        const parsed = JSON.parse(cachedData);
-        setNotebooks(parsed || []);
-        setLoading(false);
-        return;
-      } catch (e) {
-        console.error('Cache parse error:', e);
-      }
+    // 캐시가 유효하고 skipIfCached가 true면 새로 가져오지 않음
+    if (skipIfCached && cachedData && cacheAge < CACHE_DURATION) {
+      return;
     }
-
-    setLoading(true);
 
     // 1. 내가 만든 일기장 조회
     const { data: myNotebooks, error: myError } = await supabase
       .from("notebooks")
       .select("*")
-      .eq("user_id", user.id)
+      .eq("user_id", uid)
       .order("is_default", { ascending: false })
       .order("created_at");
 
@@ -180,7 +198,7 @@ export default function Notebooks() {
     const { data: membershipData, error: memberError } = await supabase
       .from("notebook_members")
       .select("notebook_id")
-      .eq("user_id", user.id);
+      .eq("user_id", uid);
 
     let sharedNotebooks = [];
     if (membershipData && membershipData.length > 0) {
