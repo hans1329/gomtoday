@@ -219,6 +219,39 @@ export type Database = {
           },
         ]
       }
+      inquiries: {
+        Row: {
+          content: string
+          created_at: string
+          email: string
+          id: string
+          status: string
+          title: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          email: string
+          id?: string
+          status?: string
+          title: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          email?: string
+          id?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       notebook_members: {
         Row: {
           created_at: string | null

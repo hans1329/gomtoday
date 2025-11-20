@@ -117,6 +117,12 @@ export default function AdminDashboard() {
       path: "/admin/users",
     },
     {
+      title: "문의 관리",
+      description: "사용자 문의를 확인하고 관리합니다",
+      icon: Users,
+      path: "/admin/inquiries",
+    },
+    {
       title: "연필 설정",
       description: "연필 지급 및 차감 항목을 관리합니다",
       icon: Pencil,
