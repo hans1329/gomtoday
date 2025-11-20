@@ -716,7 +716,7 @@ export default function Upload() {
       // 텍스트를 HTML로 변환 (줄바꿈 처리)
       const htmlContent = aiResponse.diary
         .split('\n\n')
-        .map((paragraph: string) => `<p>${paragraph.trim()}</p>`)
+        .map((paragraph: string) => `<p>${paragraph.trim().replace(/\n/g, '<br>')}</p>`)
         .join('');
       
       setGeneratedContent(htmlContent);
