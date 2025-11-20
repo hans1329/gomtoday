@@ -239,7 +239,6 @@ export default function Profile() {
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                onFocus={() => setLoading(false)}
                 placeholder="이름을 입력해주세요"
                 className="text-center text-lg font-semibold"
               />
