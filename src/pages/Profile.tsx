@@ -335,15 +335,16 @@ export default function Profile() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-full">
-              <div className="space-y-2 w-full max-w-full">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full min-w-0">
+              <div className="space-y-2 w-full min-w-0">
                 <Label htmlFor="birthday" className="pl-2">생일</Label>
                 <Input
                   id="birthday"
                   type="date"
                   value={birthday}
                   onChange={(e) => setBirthday(e.target.value)}
-                  className="w-full max-w-full"
+                  style={{ minWidth: 0 }}
+                  className="w-full max-w-full min-w-0"
                 />
               </div>
 
