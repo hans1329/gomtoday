@@ -30,6 +30,22 @@ serve(async (req) => {
     console.log('Perspective:', perspective);
     console.log('UserId:', userId);
 
+    // Create Supabase client
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Fetch perspective from database
+    const { data: perspectiveData, error: perspectiveError } = await supabase
+      .from('perspectives')
+      .select('label, prompt_template')
+      .eq('perspective_key', perspective)
+      .eq('is_active', true)
+      .maybeSingle();
+
+    if (perspectiveError || !perspectiveData) {
+      console.error('Perspective not found:', perspective);
+      throw new Error('Invalid perspective');
+    }
+
     // 나의 시선일 때는 등장인물에서 본인 제외
     const otherParticipants = perspective === 'my_view' && userId
       ? participants.filter((p: any) => p.id !== userId)
@@ -39,153 +55,68 @@ serve(async (req) => {
     const participantContext = otherParticipants.length > 0 
       ? `등장인물: ${participantNames}. 이들이 함께한 하루를 자연스럽게 묘사한다.`
       : '';
-    const subjectDescription = participantNames || '집사';
 
-    const getPerspectiveInstruction = (perspectiveType: string) => {
-      const baseInstructions: Record<string, string> = {
-        my_view: `너는 일기 작성자 본인이다. ${participantContext}
-사진 속 인물들의 성별, 나이대, 복장, 표정을 파악하여 나와의 관계(친구, 연인, 가족, 동료 등)를 유추한다.
-사진 속 사실을 정확하게 바탕으로 나의 전체 하루를 1인칭 시점에서 묘사한다.
-8-12문장으로 하루의 흐름을 담은 일기 형태로 구성한다.
-'[나의 시선]' 같은 프리픽스는 절대 사용하지 않는다.
-객관적이고 사실적인 묘사에 집중하며, 과장이나 상상을 배제한다.
-실제로 보고 경험한 것만을 정확하게 기록한다.
-등장인물이 있다면 나를 제외한 다른 사람들과의 이야기로 서술한다.
-유추한 관계를 자연스럽게 반영하되, 확실하지 않으면 중립적인 표현을 사용한다.
-사생활은 서술하지 않는다.`,
-        
-        camera: `너는 핸드폰이며 집사의 삶을 관찰하는 B급 관찰자다. ${participantContext}
-일기 첫 문장은 "[핸드폰의 시점]"으로 시작한다.
-사진 속 인물들의 성별, 나이대, 복장, 표정을 파악하여 ${subjectDescription}와의 관계를 유추한다.
-사진 속 사실을 바탕으로 ${subjectDescription}의 전체 하루를 묘사한다.
-8-12문장으로 하루의 흐름을 담은 일기 형태로 구성한다.
-B급 개그와 잔소리를 섞되 따뜻하게 마무리한다.
-유추한 관계를 자연스럽게 반영하되, 확실하지 않으면 중립적인 표현을 사용한다.
-사생활은 서술하지 않는다.`,
-        
-        pet: `너는 강아지이며 주인을 관찰하는 순수한 관찰자다. ${participantContext}
-일기 첫 문장은 "[강아지의 시점]"으로 시작한다.
-사진 속 인물들의 특징을 파악하여 주인과의 관계를 순수하게 유추한다.
-사진 속 사실을 바탕으로 ${subjectDescription}의 전체 하루를 묘사한다.
-8-12문장으로 하루의 흐름을 담은 일기 형태로 구성한다.
-주인의 행동에 대한 순수한 의문과 관찰을 표현한다.
-마지막 문장은 주인에 대한 순수한 애정으로 마무리한다.
-사생활은 서술하지 않는다.`,
-
-        friend: `너는 친한 친구이며 친구의 하루를 기록한다. ${participantContext}
-일기 첫 문장은 "[친구의 시점]"으로 시작한다.
-사진 속 인물들의 성별, 나이대, 복장, 표정을 파악하여 ${subjectDescription}와의 관계를 유추한다.
-사진 속 사실을 바탕으로 ${subjectDescription}의 전체 하루를 따뜻하고 친근하게 묘사한다.
-8-12문장으로 하루의 흐름을 담은 일기 형태로 구성한다.
-친구를 걱정하거나 응원하는 마음을 담는다.
-유추한 관계를 자연스럽게 반영하되, 확실하지 않으면 중립적인 표현을 사용한다.
-사생활은 서술하지 않는다.`,
-
-        family: `너는 가족 구성원이며 가족의 하루를 기록한다. ${participantContext}
-일기 첫 문장은 "[가족의 시점]"으로 시작한다.
-사진 속 인물들의 성별, 나이대, 복장, 표정을 파악하여 ${subjectDescription}와의 관계를 유추한다.
-사진 속 사실을 바탕으로 ${subjectDescription}의 전체 하루를 애정 어린 시선으로 묘사한다.
-8-12문장으로 하루의 흐름을 담은 일기 형태로 구성한다.
-따뜻하고 보살피는 어조를 사용한다.
-유추한 관계를 자연스럽게 반영하되, 확실하지 않으면 중립적인 표현을 사용한다.
-사생활은 서술하지 않는다.`,
-
-        stranger: `너는 낯선 사람이며 사진 속 인물을 관찰한다. ${participantContext}
-일기 첫 문장은 "[낯선 사람의 시점]"으로 시작한다.
-사진 속 인물들의 성별, 나이대, 복장, 표정을 파악하여 서로의 관계를 유추한다.
-사진 속 사실을 바탕으로 ${subjectDescription}의 하루를 호기심 어린 시선으로 묘사한다.
-8-12문장으로 하루의 흐름을 담은 일기 형태로 구성한다.
-관찰자의 입장에서 중립적이되 호기심 어린 톤을 유지한다.
-유추한 관계를 자연스럽게 반영하되, 확실하지 않으면 중립적인 표현을 사용한다.
-사생활은 서술하지 않는다.`,
-
-        old_man: `너는 동네 꼰대이며 질투 섞인 시선으로 관찰한다. ${participantContext}
-일기 첫 문장은 "[동네 꼰대의 시점]"으로 시작한다.
-사진 속 인물들의 성별, 나이대, 복장, 표정을 파악하여 ${subjectDescription}와의 관계를 유추한다.
-사진 속 사실을 바탕으로 ${subjectDescription}의 전체 하루를 질투 섞인 시선으로 묘사한다.
-8-12문장으로 하루의 흐름을 담은 일기 형태로 구성한다.
-질투하며 툭툭 거리지만 결국 은근히 따뜻하게 마무리한다.
-사생활은 서술하지 않는다.`,
-
-        future: `너는 미래에서 온 나다. ${participantContext}
-일기 첫 문장은 "[미래의 나]"로 시작한다.
-사진 속 인물들의 성별, 나이대, 복장, 표정을 파악하여 과거의 나와의 관계를 유추한다.
-사진 속 사실을 바탕으로 ${subjectDescription}의 전체 하루를 묘사한다.
-8-12문장으로 하루의 흐름을 담은 일기 형태로 구성한다.
-B급 감성으로 가볍게 비꼬되 결국 따뜻하게 마무리한다.
-유추한 관계를 자연스럽게 반영하되, 확실하지 않으면 중립적인 표현을 사용한다.
-사생활은 서술하지 않는다.`
-      };
-
-      return baseInstructions[perspectiveType] || baseInstructions.camera;
-    };
-
-    const perspectiveMap: Record<string, { name: string; instruction: string }> = {
-      my_view: { name: '나의 시선', instruction: getPerspectiveInstruction('my_view') },
-      camera: { name: '핸드폰', instruction: getPerspectiveInstruction('camera') },
-      pet: { name: '애완동물', instruction: getPerspectiveInstruction('pet') },
-      friend: { name: '친구', instruction: getPerspectiveInstruction('friend') },
-      family: { name: '가족', instruction: getPerspectiveInstruction('family') },
-      stranger: { name: '낯선 사람', instruction: getPerspectiveInstruction('stranger') },
-      old_man: { name: '동네 꼰대 아저씨', instruction: getPerspectiveInstruction('old_man') },
-      future: { name: '미래의 나', instruction: getPerspectiveInstruction('future') }
-    };
+    // Use prompt template from database
+    let perspectiveInstruction = perspectiveData.prompt_template || '';
+    
+    // Replace variables in template if they exist
+    if (perspectiveInstruction.includes('{participantContext}')) {
+      perspectiveInstruction = perspectiveInstruction.replace('{participantContext}', participantContext);
+    }
+    if (perspectiveInstruction.includes('{participantNames}')) {
+      perspectiveInstruction = perspectiveInstruction.replace('{participantNames}', participantNames || '집사');
+    }
 
     const emotionMap: Record<string, { name: string; description: string }> = {
       happy: { name: '기쁨', description: '밝고 긍정적인 에너지가 넘치는 톤으로 작성한다.' },
       sad: { name: '슬픔', description: '잔잔하고 감성적인 톤으로 작성한다.' },
       angry: { name: '화남', description: '강렬하고 직설적인 톤으로 작성한다.' },
       calm: { name: '평온', description: '차분하고 고요한 톤으로 작성한다.' },
-      excited: { name: '신남', description: '활기차고 역동적인 톤으로 작성한다.' },
-      anxious: { name: '불안', description: '조심스럽고 긴장된 톤으로 작성한다.' }
+      excited: { name: '설렘', description: '활기차고 들뜬 톤으로 작성한다.' }
     };
 
-    const selectedPerspective = perspectiveMap[perspective] || perspectiveMap.camera;
+    const lengthMap: Record<string, { name: string; description: string }> = {
+      short: { name: '짧게', description: '핵심만 담아 4-6문장으로 간결하게 작성한다.' },
+      medium: { name: '보통', description: '적당한 길이로 8-12문장으로 작성한다.' },
+      long: { name: '길게', description: '디테일하게 15-20문장으로 작성한다.' }
+    };
+
     const selectedEmotion = emotionMap[emotion] || emotionMap.happy;
+    const selectedLength = lengthMap[length] || lengthMap.medium;
 
-    const systemPrompt = `너는 사진 기반 개인 일기 작성 보조자다.
-원칙:
-- 사진에 확실히 보이는 사실과 추정은 구분한다.
-- 사생활 보호에 유의한다.
-- 감정, 길이, 시점 지시를 따른다.
-- ${photos.length}장의 사진이 있으면 모든 사진의 내용을 종합하여 하나의 완성된 일기를 작성한다.
+    const systemPrompt = `너는 사진을 기반으로 일기를 작성하는 AI 작가다.
 
-시점: ${selectedPerspective.name}
-${selectedPerspective.instruction}
+시점 설정: ${perspectiveData.label}
+${perspectiveInstruction}
 
-감정: ${selectedEmotion.name}
+감정 톤: ${selectedEmotion.name}
 ${selectedEmotion.description}
 
-길이: ${length === 'short' ? '짧게 5-7문장' : length === 'long' ? '길게 11-15문장' : '중간 8-10문장'}
+글의 길이: ${selectedLength.name}
+${selectedLength.description}
 
-출력 형식 JSON:
+${userContext ? `추가 맥락: ${userContext}` : ''}
+
+중요 규칙:
+1. 사진에서 보이는 것만을 바탕으로 작성한다
+2. 과장이나 상상을 배제한다
+3. 자연스러운 한국어로 작성한다
+4. 시간 흐름을 자연스럽게 연결한다
+5. 마지막은 감정적으로 울림 있게 마무리한다
+
+응답 형식은 반드시 다음 JSON 형식으로만 제공한다:
 {
-  "content": "본문 일기 내용",
-  "title": "일기 제목 15자 이내",
-  "emoji": "대표 이모티콘 1개"
+  "diary": "일기 내용 (문단 구분 없이 하나의 텍스트)",
+  "title": "일기 제목 (15자 이내, 핵심 키워드 중심)",
+  "emoji": "대표 이모지 1개"
 }`;
 
-    const messages = [
-      {
-        role: "system",
-        content: systemPrompt
-      },
-      {
-        role: "user",
-        content: [
-          {
-            type: "text",
-            text: `사진을 보고 ${selectedPerspective.name} 시점에서 일기를 작성해주세요. 감정은 ${selectedEmotion.name}으로 표현하고 길이는 ${length}로 작성해주세요.${participantContext ? ' ' + participantContext : ''}`
-          },
-          ...photos.map((url: string) => ({
-            type: "image_url",
-            image_url: { url }
-          }))
-        ]
-      }
-    ];
+    const imageContents = photos.map((url: string) => ({
+      type: "image_url",
+      image_url: { url }
+    }));
 
-    const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${openAIApiKey}`,
@@ -193,58 +124,89 @@ ${selectedEmotion.description}
       },
       body: JSON.stringify({
         model: 'gpt-4o-mini',
-        messages: messages,
-        max_tokens: 1000,
-        temperature: 0.8
+        messages: [
+          {
+            role: 'system',
+            content: systemPrompt
+          },
+          {
+            role: 'user',
+            content: [
+              {
+                type: "text",
+                text: photos.length > 1 
+                  ? "이 사진들을 시간 순서대로 분석하여 하루의 흐름이 담긴 일기를 작성해줘."
+                  : "이 사진을 분석하여 일기를 작성해줘."
+              },
+              ...imageContents
+            ]
+          }
+        ],
+        max_tokens: 1500,
+        temperature: 0.7,
       }),
     });
 
-    if (!aiResponse.ok) {
-      const errorText = await aiResponse.text();
-      console.error('OpenAI API Error:', errorText);
-      throw new Error(`OpenAI API error: ${aiResponse.status}`);
+    const data = await response.json();
+    console.log('OpenAI Response:', JSON.stringify(data, null, 2));
+
+    if (!response.ok) {
+      throw new Error(`OpenAI API error: ${JSON.stringify(data)}`);
     }
 
-    const aiData = await aiResponse.json();
-    const aiContent = aiData.choices[0].message.content;
+    const content = data.choices[0].message.content;
+    console.log('Generated content:', content);
     
-    console.log('Generated diary content, title and emoji:', aiContent);
-
-    let parsedResult;
+    // JSON 형식으로 파싱 시도
+    let parsedContent;
     try {
-      const jsonMatch = aiContent.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        parsedResult = JSON.parse(jsonMatch[0]);
-      } else {
-        throw new Error('No JSON found in response');
-      }
-    } catch (parseError) {
-      console.error('Failed to parse JSON:', parseError);
-      parsedResult = {
-        content: aiContent,
-        title: '오늘의 일기',
-        emoji: '📝'
+      // 코드 블록이나 마크다운 형식 제거
+      const cleanedContent = content.replace(/```json\n?|\n?```/g, '').trim();
+      parsedContent = JSON.parse(cleanedContent);
+    } catch (e) {
+      console.error('JSON parsing error:', e);
+      // JSON 파싱 실패시 텍스트에서 추출 시도
+      const diaryMatch = content.match(/"diary":\s*"([^"]+)"/);
+      const titleMatch = content.match(/"title":\s*"([^"]+)"/);
+      const emojiMatch = content.match(/"emoji":\s*"([^"]+)"/);
+      
+      parsedContent = {
+        diary: diaryMatch ? diaryMatch[1] : content,
+        title: titleMatch ? titleMatch[1] : '오늘의 일기',
+        emoji: emojiMatch ? emojiMatch[1] : '📝'
       };
     }
 
     return new Response(
       JSON.stringify({
-        content: parsedResult.content || aiContent,
-        title: parsedResult.title || '오늘의 일기',
-        emoji: parsedResult.emoji || '📝'
+        diary: parsedContent.diary || content,
+        title: parsedContent.title || '오늘의 일기',
+        emoji: parsedContent.emoji || '📝'
       }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      },
+      { 
+        headers: { 
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        } 
+      }
     );
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error in analyze-photo function:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     return new Response(
-      JSON.stringify({ error: error.message || 'Internal server error' }),
-      {
+      JSON.stringify({ 
+        error: errorMessage,
+        diary: '일기를 생성하는 중 오류가 발생했습니다.',
+        title: '오류 발생',
+        emoji: '❌'
+      }),
+      { 
         status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      },
+        headers: { 
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        } 
+      }
     );
   }
 });

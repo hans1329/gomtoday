@@ -27,6 +27,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 
 interface Perspective {
   id: string;
@@ -35,6 +36,7 @@ interface Perspective {
   cost: number;
   display_order: number;
   is_active: boolean;
+  prompt_template: string | null;
 }
 
 export default function AdminPerspectives() {
@@ -52,6 +54,7 @@ export default function AdminPerspectives() {
     cost: 1,
     display_order: 0,
     is_active: true,
+    prompt_template: "",
   });
 
   useEffect(() => {
@@ -114,6 +117,7 @@ export default function AdminPerspectives() {
         cost: perspective.cost,
         display_order: perspective.display_order,
         is_active: perspective.is_active,
+        prompt_template: perspective.prompt_template || "",
       });
     } else {
       setEditingPerspective(null);
@@ -123,6 +127,7 @@ export default function AdminPerspectives() {
         cost: 1,
         display_order: perspectives.length,
         is_active: true,
+        prompt_template: "",
       });
     }
     setDialogOpen(true);
@@ -345,6 +350,19 @@ export default function AdminPerspectives() {
                 onChange={(e) =>
                   setFormData({ ...formData, display_order: parseInt(e.target.value) || 0 })
                 }
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="prompt_template">프롬프트 템플릿</Label>
+              <Textarea
+                id="prompt_template"
+                value={formData.prompt_template}
+                onChange={(e) =>
+                  setFormData({ ...formData, prompt_template: e.target.value })
+                }
+                placeholder="예: 나의 시선으로, 내가 직접 경험하고 느낀 것을 1인칭 시점에서 서술합니다."
+                rows={4}
+                className="resize-none"
               />
             </div>
             <div className="flex items-center space-x-2">
