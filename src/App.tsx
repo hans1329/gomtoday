@@ -35,31 +35,6 @@ function AppContent() {
   const hideHeader = location.pathname === "/auth" || location.pathname.startsWith("/admin");
 
   useEffect(() => {
-    // Auth state change 감지 및 프로필 완성도 체크
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN' && session?.user) {
-        // 프로필 체크를 건너뛸 페이지들
-        const skipProfileCheck = ['/auth', '/kakao-callback', '/profile'].includes(location.pathname);
-        
-        if (!skipProfileCheck) {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('name, profile_photo_url, email')
-            .eq('user_id', session.user.id)
-            .single();
-
-          // 프로필이 미완성인 경우 (이름이 이메일이거나 사진이 없는 경우)
-          if (profile && (profile.name === profile.email || !profile.profile_photo_url)) {
-            navigate('/profile');
-          }
-        }
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [location.pathname, navigate]);
-
-  useEffect(() => {
     // 밴된 사용자 체크
     const checkBannedStatus = async () => {
       const { data: { user } } = await supabase.auth.getUser();

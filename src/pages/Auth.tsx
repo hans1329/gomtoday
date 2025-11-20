@@ -38,7 +38,7 @@ export default function Auth() {
     setLoading(true);
     try {
       if (isSignUp) {
-        const { error } = await supabase.auth.signUp({
+        const { data: signUpData, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -48,19 +48,53 @@ export default function Auth() {
 
         if (error) throw error;
 
+        // 자동 확인된 경우 프로필 체크
+        if (signUpData.user && signUpData.session) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('name, profile_photo_url, email')
+            .eq('user_id', signUpData.user.id)
+            .single();
+
+          // 프로필이 미완성인 경우
+          if (profile && (profile.name === profile.email || !profile.profile_photo_url)) {
+            toast({
+              title: "회원가입 완료",
+              description: "프로필을 완성해주세요!",
+            });
+            navigate("/profile");
+            return;
+          }
+        }
+
         toast({
           title: "회원가입 완료",
           description: "환영합니다!",
         });
-        // App.tsx의 auth state change에서 프로필 체크 및 리다이렉트 처리
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
 
         if (error) throw error;
-        // App.tsx의 auth state change에서 프로필 체크 및 리다이렉트 처리
+
+        // 로그인 후 프로필 체크
+        if (data.user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('name, profile_photo_url, email')
+            .eq('user_id', data.user.id)
+            .single();
+
+          // 프로필이 미완성인 경우
+          if (profile && (profile.name === profile.email || !profile.profile_photo_url)) {
+            navigate("/profile");
+            return;
+          }
+        }
+
+        navigate("/");
       }
     } catch (error: any) {
       toast({
