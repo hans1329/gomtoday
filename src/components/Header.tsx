@@ -427,6 +427,7 @@ export default function Header() {
               <DropdownMenuSeparator />
               <DropdownMenuItem 
                 onClick={() => {
+                  setDropdownOpen(false);
                   setViewMode("my");
                   window.dispatchEvent(new CustomEvent('viewModeChange', { detail: 'my' }));
                   navigate("/");
@@ -438,6 +439,7 @@ export default function Header() {
               </DropdownMenuItem>
               <DropdownMenuItem 
                 onClick={() => {
+                  setDropdownOpen(false);
                   setViewMode("public");
                   window.dispatchEvent(new CustomEvent('viewModeChange', { detail: 'public' }));
                   navigate("/");
@@ -447,18 +449,36 @@ export default function Header() {
                 <Globe className="mr-2 h-4 w-4" />
                 <span>전체 공개 일기</span>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate("/notebooks")} className="py-3">
+              <DropdownMenuItem 
+                onClick={() => {
+                  setDropdownOpen(false);
+                  navigate("/notebooks");
+                }} 
+                className="py-3"
+              >
                 <BookOpen className="mr-2 h-4 w-4" />
                 <span>일기장 관리</span>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate("/friends")} className="py-3">
+              <DropdownMenuItem 
+                onClick={() => {
+                  setDropdownOpen(false);
+                  navigate("/friends");
+                }} 
+                className="py-3"
+              >
                 <Users className="mr-2 h-4 w-4" />
                 <span>일기친구</span>
               </DropdownMenuItem>
               {isAdmin && (
                 <>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => navigate("/admin")} className="py-3">
+                  <DropdownMenuItem 
+                    onClick={() => {
+                      setDropdownOpen(false);
+                      navigate("/admin");
+                    }} 
+                    className="py-3"
+                  >
                     <Shield className="mr-2 h-4 w-4" />
                     <span>관리자</span>
                   </DropdownMenuItem>
@@ -468,7 +488,13 @@ export default function Header() {
               <div className="px-2 py-2">
                 <p className="text-xs text-muted-foreground text-left">{userEmail}</p>
               </div>
-              <DropdownMenuItem onClick={handleLogout} className="py-3">
+              <DropdownMenuItem 
+                onClick={() => {
+                  setDropdownOpen(false);
+                  handleLogout();
+                }} 
+                className="py-3"
+              >
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>로그아웃</span>
               </DropdownMenuItem>
