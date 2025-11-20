@@ -426,6 +426,7 @@ export type Database = {
           display_order: number
           id: string
           is_active: boolean
+          is_new: boolean
           label: string
           perspective_key: string
           prompt_template: string | null
@@ -437,6 +438,7 @@ export type Database = {
           display_order?: number
           id?: string
           is_active?: boolean
+          is_new?: boolean
           label: string
           perspective_key: string
           prompt_template?: string | null
@@ -448,6 +450,7 @@ export type Database = {
           display_order?: number
           id?: string
           is_active?: boolean
+          is_new?: boolean
           label?: string
           perspective_key?: string
           prompt_template?: string | null

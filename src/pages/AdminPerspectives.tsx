@@ -36,6 +36,7 @@ interface Perspective {
   cost: number;
   display_order: number;
   is_active: boolean;
+  is_new: boolean;
   prompt_template: string | null;
 }
 
@@ -54,6 +55,7 @@ export default function AdminPerspectives() {
     cost: 1,
     display_order: 0,
     is_active: true,
+    is_new: false,
     prompt_template: "",
   });
 
@@ -117,6 +119,7 @@ export default function AdminPerspectives() {
         cost: perspective.cost,
         display_order: perspective.display_order,
         is_active: perspective.is_active,
+        is_new: perspective.is_new,
         prompt_template: perspective.prompt_template || "",
       });
     } else {
@@ -127,6 +130,7 @@ export default function AdminPerspectives() {
         cost: 1,
         display_order: perspectives.length,
         is_active: true,
+        is_new: false,
         prompt_template: "",
       });
     }
@@ -374,6 +378,16 @@ export default function AdminPerspectives() {
                 }
               />
               <Label htmlFor="is_active">활성화</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="is_new"
+                checked={formData.is_new}
+                onCheckedChange={(checked) =>
+                  setFormData({ ...formData, is_new: checked })
+                }
+              />
+              <Label htmlFor="is_new">NEW 뱃지 표시</Label>
             </div>
           </div>
           <DialogFooter className="flex-col sm:flex-row gap-2">

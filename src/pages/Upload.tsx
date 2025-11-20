@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-
+import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -64,6 +64,11 @@ export default function Upload() {
   const [confirmRegenerateDialogOpen, setConfirmRegenerateDialogOpen] = useState(false);
   const [confirmCancelDialogOpen, setConfirmCancelDialogOpen] = useState(false);
   const [writeCost, setWriteCost] = useState(0);
+  const [perspectives, setPerspectives] = useState<Array<{
+    perspective_key: string;
+    label: string;
+    is_new: boolean;
+  }>>([]);
   const navigate = useNavigate();
   const {
     toast
@@ -72,6 +77,7 @@ export default function Upload() {
     loadCurrentUser();
     fetchPencilInfo();
     fetchFriends();
+    fetchPerspectives();
     if (isEditMode) {
       loadDiaryData();
       fetchNotebooks();
@@ -120,6 +126,19 @@ export default function Upload() {
     setCurrentUser(userData);
     // 디폴트로 현재 사용자를 등장인물에 추가
     setParticipants([userData]);
+  };
+
+  // 시점 목록 가져오기
+  const fetchPerspectives = async () => {
+    const { data } = await supabase
+      .from("perspectives")
+      .select("perspective_key, label, is_new")
+      .eq("is_active", true)
+      .order("display_order", { ascending: true });
+
+    if (data) {
+      setPerspectives(data);
+    }
   };
 
   // 연필 정보 가져오기
@@ -1582,15 +1601,19 @@ export default function Upload() {
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="my_view">👁️ 나의 시선</SelectItem>
-                    <SelectItem value="camera">📱 내 핸드폰의 시점</SelectItem>
-                    <SelectItem value="pet">🐶 애완동물</SelectItem>
-                    <SelectItem value="friend">👫 친구</SelectItem>
-                    <SelectItem value="family">👨‍👩‍👧‍👦 가족</SelectItem>
-                    <SelectItem value="stranger">🚶 낯선 사람</SelectItem>
-                    <SelectItem value="old_man">👴 동네 꼰대 아저씨</SelectItem>
-                    <SelectItem value="future">🔮 미래의 나</SelectItem>
+                  <SelectContent className="bg-background">
+                    {perspectives.map((p) => (
+                      <SelectItem key={p.perspective_key} value={p.perspective_key}>
+                        <div className="flex items-center gap-2">
+                          <span>{p.label}</span>
+                          {p.is_new && (
+                            <Badge variant="default" className="text-xs px-1.5 py-0">
+                              NEW
+                            </Badge>
+                          )}
+                        </div>
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
