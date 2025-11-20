@@ -50,8 +50,8 @@ export default function AdminPencilProducts() {
     display_order: 0,
     is_active: true,
     product_type: "one_time" as "one_time" | "subscription",
-    subscription_interval: undefined as "day" | "week" | "month" | "year" | undefined,
-    subscription_interval_count: undefined as number | undefined,
+    subscription_interval: "" as "" | "day" | "week" | "month" | "year",
+    subscription_interval_count: 0,
   });
 
   useEffect(() => {
@@ -89,8 +89,8 @@ export default function AdminPencilProducts() {
         display_order: product.display_order,
         is_active: product.is_active,
         product_type: product.product_type,
-        subscription_interval: product.subscription_interval,
-        subscription_interval_count: product.subscription_interval_count,
+        subscription_interval: product.subscription_interval || "",
+        subscription_interval_count: product.subscription_interval_count || 0,
       });
     } else {
       setEditingProduct(null);
@@ -101,8 +101,8 @@ export default function AdminPencilProducts() {
         display_order: products.length + 1,
         is_active: true,
         product_type: "one_time",
-        subscription_interval: undefined,
-        subscription_interval_count: undefined,
+        subscription_interval: "",
+        subscription_interval_count: 0,
       });
     }
     setDialogOpen(true);
@@ -110,10 +110,20 @@ export default function AdminPencilProducts() {
 
   const handleSave = async () => {
     try {
+      const saveData = {
+        ...formData,
+        subscription_interval: formData.product_type === "subscription" && formData.subscription_interval !== "" 
+          ? formData.subscription_interval 
+          : null,
+        subscription_interval_count: formData.product_type === "subscription" && formData.subscription_interval_count > 0
+          ? formData.subscription_interval_count
+          : null,
+      };
+
       if (editingProduct) {
         const { error } = await supabase
           .from("pencil_products")
-          .update(formData)
+          .update(saveData)
           .eq("id", editingProduct.id);
 
         if (error) throw error;
@@ -121,7 +131,7 @@ export default function AdminPencilProducts() {
       } else {
         const { error } = await supabase
           .from("pencil_products")
-          .insert([formData]);
+          .insert([saveData]);
 
         if (error) throw error;
         toast({ title: "성공", description: "상품이 추가되었습니다." });
@@ -280,8 +290,8 @@ export default function AdminPencilProducts() {
                   setFormData({
                     ...formData,
                     product_type: value,
-                    subscription_interval: value === "one_time" ? undefined : formData.subscription_interval,
-                    subscription_interval_count: value === "one_time" ? undefined : formData.subscription_interval_count,
+                    subscription_interval: value === "one_time" ? "" : formData.subscription_interval,
+                    subscription_interval_count: value === "one_time" ? 0 : formData.subscription_interval_count,
                   })
                 }
               >
@@ -299,7 +309,7 @@ export default function AdminPencilProducts() {
                 <div>
                   <Label>구독 주기</Label>
                   <Select
-                    value={formData.subscription_interval}
+                    value={formData.subscription_interval || ""}
                     onValueChange={(value: "day" | "week" | "month" | "year") =>
                       setFormData({ ...formData, subscription_interval: value })
                     }
@@ -320,14 +330,15 @@ export default function AdminPencilProducts() {
                   <Input
                     type="number"
                     min={1}
-                    value={formData.subscription_interval_count || ""}
-                    onChange={(e) =>
+                    value={formData.subscription_interval_count === 0 ? "" : formData.subscription_interval_count}
+                    onChange={(e) => {
+                      const value = e.target.value;
                       setFormData({
                         ...formData,
-                        subscription_interval_count: parseInt(e.target.value) || undefined,
-                      })
-                    }
-                    placeholder="예: 1개월, 3개월"
+                        subscription_interval_count: value === "" ? 0 : parseInt(value),
+                      });
+                    }}
+                    placeholder="예: 1, 3, 12"
                   />
                 </div>
               </>
@@ -336,39 +347,48 @@ export default function AdminPencilProducts() {
               <Label>연필 개수</Label>
               <Input
                 type="number"
-                value={formData.pencil_count}
-                onChange={(e) =>
+                min={1}
+                value={formData.pencil_count === 0 ? "" : formData.pencil_count}
+                onChange={(e) => {
+                  const value = e.target.value;
                   setFormData({
                     ...formData,
-                    pencil_count: parseInt(e.target.value) || 0,
-                  })
-                }
+                    pencil_count: value === "" ? 0 : parseInt(value),
+                  });
+                }}
+                placeholder="예: 10, 50, 100"
               />
             </div>
             <div>
               <Label>가격 (원)</Label>
               <Input
                 type="number"
-                value={formData.price}
-                onChange={(e) =>
+                min={0}
+                value={formData.price === 0 ? "" : formData.price}
+                onChange={(e) => {
+                  const value = e.target.value;
                   setFormData({
                     ...formData,
-                    price: parseInt(e.target.value) || 0,
-                  })
-                }
+                    price: value === "" ? 0 : parseInt(value),
+                  });
+                }}
+                placeholder="예: 1000, 5000, 10000"
               />
             </div>
             <div>
               <Label>표시 순서</Label>
               <Input
                 type="number"
-                value={formData.display_order}
-                onChange={(e) =>
+                min={0}
+                value={formData.display_order === 0 ? "" : formData.display_order}
+                onChange={(e) => {
+                  const value = e.target.value;
                   setFormData({
                     ...formData,
-                    display_order: parseInt(e.target.value) || 0,
-                  })
-                }
+                    display_order: value === "" ? 0 : parseInt(value),
+                  });
+                }}
+                placeholder="예: 1, 2, 3"
               />
             </div>
             <div className="flex items-center justify-between">
