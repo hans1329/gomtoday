@@ -154,7 +154,9 @@ export default function Header() {
     }
 
     if (profile?.profile_photo_url) {
-      setProfilePhotoUrl(profile.profile_photo_url);
+      // 타임스탬프 추가하여 브라우저 캐시 방지
+      const timestampedUrl = `${profile.profile_photo_url}?t=${Date.now()}`;
+      setProfilePhotoUrl(timestampedUrl);
     }
     if (profile?.name) {
       setUserName(profile.name);
