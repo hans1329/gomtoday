@@ -383,19 +383,8 @@ export default function Header() {
                     )}
                   </Button>
                 </div>
-                <div className="flex items-center justify-between pl-2">
+                <div className="pl-2">
                   <p className="text-base font-medium leading-none">{userName || "사용자"}</p>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={() => {
-                      setDropdownOpen(false);
-                      navigate("/profile");
-                    }}
-                  >
-                    <Settings className="h-4 w-4" />
-                  </Button>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
@@ -485,6 +474,16 @@ export default function Header() {
                 </>
               )}
               <DropdownMenuSeparator />
+              <DropdownMenuItem 
+                onClick={() => {
+                  setDropdownOpen(false);
+                  navigate("/profile");
+                }} 
+                className="py-3"
+              >
+                <Settings className="mr-2 h-4 w-4" />
+                <span>설정</span>
+              </DropdownMenuItem>
               <div className="px-2 py-2">
                 <p className="text-xs text-muted-foreground text-left">{userEmail}</p>
               </div>
