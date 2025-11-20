@@ -38,54 +38,53 @@ export default function Auth() {
     setLoading(true);
     try {
       if (isSignUp) {
-        const { data: signUpData, error } = await supabase.auth.signUp({
+        const {
+          data: signUpData,
+          error
+        } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/`,
-          },
+            emailRedirectTo: `${window.location.origin}/`
+          }
         });
-
         if (error) throw error;
 
         // 자동 확인된 경우 프로필 체크
         if (signUpData.user && signUpData.session) {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('name, profile_photo_url, email')
-            .eq('user_id', signUpData.user.id)
-            .single();
+          const {
+            data: profile
+          } = await supabase.from('profiles').select('name, profile_photo_url, email').eq('user_id', signUpData.user.id).single();
 
           // 프로필이 미완성인 경우
           if (profile && (profile.name === profile.email || !profile.profile_photo_url)) {
             toast({
               title: "회원가입 완료",
-              description: "프로필을 완성해주세요!",
+              description: "프로필을 완성해주세요!"
             });
             navigate("/profile");
             return;
           }
         }
-
         toast({
           title: "회원가입 완료",
-          description: "환영합니다!",
+          description: "환영합니다!"
         });
       } else {
-        const { data, error } = await supabase.auth.signInWithPassword({
+        const {
+          data,
+          error
+        } = await supabase.auth.signInWithPassword({
           email,
-          password,
+          password
         });
-
         if (error) throw error;
 
         // 로그인 후 프로필 체크
         if (data.user) {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('name, profile_photo_url, email')
-            .eq('user_id', data.user.id)
-            .single();
+          const {
+            data: profile
+          } = await supabase.from('profiles').select('name, profile_photo_url, email').eq('user_id', data.user.id).single();
 
           // 프로필이 미완성인 경우
           if (profile && (profile.name === profile.email || !profile.profile_photo_url)) {
@@ -93,14 +92,13 @@ export default function Auth() {
             return;
           }
         }
-
         navigate("/");
       }
     } catch (error: any) {
       toast({
         title: isSignUp ? "회원가입 실패" : "로그인 실패",
         description: error.message,
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setLoading(false);
@@ -112,16 +110,13 @@ export default function Auth() {
       const KAKAO_REST_API_KEY = '204c3007fa32fd49cfcbe18dd6b8a3ab';
       const redirectUri = `${window.location.origin}/kakao-callback`;
       const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?client_id=${KAKAO_REST_API_KEY}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code`;
-      
       console.log('=== Kakao Login Debug ===');
       console.log('Redirect URI:', redirectUri);
       console.log('Full Auth URL:', kakaoAuthUrl);
       console.log('========================');
-      
       window.location.href = kakaoAuthUrl;
       return;
     }
-
     setLoading(true);
     try {
       const {
@@ -154,7 +149,7 @@ export default function Auth() {
       <div className="w-full max-w-md">
         <div className="space-y-6 mb-8">
           <div className="flex items-center justify-center mb-4">
-            <img src={logoUrl} alt="Logo" className="h-28 w-auto object-contain" />
+            <img src={logoUrl} alt="Logo" className="h30 w-auto object-contain" />
           </div>
           <p className="text-base text-center text-muted-foreground font-bold">
             누군가가 써주는 나의 일기
@@ -175,37 +170,17 @@ export default function Auth() {
               </TabsList>
 
               <TabsContent value="signin" className="space-y-4">
-                <form
-                  className="space-y-4"
-                  autoComplete="off"
-                  onSubmit={e => {
-                    e.preventDefault();
-                    handleEmailAuth(false);
-                  }}
-                >
+                <form className="space-y-4" autoComplete="off" onSubmit={e => {
+                e.preventDefault();
+                handleEmailAuth(false);
+              }}>
                   <div className="space-y-2">
                     <Label htmlFor="signin-email">이메일</Label>
-                    <Input
-                      id="signin-email"
-                      name="signin-email"
-                      type="email"
-                      placeholder="your@email.com"
-                      value={email}
-                      onChange={e => setEmail(e.target.value)}
-                      autoComplete="off"
-                    />
+                    <Input id="signin-email" name="signin-email" type="email" placeholder="your@email.com" value={email} onChange={e => setEmail(e.target.value)} autoComplete="off" />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="signin-password">비밀번호</Label>
-                    <Input
-                      id="signin-password"
-                      name="signin-password"
-                      type="password"
-                      placeholder="••••••••"
-                      value={password}
-                      onChange={e => setPassword(e.target.value)}
-                      autoComplete="off"
-                    />
+                    <Input id="signin-password" name="signin-password" type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} autoComplete="off" />
                   </div>
                   <Button type="submit" disabled={loading} className="w-full h-14">
                     로그인
@@ -214,37 +189,17 @@ export default function Auth() {
               </TabsContent>
 
               <TabsContent value="signup" className="space-y-4">
-                <form
-                  className="space-y-4"
-                  autoComplete="off"
-                  onSubmit={e => {
-                    e.preventDefault();
-                    handleEmailAuth(true);
-                  }}
-                >
+                <form className="space-y-4" autoComplete="off" onSubmit={e => {
+                e.preventDefault();
+                handleEmailAuth(true);
+              }}>
                   <div className="space-y-2">
                     <Label htmlFor="signup-email">이메일</Label>
-                    <Input
-                      id="signup-email"
-                      name="signup-email"
-                      type="email"
-                      placeholder="your@email.com"
-                      value={email}
-                      onChange={e => setEmail(e.target.value)}
-                      autoComplete="off"
-                    />
+                    <Input id="signup-email" name="signup-email" type="email" placeholder="your@email.com" value={email} onChange={e => setEmail(e.target.value)} autoComplete="off" />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="signup-password">비밀번호</Label>
-                    <Input
-                      id="signup-password"
-                      name="signup-password"
-                      type="password"
-                      placeholder="••••••••"
-                      value={password}
-                      onChange={e => setPassword(e.target.value)}
-                      autoComplete="off"
-                    />
+                    <Input id="signup-password" name="signup-password" type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} autoComplete="off" />
                   </div>
                   <Button type="submit" className="w-full h-12" disabled={loading}>
                     회원가입
