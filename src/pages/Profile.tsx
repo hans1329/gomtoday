@@ -336,14 +336,14 @@ export default function Profile() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-full">
-              <div className="space-y-2">
+              <div className="space-y-2 min-w-0 overflow-hidden">
                 <Label htmlFor="birthday" className="pl-2">생일</Label>
                 <Input
                   id="birthday"
                   type="date"
                   value={birthday}
                   onChange={(e) => setBirthday(e.target.value)}
-                  className="w-full max-w-full"
+                  className="w-full"
                 />
               </div>
 
