@@ -419,6 +419,39 @@ export type Database = {
         }
         Relationships: []
       }
+      perspectives: {
+        Row: {
+          cost: number
+          created_at: string
+          display_order: number
+          id: string
+          is_active: boolean
+          label: string
+          perspective_key: string
+          updated_at: string
+        }
+        Insert: {
+          cost?: number
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          label: string
+          perspective_key: string
+          updated_at?: string
+        }
+        Update: {
+          cost?: number
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          label?: string
+          perspective_key?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       photos: {
         Row: {
           diary_id: string | null

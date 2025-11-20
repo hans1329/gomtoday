@@ -134,6 +134,12 @@ export default function AdminDashboard() {
       icon: Pencil,
       path: "/admin/pencil-products",
     },
+    {
+      title: "시점 관리",
+      description: "일기 작성 시점과 비용을 관리합니다",
+      icon: Users,
+      path: "/admin/perspectives",
+    },
   ];
 
   return (

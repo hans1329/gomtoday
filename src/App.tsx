@@ -27,6 +27,7 @@ import AdminDiaries from "./pages/AdminDiaries";
 import AdminNotebooks from "./pages/AdminNotebooks";
 import AdminPencilSettings from "./pages/AdminPencilSettings";
 import AdminPencilProducts from "./pages/AdminPencilProducts";
+import AdminPerspectives from "./pages/AdminPerspectives";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import KakaoCallback from "./pages/KakaoCallback";
@@ -89,6 +90,7 @@ function AppContent() {
         <Route path="/admin/notebooks" element={<AdminNotebooks />} />
         <Route path="/admin/pencil-settings" element={<AdminPencilSettings />} />
         <Route path="/admin/pencil-products" element={<AdminPencilProducts />} />
+        <Route path="/admin/perspectives" element={<AdminPerspectives />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="*" element={<NotFound />} />
