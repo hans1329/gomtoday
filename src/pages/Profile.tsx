@@ -50,7 +50,7 @@ export default function Profile() {
       try {
         const parsed = JSON.parse(cachedData);
         setProfile(parsed);
-        setName(parsed.name || "");
+        setName(parsed.name === parsed.email ? "" : parsed.name || "");
         setBio(parsed.bio || "");
         setMbti(parsed.mbti || "");
         setBloodType(parsed.blood_type || "");
@@ -85,7 +85,7 @@ export default function Profile() {
 
     if (data) {
       setProfile(data);
-      setName(data.name || "");
+      setName(data.name === data.email ? "" : data.name || "");
       setBio(data.bio || "");
       setMbti(data.mbti || "");
       setBloodType(data.blood_type || "");
@@ -239,7 +239,7 @@ export default function Profile() {
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="이름을 입력하세요"
+                placeholder="이름을 입력해주세요"
                 className="text-center text-lg font-semibold"
               />
             </div>
