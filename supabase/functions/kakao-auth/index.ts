@@ -84,6 +84,7 @@ serve(async (req) => {
       .single();
 
     let userId: string;
+    let isNewUser = false;
 
     if (existingProfile) {
       // User exists, update their profile
@@ -100,6 +101,9 @@ serve(async (req) => {
         .eq('user_id', userId);
     } else {
       // Create new user
+      isNewUser = true;
+      const WELCOME_PENCILS = 10;
+      
       const { data: authData, error: authError } = await supabase.auth.admin.createUser({
         email: email,
         email_confirm: true,
@@ -119,16 +123,31 @@ serve(async (req) => {
       userId = authData.user.id;
       console.log('New user created, updating profile', { userId });
       
-      // Update profile with Kakao data
+      // Update profile with Kakao data and welcome pencils
       await supabase
         .from('profiles')
         .update({
           name: name,
           profile_photo_url: profileImage,
           email: email,
+          pencil_count: WELCOME_PENCILS,
           updated_at: new Date().toISOString(),
         })
         .eq('user_id', userId);
+      
+      // Create welcome notification
+      await supabase
+        .from('notifications')
+        .insert({
+          user_id: userId,
+          type: 'welcome',
+          title: '가입 축하 선물',
+          message: `GomToday에 오신 것을 환영합니다! 가입 축하 선물로 연필 ${WELCOME_PENCILS}자루를 드렸어요.`,
+          link: '/profile',
+          read: false,
+        });
+      
+      console.log('Welcome notification created');
     }
 
     // 4. Generate Supabase session
@@ -153,6 +172,7 @@ serve(async (req) => {
           name: kakaoUser.properties?.nickname || kakaoUser.kakao_account?.profile?.nickname,
         },
         session_url: sessionData.properties.action_link,
+        is_new_user: isNewUser,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

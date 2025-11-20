@@ -67,7 +67,13 @@ const KakaoCallback = () => {
         }
 
         toast.success("카카오 로그인 성공!");
-        navigate("/");
+        
+        // Redirect based on whether it's a new user
+        if (data.is_new_user) {
+          navigate("/profile");
+        } else {
+          navigate("/");
+        }
       } catch (err: any) {
         console.error("Kakao callback error:", err);
         setError(err.message || "로그인 중 오류가 발생했습니다.");
