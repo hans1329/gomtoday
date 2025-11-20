@@ -339,31 +339,29 @@ export default function Profile() {
               </div>
             </div>
 
-            <div className="px-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="birthday" className="pl-2">생일</Label>
-                  <Input
-                    id="birthday"
-                    type="date"
-                    value={birthday}
-                    onChange={(e) => setBirthday(e.target.value)}
-                  />
-                </div>
+            <div className="px-4 space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="birthday" className="pl-2">생일</Label>
+                <Input
+                  id="birthday"
+                  type="date"
+                  value={birthday}
+                  onChange={(e) => setBirthday(e.target.value)}
+                />
+              </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="gender" className="pl-2">성별</Label>
-                  <Select value={gender} onValueChange={setGender}>
-                    <SelectTrigger id="gender">
-                      <SelectValue placeholder="선택하세요" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-background">
-                      <SelectItem value="남성">남성</SelectItem>
-                      <SelectItem value="여성">여성</SelectItem>
-                      <SelectItem value="기타">기타</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="gender" className="pl-2">성별</Label>
+                <Select value={gender} onValueChange={setGender}>
+                  <SelectTrigger id="gender">
+                    <SelectValue placeholder="선택하세요" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-background">
+                    <SelectItem value="남성">남성</SelectItem>
+                    <SelectItem value="여성">여성</SelectItem>
+                    <SelectItem value="기타">기타</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
