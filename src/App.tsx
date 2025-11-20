@@ -22,6 +22,7 @@ import Invitations from "./pages/Invitations";
 import NotFound from "./pages/NotFound";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminBrandAssets from "./pages/AdminBrandAssets";
+import AdminImageOptimize from "./pages/AdminImageOptimize";
 import AdminUsers from "./pages/AdminUsers";
 import AdminInquiries from "./pages/AdminInquiries";
 import AdminDiaries from "./pages/AdminDiaries";
@@ -86,6 +87,7 @@ function AppContent() {
         <Route path="/diary-review/:id" element={<DiaryReview />} />
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/admin/brand-assets" element={<AdminBrandAssets />} />
+        <Route path="/admin/image-optimize" element={<AdminImageOptimize />} />
         <Route path="/admin/users" element={<AdminUsers />} />
         <Route path="/admin/inquiries" element={<AdminInquiries />} />
         <Route path="/admin/diaries" element={<AdminDiaries />} />
