@@ -28,6 +28,7 @@ import { ko } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import RichTextEditor from "@/components/RichTextEditor";
 export default function Upload() {
   const { id } = useParams();
   const isEditMode = !!id;
@@ -1740,12 +1741,10 @@ export default function Upload() {
 
                 <div className="space-y-2">
                   <Label htmlFor="content" className="px-2">일기 내용</Label>
-                  <Textarea
-                    id="content"
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
+                  <RichTextEditor
+                    content={content}
+                    onChange={setContent}
                     placeholder="오늘 있었던 일을 자유롭게 작성해보세요"
-                    className="min-h-[300px]"
                   />
                 </div>
 
@@ -1772,12 +1771,10 @@ export default function Upload() {
 
                 <div className="space-y-2">
                   <Label htmlFor="content" className="px-2">일기 내용</Label>
-                  <Textarea
-                    id="content"
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
+                  <RichTextEditor
+                    content={content}
+                    onChange={setContent}
                     placeholder="일기 내용을 입력하세요"
-                    className="min-h-[200px]"
                   />
                 </div>
 
