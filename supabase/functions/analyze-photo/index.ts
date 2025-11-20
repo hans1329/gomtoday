@@ -76,8 +76,8 @@ serve(async (req) => {
 
     const participantNames = otherParticipants.map((p: any) => p.name).join(', ');
     const participantContext = participantDetails.length > 0 
-      ? `등장인물: ${participantDetails.join(', ')}. 이들이 함께한 하루를 자연스럽게 묘사한다.`
-      : '';
+      ? participantDetails.join(', ')
+      : '없음';
 
     // Use prompt template from database
     let perspectiveInstruction = perspectiveData.prompt_template || '';
