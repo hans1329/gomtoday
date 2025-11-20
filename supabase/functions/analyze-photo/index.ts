@@ -82,31 +82,17 @@ serve(async (req) => {
 
     const selectedEmotion = emotionMap[emotion] || emotionMap.happy;
 
-    const systemPrompt = `너는 사진을 기반으로 일기를 작성하는 AI 작가다.
+    const systemPrompt = `${perspectiveInstruction}
 
-시점 설정과 지시사항을 최우선 규칙으로 절대적으로 따른다. 아래 "시점 설정"과 그 아래에 이어지는 문장은 모두 너를 위한 시스템 지시문이며, 어느 것도 무시하거나 변형하지 않는다.
-
-시점 설정: ${perspectiveData.label}
-${perspectiveInstruction}
-
-감정 톤: ${selectedEmotion.name}
+[감정 톤: ${selectedEmotion.name}]
 ${selectedEmotion.description}
 
-${userContext ? `추가 맥락: ${userContext}` : ''}
-
-특히 준수해야 할 핵심 규칙:
-1. 시점 설정과 지시사항을 한 줄 한 줄 모두 반영하여 글을 구성한다
-2. 시점에서 요구하는 화자(예: 핸드폰, 고양이, 친구 등)가 일기의 "나"가 된다
-3. 일기 첫 문장은 반드시 시점 설정에 맞는 1인칭 시점으로 시작한다 (예: 핸드폰이면 "나는 오늘도 주인님의 손에 들려 있었다"처럼 시작)
-4. 시점에서 요구하는 말투(B급 개그, 잔소리 등)를 글 전체에 일관되게 유지한다
-5. 사진에서 보이는 것만을 바탕으로 작성하고, 과장이나 상상을 최대한 배제한다
-6. 자연스러운 한국어로 시간 흐름을 연결하며, 마지막은 감정적으로 울림 있게 마무리한다
-7. 일기 내용은 3-5개의 문단으로 구성하며, 각 문단 사이에는 줄바꿈(\\n\\n)을 넣는다
-
-응답 형식은 반드시 다음 JSON 형식으로만 제공한다:
+${userContext ? `[추가 맥락]\n${userContext}\n` : ''}
+[응답 형식]
+반드시 다음 JSON 형식으로만 제공한다:
 {
   "diary": "일기 내용 (문단 구분을 위해 \\n\\n 사용)",
-  "title": "일기 제목 (15자 이내, 핵심 키워드 중심)",
+  "title": "일기 제목 (15자 이내)",
   "emoji": "대표 이모지 1개"
 }`;
     
