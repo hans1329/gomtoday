@@ -59,12 +59,23 @@ serve(async (req) => {
     // Use prompt template from database
     let perspectiveInstruction = perspectiveData.prompt_template || '';
     
+    // Process length first to get sentenceCount
+    const lengthMap: Record<string, { name: string; sentenceCount: string; description: string }> = {
+      short: { name: '짧게', sentenceCount: '4-6문장으로', description: '핵심만 담아 간결하게 작성한다.' },
+      medium: { name: '보통', sentenceCount: '8-12문장으로', description: '적당한 길이로 작성한다.' },
+      long: { name: '길게', sentenceCount: '15-20문장으로', description: '디테일하게 작성한다.' }
+    };
+    const selectedLength = lengthMap[length] || lengthMap.medium;
+    
     // Replace variables in template if they exist
     if (perspectiveInstruction.includes('{participantContext}')) {
       perspectiveInstruction = perspectiveInstruction.replace('{participantContext}', participantContext);
     }
     if (perspectiveInstruction.includes('{participantNames}')) {
       perspectiveInstruction = perspectiveInstruction.replace('{participantNames}', participantNames || '집사');
+    }
+    if (perspectiveInstruction.includes('{sentenceCount}')) {
+      perspectiveInstruction = perspectiveInstruction.replace('{sentenceCount}', selectedLength.sentenceCount);
     }
 
     const emotionMap: Record<string, { name: string; description: string }> = {
@@ -75,14 +86,7 @@ serve(async (req) => {
       excited: { name: '설렘', description: '활기차고 들뜬 톤으로 작성한다.' }
     };
 
-    const lengthMap: Record<string, { name: string; description: string }> = {
-      short: { name: '짧게', description: '핵심만 담아 4-6문장으로 간결하게 작성한다.' },
-      medium: { name: '보통', description: '적당한 길이로 8-12문장으로 작성한다.' },
-      long: { name: '길게', description: '디테일하게 15-20문장으로 작성한다.' }
-    };
-
     const selectedEmotion = emotionMap[emotion] || emotionMap.happy;
-    const selectedLength = lengthMap[length] || lengthMap.medium;
 
     const systemPrompt = `너는 사진을 기반으로 일기를 작성하는 AI 작가다.
 
