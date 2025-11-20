@@ -25,7 +25,7 @@ import { Upload as UploadIcon, Loader2, ArrowLeft, Trash2, ChevronUp, ChevronDow
 import { format } from "date-fns";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { ko } from "date-fns/locale";
-import { cn } from "@/lib/utils";
+import { cn, optimizeImage } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import RichTextEditor from "@/components/RichTextEditor";
@@ -616,7 +616,11 @@ export default function Upload() {
       const photoIds: string[] = [];
       for (let i = 0; i < selectedFiles.length; i++) {
         const file = selectedFiles[i];
-        const fileExt = file.name.split('.').pop() || 'jpg';
+        
+        // 이미지 최적화 (리사이즈 + WebP 변환)
+        const optimizedFile = await optimizeImage(file);
+        
+        const fileExt = 'webp'; // 항상 webp로 저장
         const fileName = `${user.id}/${Date.now()}-${i}.${fileExt}`;
         
         // Convert to base64
@@ -626,12 +630,12 @@ export default function Upload() {
             const base64 = reader.result as string;
             resolve(base64.split(',')[1]); // Remove data:image/xxx;base64, prefix
           };
-          reader.readAsDataURL(file);
+          reader.readAsDataURL(optimizedFile);
         });
         
         const {
           error: uploadError
-        } = await supabase.storage.from("photos").upload(fileName, file);
+        } = await supabase.storage.from("photos").upload(fileName, optimizedFile);
         if (uploadError) throw uploadError;
         const {
           data: {
