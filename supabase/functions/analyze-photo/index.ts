@@ -50,9 +50,33 @@ serve(async (req) => {
       ? participants.filter((p: any) => p.id !== userId)
       : participants;
 
+    // Fetch detailed profile information for participants
+    const participantDetails = await Promise.all(
+      otherParticipants.map(async (p: any) => {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('name, gender, birthday, mbti, blood_type')
+          .eq('user_id', p.id)
+          .maybeSingle();
+        
+        if (!profile) return p.name;
+        
+        const details = [];
+        if (profile.gender) details.push(profile.gender === 'male' ? '남성' : profile.gender === 'female' ? '여성' : profile.gender);
+        if (profile.birthday) {
+          const age = new Date().getFullYear() - new Date(profile.birthday).getFullYear();
+          details.push(`${age}세`);
+        }
+        if (profile.mbti) details.push(profile.mbti);
+        if (profile.blood_type) details.push(`${profile.blood_type}형`);
+        
+        return details.length > 0 ? `${profile.name} (${details.join(', ')})` : profile.name;
+      })
+    );
+
     const participantNames = otherParticipants.map((p: any) => p.name).join(', ');
-    const participantContext = otherParticipants.length > 0 
-      ? `등장인물: ${participantNames}. 이들이 함께한 하루를 자연스럽게 묘사한다.`
+    const participantContext = participantDetails.length > 0 
+      ? `등장인물: ${participantDetails.join(', ')}. 이들이 함께한 하루를 자연스럽게 묘사한다.`
       : '';
 
     // Use prompt template from database
