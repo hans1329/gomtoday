@@ -335,18 +335,16 @@ export default function Profile() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
-              <div className="space-y-2 w-full">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-full">
+              <div className="space-y-2 w-full max-w-full">
                 <Label htmlFor="birthday" className="pl-2">생일</Label>
-                <div className="w-full overflow-hidden">
-                  <Input
-                    id="birthday"
-                    type="date"
-                    value={birthday}
-                    onChange={(e) => setBirthday(e.target.value)}
-                    className="w-full text-sm"
-                  />
-                </div>
+                <Input
+                  id="birthday"
+                  type="date"
+                  value={birthday}
+                  onChange={(e) => setBirthday(e.target.value)}
+                  className="w-full max-w-full"
+                />
               </div>
 
               <div className="space-y-2 w-full">
