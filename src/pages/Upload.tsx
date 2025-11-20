@@ -655,7 +655,7 @@ export default function Upload() {
         error: diaryError
       } = await supabase.from("diaries").insert({
         user_id: user.id,
-        content: aiResponse.content,
+        content: aiResponse.diary,
         title: aiResponse.title,
         emoji: aiResponse.emoji,
         tone: emotion,
@@ -679,10 +679,10 @@ export default function Upload() {
       }
 
       setUploadProgress(100);
-      setGeneratedContent(aiResponse.content);
+      setGeneratedContent(aiResponse.diary);
       setGeneratedTitle(aiResponse.title);
       setGeneratedEmoji(aiResponse.emoji);
-      setContent(aiResponse.content);
+      setContent(aiResponse.diary);
       setTitle(aiResponse.title);
       setCurrentDiaryId(diaryData.id);
       setIsGenerated(true);
