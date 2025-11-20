@@ -46,8 +46,8 @@ serve(async (req) => {
       throw new Error('Invalid perspective');
     }
 
-    // 나의 시선 또는 카메라 시점일 때는 등장인물에서 본인 제외
-    const otherParticipants = (perspective === 'my_view' || perspective === 'camera') && userId
+    // 나의 시선일 때만 등장인물에서 본인 제외 (카메라는 본인을 관찰하므로 포함)
+    const otherParticipants = perspective === 'my_view' && userId
       ? participants.filter((p: any) => p.id !== userId)
       : participants;
 
