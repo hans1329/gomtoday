@@ -114,7 +114,20 @@ ${userContext ? `추가 맥락: ${userContext}` : ''}
     console.log('Final perspectiveInstruction:', perspectiveInstruction);
     console.log('Full systemPrompt:', systemPrompt);
 
-    const imageContents = photos.map((url: string) => ({
+    // Remove cache busting query parameters from URLs for OpenAI
+    const cleanedPhotos = photos.map((url: string) => {
+      try {
+        const urlObj = new URL(url);
+        return `${urlObj.origin}${urlObj.pathname}`; // Remove query params
+      } catch {
+        return url; // Return original if URL parsing fails
+      }
+    });
+    
+    console.log('Original URLs:', photos);
+    console.log('Cleaned URLs:', cleanedPhotos);
+    
+    const imageContents = cleanedPhotos.map((url: string) => ({
       type: "image_url",
       image_url: { url }
     }));
