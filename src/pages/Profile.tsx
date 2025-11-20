@@ -228,9 +228,9 @@ export default function Profile() {
   }
 
   return (
-    <div className="min-h-screen gradient-soft overflow-x-hidden">
-      <div className="max-w-2xl mx-auto px-4 py-4 sm:py-8">
-        <div className="space-y-6">
+    <div className="min-h-screen gradient-soft">
+      <div className="container max-w-2xl mx-auto px-4 py-4 sm:py-8">
+        <div className="space-y-6 w-full max-w-full overflow-x-hidden">
           {/* 프로필 사진과 이름 */}
           <div className="flex flex-col items-center gap-3">
             <div className="relative">
