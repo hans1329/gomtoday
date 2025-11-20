@@ -359,6 +359,9 @@ export type Database = {
           name: string
           pencil_count: number
           price: number
+          product_type: string
+          subscription_interval: string | null
+          subscription_interval_count: number | null
           updated_at: string
         }
         Insert: {
@@ -369,6 +372,9 @@ export type Database = {
           name: string
           pencil_count: number
           price: number
+          product_type?: string
+          subscription_interval?: string | null
+          subscription_interval_count?: number | null
           updated_at?: string
         }
         Update: {
@@ -379,6 +385,9 @@ export type Database = {
           name?: string
           pencil_count?: number
           price?: number
+          product_type?: string
+          subscription_interval?: string | null
+          subscription_interval_count?: number | null
           updated_at?: string
         }
         Relationships: []

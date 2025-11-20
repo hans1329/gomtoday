@@ -16,6 +16,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface PencilProduct {
   id: string;
@@ -24,6 +31,9 @@ interface PencilProduct {
   price: number;
   display_order: number;
   is_active: boolean;
+  product_type: "one_time" | "subscription";
+  subscription_interval?: "day" | "week" | "month" | "year";
+  subscription_interval_count?: number;
 }
 
 export default function AdminPencilProducts() {
@@ -39,6 +49,9 @@ export default function AdminPencilProducts() {
     price: 0,
     display_order: 0,
     is_active: true,
+    product_type: "one_time" as "one_time" | "subscription",
+    subscription_interval: undefined as "day" | "week" | "month" | "year" | undefined,
+    subscription_interval_count: undefined as number | undefined,
   });
 
   useEffect(() => {
@@ -53,7 +66,7 @@ export default function AdminPencilProducts() {
         .order("display_order", { ascending: true });
 
       if (error) throw error;
-      setProducts(data || []);
+      setProducts((data || []) as PencilProduct[]);
     } catch (error) {
       console.error("Error fetching products:", error);
       toast({
@@ -75,6 +88,9 @@ export default function AdminPencilProducts() {
         price: product.price,
         display_order: product.display_order,
         is_active: product.is_active,
+        product_type: product.product_type,
+        subscription_interval: product.subscription_interval,
+        subscription_interval_count: product.subscription_interval_count,
       });
     } else {
       setEditingProduct(null);
@@ -84,6 +100,9 @@ export default function AdminPencilProducts() {
         price: 0,
         display_order: products.length + 1,
         is_active: true,
+        product_type: "one_time",
+        subscription_interval: undefined,
+        subscription_interval_count: undefined,
       });
     }
     setDialogOpen(true);
@@ -187,8 +206,22 @@ export default function AdminPencilProducts() {
                         )}
                       </div>
                       <div className="mt-2 flex items-center gap-4 text-sm text-muted-foreground">
+                        <span className="px-2 py-1 bg-primary/10 rounded-full">
+                          {product.product_type === "subscription" ? "구독형" : "일회성"}
+                        </span>
                         <span>연필: {product.pencil_count}개</span>
-                        <span>가격: ₩{product.price.toLocaleString()}</span>
+                        <span>
+                          가격: ₩{product.price.toLocaleString()}
+                          {product.product_type === "subscription" && product.subscription_interval && (
+                            <>
+                              /{product.subscription_interval_count}
+                              {product.subscription_interval === "day" && "일"}
+                              {product.subscription_interval === "week" && "주"}
+                              {product.subscription_interval === "month" && "개월"}
+                              {product.subscription_interval === "year" && "년"}
+                            </>
+                          )}
+                        </span>
                         <span>순서: {product.display_order}</span>
                       </div>
                     </div>
@@ -239,6 +272,66 @@ export default function AdminPencilProducts() {
                 placeholder="예: 연필 10개"
               />
             </div>
+            <div>
+              <Label>상품 유형</Label>
+              <Select
+                value={formData.product_type}
+                onValueChange={(value: "one_time" | "subscription") =>
+                  setFormData({
+                    ...formData,
+                    product_type: value,
+                    subscription_interval: value === "one_time" ? undefined : formData.subscription_interval,
+                    subscription_interval_count: value === "one_time" ? undefined : formData.subscription_interval_count,
+                  })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="one_time">일회성 구매</SelectItem>
+                  <SelectItem value="subscription">구독형</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {formData.product_type === "subscription" && (
+              <>
+                <div>
+                  <Label>구독 주기</Label>
+                  <Select
+                    value={formData.subscription_interval}
+                    onValueChange={(value: "day" | "week" | "month" | "year") =>
+                      setFormData({ ...formData, subscription_interval: value })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="주기 선택" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="day">일</SelectItem>
+                      <SelectItem value="week">주</SelectItem>
+                      <SelectItem value="month">월</SelectItem>
+                      <SelectItem value="year">년</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>주기 횟수</Label>
+                  <Input
+                    type="number"
+                    min={1}
+                    value={formData.subscription_interval_count || ""}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        subscription_interval_count: parseInt(e.target.value) || undefined,
+                      })
+                    }
+                    placeholder="예: 1개월, 3개월"
+                  />
+                </div>
+              </>
+            )}
             <div>
               <Label>연필 개수</Label>
               <Input
