@@ -23,6 +23,7 @@ export default function Profile() {
   const [location, setLocation] = useState("");
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -185,41 +186,48 @@ export default function Profile() {
   };
 
   const handleUpdateProfile = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    if (saving) return;
+    
+    setSaving(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
 
-    const { error } = await supabase
-      .from("profiles")
-      .upsert({ 
-        user_id: user.id,
-        name,
-        bio,
-        mbti: mbti || null,
-        blood_type: bloodType || null,
-        birthday: birthday || null,
-        gender: gender || null,
-        location: location || null
-      }, {
-        onConflict: 'user_id'
-      });
+      const { error } = await supabase
+        .from("profiles")
+        .upsert({ 
+          user_id: user.id,
+          name,
+          bio,
+          mbti: mbti || null,
+          blood_type: bloodType || null,
+          birthday: birthday || null,
+          gender: gender || null,
+          location: location || null
+        }, {
+          onConflict: 'user_id'
+        });
 
-    if (error) {
-      toast({
-        title: "업데이트 실패",
-        description: error.message,
-        variant: "destructive",
-      });
-    } else {
-      toast({
-        title: "프로필 업데이트 완료!",
-      });
-      fetchProfile();
-      // Header에 프로필 업데이트 알림
-      window.dispatchEvent(new Event('profile-updated'));
-      // 일기 페이지로 이동
-      setTimeout(() => {
-        navigate("/");
-      }, 500);
+      if (error) {
+        toast({
+          title: "업데이트 실패",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "프로필 업데이트 완료!",
+        });
+        fetchProfile();
+        // Header에 프로필 업데이트 알림
+        window.dispatchEvent(new Event('profile-updated'));
+        // 일기 페이지로 이동
+        setTimeout(() => {
+          navigate("/");
+        }, 500);
+      }
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -378,8 +386,8 @@ export default function Profile() {
             </div>
 
             <div className="px-4">
-              <Button onClick={handleUpdateProfile} className="w-full">
-                저장
+              <Button onClick={handleUpdateProfile} disabled={saving} className="w-full">
+                {saving ? "저장 중..." : "저장"}
               </Button>
             </div>
           </div>

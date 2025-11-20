@@ -56,6 +56,7 @@ export default function Home() {
   const [displayCount, setDisplayCount] = useState(30);
   const [filteredDiaries, setFilteredDiaries] = useState<any[]>([]);
   const [isFilteringDiaries, setIsFilteringDiaries] = useState(false);
+  const [isDeletingDiary, setIsDeletingDiary] = useState(false);
   const isLikingRef = useRef(false);
   const isMobile = useIsMobile();
   const navigate = useNavigate();
@@ -712,42 +713,47 @@ export default function Home() {
   };
 
   const handleDeleteDiary = async () => {
-    if (diaries.length === 0) return;
+    if (diaries.length === 0 || isDeletingDiary) return;
     
-    const diaryId = diaries[0].id;
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user || user.id !== diaries[0].user_id) {
-      toast({
-        title: "삭제 권한이 없습니다",
-        variant: "destructive",
-      });
-      return;
-    }
+    setIsDeletingDiary(true);
+    try {
+      const diaryId = diaries[0].id;
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user || user.id !== diaries[0].user_id) {
+        toast({
+          title: "삭제 권한이 없습니다",
+          variant: "destructive",
+        });
+        return;
+      }
 
-    const { error } = await supabase
-      .from("diaries")
-      .delete()
-      .eq("id", diaryId);
+      const { error } = await supabase
+        .from("diaries")
+        .delete()
+        .eq("id", diaryId);
 
-    if (!error) {
-      toast({
-        title: "일기가 삭제되었습니다",
-      });
-      setShowDeleteDialog(false);
-      // 캐시 초기화
-      const monthKey = format(currentMonth, 'yyyy-MM');
-      const cacheKey = `home_data_${user.id}_${monthKey}`;
-      const cacheTimeKey = `home_data_time_${user.id}_${monthKey}`;
-      localStorage.removeItem(cacheKey);
-      localStorage.removeItem(cacheTimeKey);
-      // 데이터 다시 가져오기
-      fetchMonthData();
-    } else {
-      toast({
-        title: "삭제에 실패했습니다",
-        variant: "destructive",
-      });
+      if (!error) {
+        toast({
+          title: "일기가 삭제되었습니다",
+        });
+        setShowDeleteDialog(false);
+        // 캐시 초기화
+        const monthKey = format(currentMonth, 'yyyy-MM');
+        const cacheKey = `home_data_${user.id}_${monthKey}`;
+        const cacheTimeKey = `home_data_time_${user.id}_${monthKey}`;
+        localStorage.removeItem(cacheKey);
+        localStorage.removeItem(cacheTimeKey);
+        // 데이터 다시 가져오기
+        fetchMonthData();
+      } else {
+        toast({
+          title: "삭제에 실패했습니다",
+          variant: "destructive",
+        });
+      }
+    } finally {
+      setIsDeletingDiary(false);
     }
   };
 
@@ -1435,9 +1441,13 @@ export default function Home() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>취소</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteDiary} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              삭제
+            <AlertDialogCancel disabled={isDeletingDiary}>취소</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteDiary} 
+              disabled={isDeletingDiary}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeletingDiary ? "삭제 중..." : "삭제"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
