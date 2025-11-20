@@ -66,6 +66,13 @@ serve(async (req) => {
     const kakaoUser = await userResponse.json();
     console.log('Kakao user info received', { id: kakaoUser.id });
 
+    // Extract profile information
+    const email = kakaoUser.kakao_account?.email || `kakao_${kakaoUser.id}@kakao.user`;
+    const name = kakaoUser.properties?.nickname || kakaoUser.kakao_account?.profile?.nickname || 'Kakao User';
+    const profileImage = kakaoUser.properties?.profile_image || kakaoUser.kakao_account?.profile?.profile_image_url || null;
+
+    console.log('Profile data extracted', { email, name, hasImage: !!profileImage });
+
     // 3. Create or get Supabase user
     const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
 
@@ -73,20 +80,26 @@ serve(async (req) => {
     const { data: existingProfile } = await supabase
       .from('profiles')
       .select('user_id')
-      .eq('email', `kakao_${kakaoUser.id}@kakao.user`)
+      .eq('email', email)
       .single();
 
     let userId: string;
 
     if (existingProfile) {
-      // User exists, sign them in
+      // User exists, update their profile
       userId = existingProfile.user_id;
-      console.log('Existing user found', { userId });
+      console.log('Existing user found, updating profile', { userId });
+      
+      await supabase
+        .from('profiles')
+        .update({
+          name: name,
+          profile_photo_url: profileImage,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('user_id', userId);
     } else {
       // Create new user
-      const email = kakaoUser.kakao_account?.email || `kakao_${kakaoUser.id}@kakao.user`;
-      const name = kakaoUser.properties?.nickname || kakaoUser.kakao_account?.profile?.nickname || 'Kakao User';
-
       const { data: authData, error: authError } = await supabase.auth.admin.createUser({
         email: email,
         email_confirm: true,
@@ -94,6 +107,7 @@ serve(async (req) => {
           name: name,
           kakao_id: kakaoUser.id,
           provider: 'kakao',
+          profile_image: profileImage,
         },
       });
 
@@ -103,7 +117,18 @@ serve(async (req) => {
       }
 
       userId = authData.user.id;
-      console.log('New user created', { userId });
+      console.log('New user created, updating profile', { userId });
+      
+      // Update profile with Kakao data
+      await supabase
+        .from('profiles')
+        .update({
+          name: name,
+          profile_photo_url: profileImage,
+          email: email,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('user_id', userId);
     }
 
     // 4. Generate Supabase session
