@@ -459,6 +459,7 @@ export default function Header() {
                 onClick={() => {
                   setDropdownOpen(false);
                   setViewMode("my");
+                  localStorage.setItem("diary_view_mode", "my");
                   window.dispatchEvent(new CustomEvent('viewModeChange', { detail: 'my' }));
                   navigate("/");
                 }} 
@@ -471,6 +472,7 @@ export default function Header() {
                 onClick={() => {
                   setDropdownOpen(false);
                   setViewMode("public");
+                  localStorage.setItem("diary_view_mode", "public");
                   window.dispatchEvent(new CustomEvent('viewModeChange', { detail: 'public' }));
                   navigate("/");
                 }} 
