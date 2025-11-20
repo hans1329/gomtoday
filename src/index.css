@@ -135,16 +135,22 @@ All colors MUST be HSL.
     display: none;
   }
 
-  /* Date input 너비 제한 */
+  /* Date input 너비 제한 - 강제 적용 */
   input[type="date"] {
-    max-width: 100%;
-    min-width: 0;
-    width: 100%;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
 
   input[type="date"]::-webkit-datetime-edit {
-    max-width: 100%;
-    overflow: hidden;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  input[type="date"]::-webkit-datetime-edit-fields-wrapper {
+    max-width: 100% !important;
   }
 
   input[type="date"]::-webkit-calendar-picker-indicator {

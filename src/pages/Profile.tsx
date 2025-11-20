@@ -340,13 +340,19 @@ export default function Profile() {
             </div>
 
             <div className="px-4 space-y-4">
-              <div className="space-y-2">
+              <div className="space-y-2" style={{ maxWidth: '100%', overflow: 'hidden' }}>
                 <Label htmlFor="birthday" className="pl-2">생일</Label>
                 <Input
                   id="birthday"
                   type="date"
                   value={birthday}
                   onChange={(e) => setBirthday(e.target.value)}
+                  style={{ 
+                    maxWidth: '100%',
+                    width: '100%',
+                    minWidth: 0,
+                    boxSizing: 'border-box'
+                  }}
                 />
               </div>
 
