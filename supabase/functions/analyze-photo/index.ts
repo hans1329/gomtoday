@@ -112,6 +112,12 @@ ${userContext ? `추가 맥락: ${userContext}` : ''}
   "title": "일기 제목 (15자 이내, 핵심 키워드 중심)",
   "emoji": "대표 이모지 1개"
 }`;
+    
+    console.log('=== System Prompt ===');
+    console.log('participantNames:', participantNames);
+    console.log('participantContext:', participantContext);
+    console.log('Final perspectiveInstruction:', perspectiveInstruction);
+    console.log('Full systemPrompt:', systemPrompt);
 
     const imageContents = photos.map((url: string) => ({
       type: "image_url",
