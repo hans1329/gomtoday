@@ -153,23 +153,32 @@ export default function Profile() {
         variant: "destructive",
       });
     } else {
-      // 로컬 상태 즉시 업데이트
+      // 로컬 상태 즉시 업데이트 (타임스탬프 추가하여 브라우저 캐시 방지)
+      const timestampedUrl = `${publicUrl}?t=${Date.now()}`;
       setProfile((prev: any) => ({
         ...prev,
-        profile_photo_url: publicUrl
+        profile_photo_url: timestampedUrl
       }));
       
-      // 캐시 삭제 및 새로고침
+      // 캐시 업데이트
       const cacheKey = `profile_${user.id}`;
       const cacheTimeKey = `profile_time_${user.id}`;
-      localStorage.removeItem(cacheKey);
-      localStorage.removeItem(cacheTimeKey);
+      const cachedData = localStorage.getItem(cacheKey);
+      if (cachedData) {
+        try {
+          const parsed = JSON.parse(cachedData);
+          parsed.profile_photo_url = timestampedUrl;
+          localStorage.setItem(cacheKey, JSON.stringify(parsed));
+          localStorage.setItem(cacheTimeKey, Date.now().toString());
+        } catch (e) {
+          console.error('Cache update error:', e);
+        }
+      }
       
       toast({
         title: "프로필 사진 업데이트 완료!",
       });
       
-      fetchProfile();
       // Header에 프로필 업데이트 알림
       window.dispatchEvent(new Event('profile-updated'));
     }
