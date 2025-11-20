@@ -271,7 +271,7 @@ export default function Profile() {
           </div>
 
           {/* 프로필 정보 */}
-          <div className="space-y-4 px-2">
+          <div className="space-y-4 px-2 w-full overflow-x-hidden">
             <div className="space-y-2">
               <Label htmlFor="bio" className="pl-2">나에 대한 한마디</Label>
               <Textarea
@@ -291,7 +291,7 @@ export default function Profile() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-full">
               <div className="space-y-2">
                 <Label htmlFor="mbti" className="pl-2">MBTI</Label>
                 <Select value={mbti} onValueChange={setMbti}>
@@ -335,7 +335,7 @@ export default function Profile() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-full">
               <div className="space-y-2">
                 <Label htmlFor="birthday" className="pl-2">생일</Label>
                 <Input
@@ -343,7 +343,7 @@ export default function Profile() {
                   type="date"
                   value={birthday}
                   onChange={(e) => setBirthday(e.target.value)}
-                  className="w-full"
+                  className="w-full max-w-full"
                 />
               </div>
 
@@ -370,6 +370,7 @@ export default function Profile() {
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
                 placeholder="예: 서울특별시"
+                className="w-full max-w-full"
               />
             </div>
 
