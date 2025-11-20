@@ -40,7 +40,7 @@ export default function Upload() {
   const [emotion, setEmotion] = useState("happy");
   const [length, setLength] = useState("medium");
   const [perspective, setPerspective] = useState("my_view");
-  const [weather, setWeather] = useState("sunny");
+  const [weather, setWeather] = useState("unknown");
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadStatus, setUploadStatus] = useState("");
@@ -1617,6 +1617,7 @@ export default function Upload() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-background">
+                  <SelectItem value="unknown">❓ 모름</SelectItem>
                   <SelectItem value="sunny">☀️ 맑음</SelectItem>
                   <SelectItem value="partly_cloudy">⛅ 구름 조금</SelectItem>
                   <SelectItem value="cloudy">☁️ 흐림</SelectItem>
