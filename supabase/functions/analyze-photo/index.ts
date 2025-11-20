@@ -67,16 +67,11 @@ serve(async (req) => {
     };
     const selectedLength = lengthMap[length] || lengthMap.medium;
     
-    // Replace variables in template if they exist
-    if (perspectiveInstruction.includes('{participantContext}')) {
-      perspectiveInstruction = perspectiveInstruction.replace('{participantContext}', participantContext);
-    }
-    if (perspectiveInstruction.includes('{participantNames}')) {
-      perspectiveInstruction = perspectiveInstruction.replace('{participantNames}', participantNames || '집사');
-    }
-    if (perspectiveInstruction.includes('{sentenceCount}')) {
-      perspectiveInstruction = perspectiveInstruction.replace('{sentenceCount}', selectedLength.sentenceCount);
-    }
+    // Replace variables in template (use replaceAll for multiple occurrences)
+    perspectiveInstruction = perspectiveInstruction
+      .replaceAll('{participantContext}', participantContext)
+      .replaceAll('{participantNames}', participantNames || '집사')
+      .replaceAll('{sentenceCount}', selectedLength.sentenceCount);
 
     const emotionMap: Record<string, { name: string; description: string }> = {
       happy: { name: '기쁨', description: '밝고 긍정적인 에너지가 넘치는 톤으로 작성한다.' },
