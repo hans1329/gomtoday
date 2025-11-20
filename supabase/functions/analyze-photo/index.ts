@@ -96,9 +96,6 @@ ${perspectiveInstruction}
 감정 톤: ${selectedEmotion.name}
 ${selectedEmotion.description}
 
-글의 길이: ${selectedLength.name}
-${selectedLength.description}
-
 ${userContext ? `추가 맥락: ${userContext}` : ''}
 
 중요 규칙:
