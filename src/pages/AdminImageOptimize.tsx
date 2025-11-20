@@ -58,19 +58,25 @@ export default function AdminImageOptimize() {
 
   const fetchStats = async () => {
     try {
-      // photos 버킷의 파일 목록 가져오기
-      const { data: files, error } = await supabase.storage
+      // photos 테이블에서 모든 이미지 개수 가져오기
+      const { count, error } = await supabase
         .from("photos")
-        .list("", { limit: 1000 });
+        .select("*", { count: "exact", head: true });
 
       if (error) throw error;
 
-      const totalFiles = files?.length || 0;
-      const totalSize = files?.reduce((sum, file) => sum + (file.metadata?.size || 0), 0) || 0;
+      // Storage API로는 정확한 용량을 알 수 없으므로 대략적인 추정값 표시
+      const totalFiles = count || 0;
+      const estimatedSize = totalFiles * 500000; // 평균 500KB로 추정
 
-      setStats({ totalFiles, totalSize });
+      setStats({ totalFiles, totalSize: estimatedSize });
     } catch (error) {
       console.error("Error fetching stats:", error);
+      toast({
+        title: "통계 조회 실패",
+        description: "통계를 불러오는 중 오류가 발생했습니다.",
+        variant: "destructive",
+      });
     }
   };
 
