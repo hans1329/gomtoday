@@ -145,7 +145,7 @@ export default function DiaryCard({
               </div>
             </div>
             <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
-              {diary.content}
+              {diary.content.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ')}
             </p>
           </div>
         </div>

@@ -363,11 +363,10 @@ export default function DiaryDetail() {
                 </>
               )}
               
-              <div className="prose prose-sm max-w-none text-sm text-muted-foreground/80">
-                <p className="whitespace-pre-wrap leading-relaxed">
-                  {diary.content}
-                </p>
-              </div>
+              <div 
+                className="prose prose-sm max-w-none text-sm text-foreground/80"
+                dangerouslySetInnerHTML={{ __html: diary.content }}
+              />
 
               {/* 작성자 정보 - 다른 사람의 일기일 경우에만 표시 */}
               {currentUserId && diary.user_id !== currentUserId && (

@@ -974,11 +974,10 @@ export default function Home() {
                     </>
                   )}
                   
-                  <div className="prose prose-sm max-w-none text-sm text-foreground/70">
-                    <p className="whitespace-pre-wrap leading-relaxed">
-                      {diaries[0].content}
-                    </p>
-                  </div>
+                  <div 
+                    className="prose prose-sm max-w-none text-sm text-foreground/70"
+                    dangerouslySetInnerHTML={{ __html: diaries[0].content }}
+                  />
 
                 <div className="flex items-center justify-between pt-1">
                   <div className="flex items-center gap-4">
