@@ -15,7 +15,7 @@ export default defineConfig(({ mode }) => ({
     mode === "development" && componentTagger(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico'],
+      includeAssets: ['favicon.ico', 'sitemap.xml', 'robots.txt'],
       manifest: {
         name: '3rdMe',
         short_name: '3rdMe',
