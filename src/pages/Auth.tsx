@@ -151,7 +151,7 @@ export default function Auth() {
           <div className="flex items-center justify-center mb-4">
             <img src={logoUrl} alt="Logo" className="h-32 w-auto object-contain" />
           </div>
-          <p className="text-base text-center text-muted-foreground font-bold">
+          <p className="text-muted-foreground font-bold text-lg text-center">
             GomToday | 누군가 써주는 나의 일기
           </p>
         </div>
