@@ -39,6 +39,7 @@ interface DiaryWithProfile extends Diary {
     name: string | null;
     email: string | null;
   };
+  is_public?: boolean;
 }
 
 export default function AdminDiaries() {
@@ -108,10 +109,25 @@ export default function AdminDiaries() {
       .select("user_id, name, email")
       .in("user_id", userIds);
 
-    // Map profiles to diaries
+    // Get diary visibility through notebooks
+    const diaryIds = diariesData.map(d => d.id);
+    const { data: diaryNotebooks } = await supabase
+      .from("diary_notebooks")
+      .select("diary_id, notebooks(visibility)")
+      .in("diary_id", diaryIds);
+
+    // Check if each diary is public (exists in at least one public notebook)
+    const publicDiaryIds = new Set(
+      diaryNotebooks
+        ?.filter(dn => (dn.notebooks as any)?.visibility === 'public')
+        .map(dn => dn.diary_id) || []
+    );
+
+    // Map profiles and visibility to diaries
     const diariesWithProfiles = diariesData.map(diary => ({
       ...diary,
       profile: profilesData?.find(p => p.user_id === diary.user_id),
+      is_public: publicDiaryIds.has(diary.id),
     }));
 
     setDiaries(diariesWithProfiles);
@@ -173,15 +189,16 @@ export default function AdminDiaries() {
           <CardContent>
             <div className="overflow-auto">
               <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>제목</TableHead>
-                    <TableHead>작성자</TableHead>
-                    <TableHead>상태</TableHead>
-                    <TableHead>작성일</TableHead>
-                    <TableHead className="text-right">작업</TableHead>
-                  </TableRow>
-                </TableHeader>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>제목</TableHead>
+                      <TableHead>작성자</TableHead>
+                      <TableHead>상태</TableHead>
+                      <TableHead>공개설정</TableHead>
+                      <TableHead>작성일</TableHead>
+                      <TableHead className="text-right">작업</TableHead>
+                    </TableRow>
+                  </TableHeader>
                 <TableBody>
                   {diaries.map((diary) => (
                     <TableRow key={diary.id}>
@@ -207,6 +224,17 @@ export default function AdminDiaries() {
                           }`}
                         >
                           {diary.status === "published" ? "게시됨" : "작성중"}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            diary.is_public
+                              ? "bg-blue-100 text-blue-800"
+                              : "bg-gray-100 text-gray-800"
+                          }`}
+                        >
+                          {diary.is_public ? "공개" : "비공개"}
                         </span>
                       </TableCell>
                       <TableCell>
