@@ -38,7 +38,7 @@ export default function Auth() {
     setLoading(true);
     try {
       if (isSignUp) {
-        const { data: signUpData, error } = await supabase.auth.signUp({
+        const { error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -48,30 +48,11 @@ export default function Auth() {
 
         if (error) throw error;
 
-        // Check if user was created and auto-confirmed
-        if (signUpData.user) {
-          // Fetch profile to check if it needs completion
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('name, profile_photo_url')
-            .eq('user_id', signUpData.user.id)
-            .single();
-
-          // If profile name is email or photo is missing, redirect to profile page
-          if (profile && (profile.name === email || !profile.profile_photo_url)) {
-            toast({
-              title: "회원가입 완료",
-              description: "프로필을 완성해주세요.",
-            });
-            navigate("/profile");
-            return;
-          }
-        }
-
         toast({
           title: "회원가입 완료",
-          description: "이메일을 확인해주세요.",
+          description: "환영합니다!",
         });
+        // App.tsx의 auth state change에서 프로필 체크 및 리다이렉트 처리
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,
@@ -79,7 +60,7 @@ export default function Auth() {
         });
 
         if (error) throw error;
-        navigate("/");
+        // App.tsx의 auth state change에서 프로필 체크 및 리다이렉트 처리
       }
     } catch (error: any) {
       toast({
