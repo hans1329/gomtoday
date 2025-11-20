@@ -23,6 +23,8 @@ import AdminDashboard from "./pages/AdminDashboard";
 import AdminBrandAssets from "./pages/AdminBrandAssets";
 import AdminUsers from "./pages/AdminUsers";
 import AdminInquiries from "./pages/AdminInquiries";
+import AdminDiaries from "./pages/AdminDiaries";
+import AdminNotebooks from "./pages/AdminNotebooks";
 import AdminPencilSettings from "./pages/AdminPencilSettings";
 import AdminPencilProducts from "./pages/AdminPencilProducts";
 import Privacy from "./pages/Privacy";
@@ -83,6 +85,8 @@ function AppContent() {
         <Route path="/admin/brand-assets" element={<AdminBrandAssets />} />
         <Route path="/admin/users" element={<AdminUsers />} />
         <Route path="/admin/inquiries" element={<AdminInquiries />} />
+        <Route path="/admin/diaries" element={<AdminDiaries />} />
+        <Route path="/admin/notebooks" element={<AdminNotebooks />} />
         <Route path="/admin/pencil-settings" element={<AdminPencilSettings />} />
         <Route path="/admin/pencil-products" element={<AdminPencilProducts />} />
         <Route path="/privacy" element={<Privacy />} />

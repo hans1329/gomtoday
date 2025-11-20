@@ -176,7 +176,10 @@ export default function AdminDashboard() {
           </Card>
 
           {/* 전체 일기수 */}
-          <Card className="shadow-medium">
+          <Card 
+            className="shadow-medium cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => navigate("/admin/diaries")}
+          >
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <BookOpen className="w-5 h-5" />
@@ -192,7 +195,10 @@ export default function AdminDashboard() {
           </Card>
 
           {/* 전체 일기장수 */}
-          <Card className="shadow-medium">
+          <Card 
+            className="shadow-medium cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => navigate("/admin/notebooks")}
+          >
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <TrendingUp className="w-5 h-5" />
