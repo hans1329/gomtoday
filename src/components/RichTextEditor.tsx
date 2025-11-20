@@ -3,6 +3,7 @@ import StarterKit from '@tiptap/starter-kit';
 import TextAlign from '@tiptap/extension-text-align';
 import Underline from '@tiptap/extension-underline';
 import Link from '@tiptap/extension-link';
+import Image from '@tiptap/extension-image';
 import { Button } from '@/components/ui/button';
 import { 
   Bold, 
@@ -16,11 +17,15 @@ import {
   AlignRight,
   Undo,
   Redo,
+  Heading1,
   Heading2,
+  Heading3,
   Quote,
-  Minus
+  Minus,
+  ImagePlus
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useRef } from 'react';
 
 interface RichTextEditorProps {
   content: string;
@@ -30,11 +35,13 @@ interface RichTextEditorProps {
 }
 
 export default function RichTextEditor({ content, onChange, placeholder, className }: RichTextEditorProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
         heading: {
-          levels: [2, 3],
+          levels: [1, 2, 3],
         },
       }),
       TextAlign.configure({
@@ -43,6 +50,10 @@ export default function RichTextEditor({ content, onChange, placeholder, classNa
       Underline,
       Link.configure({
         openOnClick: false,
+      }),
+      Image.configure({
+        inline: true,
+        allowBase64: true,
       }),
     ],
     content,
@@ -59,6 +70,22 @@ export default function RichTextEditor({ content, onChange, placeholder, classNa
   if (!editor) {
     return null;
   }
+
+  const handleImageUpload = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const url = e.target?.result as string;
+        editor.chain().focus().setImage({ src: url }).run();
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const ToolbarButton = ({ 
     onClick, 
@@ -88,8 +115,39 @@ export default function RichTextEditor({ content, onChange, placeholder, classNa
 
   return (
     <div className={cn("border rounded-lg overflow-hidden bg-background", className)}>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleFileChange}
+        className="hidden"
+      />
+      
       {/* Toolbar */}
       <div className="border-b bg-muted/30 p-2 flex flex-wrap gap-1">
+        <ToolbarButton
+          onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+          active={editor.isActive('heading', { level: 1 })}
+        >
+          <Heading1 className="h-4 w-4" />
+        </ToolbarButton>
+
+        <ToolbarButton
+          onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+          active={editor.isActive('heading', { level: 2 })}
+        >
+          <Heading2 className="h-4 w-4" />
+        </ToolbarButton>
+
+        <ToolbarButton
+          onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+          active={editor.isActive('heading', { level: 3 })}
+        >
+          <Heading3 className="h-4 w-4" />
+        </ToolbarButton>
+
+        <div className="w-px h-6 bg-border my-auto mx-1" />
+
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleBold().run()}
           active={editor.isActive('bold')}
@@ -119,13 +177,6 @@ export default function RichTextEditor({ content, onChange, placeholder, classNa
         </ToolbarButton>
 
         <div className="w-px h-6 bg-border my-auto mx-1" />
-
-        <ToolbarButton
-          onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-          active={editor.isActive('heading', { level: 2 })}
-        >
-          <Heading2 className="h-4 w-4" />
-        </ToolbarButton>
 
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleBulletList().run()}
@@ -177,6 +228,12 @@ export default function RichTextEditor({ content, onChange, placeholder, classNa
           onClick={() => editor.chain().focus().setHorizontalRule().run()}
         >
           <Minus className="h-4 w-4" />
+        </ToolbarButton>
+
+        <ToolbarButton
+          onClick={handleImageUpload}
+        >
+          <ImagePlus className="h-4 w-4" />
         </ToolbarButton>
 
         <div className="w-px h-6 bg-border my-auto mx-1" />
