@@ -268,6 +268,10 @@ export default function Auth() {
         
         <div className="mt-8 pt-6">
           <div className="flex flex-wrap justify-center gap-4 text-xs text-muted-foreground">
+            <Link to="/about" className="hover:text-foreground transition-colors">
+              About
+            </Link>
+            <span>•</span>
             <Link to="/terms" className="hover:text-foreground transition-colors">
               이용약관
             </Link>
@@ -284,7 +288,7 @@ export default function Auth() {
             </button>
           </div>
           <p className="text-center text-xs text-muted-foreground mt-4">
-            © 2024 3rdME. All rights reserved.
+            © 2025 GomToday. All rights reserved.
           </p>
         </div>
       </div>
