@@ -147,22 +147,22 @@ export default function AdminImageOptimize() {
           
           console.log(`Uploading to path: ${path}`);
           
-          // 기존 파일 삭제
-          const { error: removeError } = await supabase.storage
-            .from("photos")
-            .remove([path]);
+          // Blob을 Base64로 변환
+          const reader = new FileReader();
+          const base64Blob = await new Promise<string>((resolve) => {
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.readAsDataURL(optimizedFile);
+          });
           
-          if (removeError) {
-            console.warn(`Error removing old file:`, removeError);
-          }
-          
-          // 새 파일 업로드
-          const { error: uploadError } = await supabase.storage
-            .from("photos")
-            .upload(path, optimizedFile, {
-              upsert: true,
-              contentType: 'image/webp'
-            });
+          // Edge Function으로 업로드 (Service Role 사용)
+          const { error: uploadError } = await supabase.functions.invoke('optimize-images', {
+            body: {
+              action: 'upload',
+              photoId: photo.id,
+              optimizedBlob: base64Blob,
+              path: path
+            }
+          });
 
           if (uploadError) {
             console.error(`Upload error:`, uploadError);
