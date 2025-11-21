@@ -245,13 +245,25 @@ export default function AdminImageOptimize() {
         {/* 통계 카드 */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Image className="h-5 w-5" />
-              현재 스토리지 상태
-            </CardTitle>
-            <CardDescription>
-              photos 버킷의 이미지 파일 정보
-            </CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <Image className="h-5 w-5" />
+                  현재 스토리지 상태
+                </CardTitle>
+                <CardDescription>
+                  photos 버킷의 이미지 파일 정보
+                </CardDescription>
+              </div>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={fetchStats}
+                className="rounded-full"
+              >
+                <RefreshCw className="h-4 w-4" />
+              </Button>
+            </div>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
