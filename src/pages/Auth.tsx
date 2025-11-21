@@ -67,11 +67,20 @@ export default function Auth() {
         const { data: signUpData, error } = await supabase.auth.signUp(signUpOptions);
         if (error) throw error;
 
+        // 회원가입 시 프로필 페이지로 이동 (완성도와 관계없이)
+        if (signUpData.user && signUpData.session) {
+          toast({
+            title: "회원가입 완료",
+            description: "프로필을 설정해주세요!"
+          });
+          navigate("/profile");
+          return;
+        }
+        
         toast({
           title: "회원가입 완료",
           description: "환영합니다!"
         });
-        navigate("/");
       } else {
         const {
           data,
