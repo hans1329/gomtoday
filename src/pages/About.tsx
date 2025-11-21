@@ -10,6 +10,86 @@ const About = () => {
   const [logoUrl, setLogoUrl] = useState<string>("");
 
   useEffect(() => {
+    // SEO Meta Tags
+    document.title = "곰투데이 소개 | 사진 한 장으로 시작하는 AI 일기";
+    
+    const metaDescription = document.querySelector('meta[name="description"]');
+    if (metaDescription) {
+      metaDescription.setAttribute("content", "곰투데이는 사진만 올리면 AI가 자동으로 다양한 시점에서 일기를 작성해주는 서비스입니다. 친구, 가족과 함께 쓰는 공유 일기장으로 소중한 순간을 기록하세요.");
+    }
+
+    const metaKeywords = document.querySelector('meta[name="keywords"]');
+    if (metaKeywords) {
+      metaKeywords.setAttribute("content", "곰투데이, AI 일기, 사진 일기, 공유 일기장, 자동 일기 작성, 다양한 시점, 일기 서비스");
+    }
+
+    // Open Graph Tags
+    let ogTitle = document.querySelector('meta[property="og:title"]');
+    if (!ogTitle) {
+      ogTitle = document.createElement('meta');
+      ogTitle.setAttribute('property', 'og:title');
+      document.head.appendChild(ogTitle);
+    }
+    ogTitle.setAttribute('content', '곰투데이 소개 | 사진 한 장으로 시작하는 AI 일기');
+
+    let ogDescription = document.querySelector('meta[property="og:description"]');
+    if (!ogDescription) {
+      ogDescription = document.createElement('meta');
+      ogDescription.setAttribute('property', 'og:description');
+      document.head.appendChild(ogDescription);
+    }
+    ogDescription.setAttribute('content', '곰투데이는 사진만 올리면 AI가 자동으로 다양한 시점에서 일기를 작성해주는 서비스입니다. 친구, 가족과 함께 쓰는 공유 일기장으로 소중한 순간을 기록하세요.');
+
+    let ogUrl = document.querySelector('meta[property="og:url"]');
+    if (!ogUrl) {
+      ogUrl = document.createElement('meta');
+      ogUrl.setAttribute('property', 'og:url');
+      document.head.appendChild(ogUrl);
+    }
+    ogUrl.setAttribute('content', 'https://gom.today/about');
+
+    let ogType = document.querySelector('meta[property="og:type"]');
+    if (!ogType) {
+      ogType = document.createElement('meta');
+      ogType.setAttribute('property', 'og:type');
+      document.head.appendChild(ogType);
+    }
+    ogType.setAttribute('content', 'website');
+
+    // Twitter Card Tags
+    let twitterCard = document.querySelector('meta[name="twitter:card"]');
+    if (!twitterCard) {
+      twitterCard = document.createElement('meta');
+      twitterCard.setAttribute('name', 'twitter:card');
+      document.head.appendChild(twitterCard);
+    }
+    twitterCard.setAttribute('content', 'summary_large_image');
+
+    let twitterTitle = document.querySelector('meta[name="twitter:title"]');
+    if (!twitterTitle) {
+      twitterTitle = document.createElement('meta');
+      twitterTitle.setAttribute('name', 'twitter:title');
+      document.head.appendChild(twitterTitle);
+    }
+    twitterTitle.setAttribute('content', '곰투데이 소개 | 사진 한 장으로 시작하는 AI 일기');
+
+    let twitterDescription = document.querySelector('meta[name="twitter:description"]');
+    if (!twitterDescription) {
+      twitterDescription = document.createElement('meta');
+      twitterDescription.setAttribute('name', 'twitter:description');
+      document.head.appendChild(twitterDescription);
+    }
+    twitterDescription.setAttribute('content', '곰투데이는 사진만 올리면 AI가 자동으로 다양한 시점에서 일기를 작성해주는 서비스입니다. 친구, 가족과 함께 쓰는 공유 일기장으로 소중한 순간을 기록하세요.');
+
+    // Canonical Link
+    let canonical = document.querySelector('link[rel="canonical"]');
+    if (!canonical) {
+      canonical = document.createElement('link');
+      canonical.setAttribute('rel', 'canonical');
+      document.head.appendChild(canonical);
+    }
+    canonical.setAttribute('href', 'https://gom.today/about');
+
     const fetchLogo = async () => {
       const cachedLogo = localStorage.getItem("auth_logo_url");
       if (cachedLogo) {
