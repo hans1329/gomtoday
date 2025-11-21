@@ -68,8 +68,12 @@ const KakaoCallback = () => {
 
         toast.success("카카오 로그인 성공!");
         
-        // 첫 로그인 시 프로필 페이지로 이동 (완성도와 관계없이)
-        if (data.is_first_login) {
+        // 현재 유저 정보 가져오기
+        const { data: { user } } = await supabase.auth.getUser();
+
+        // 첫 로그인 시 프로필 페이지로 이동 (완성도와 관계없이, 최초 한 번 기록)
+        if (data.is_first_login && user) {
+          localStorage.setItem(`profile_redirected_${user.id}`, "true");
           navigate("/profile");
         } else {
           navigate("/");

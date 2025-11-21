@@ -151,15 +151,10 @@ export default function Home() {
     
     setCurrentUserId(user.id);
     
-    // 구글 로그인 후 프로필 체크
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('name, profile_photo_url, email')
-      .eq('user_id', user.id)
-      .single();
-
-    // 프로필이 미완성인 경우 프로필 페이지로 리다이렉트
-    if (profile && (profile.name === profile.email || !profile.profile_photo_url)) {
+    // 첫 로그인 시 한 번만 프로필 페이지로 이동 (로컬 스토리지 기준)
+    const hasVisitedProfile = localStorage.getItem(`profile_redirected_${user.id}`);
+    if (!hasVisitedProfile) {
+      localStorage.setItem(`profile_redirected_${user.id}`, "true");
       navigate("/profile");
       return;
     }
