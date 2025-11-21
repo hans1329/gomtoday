@@ -76,6 +76,18 @@ export default function Upload() {
   const {
     toast
   } = useToast();
+  // 로그인 체크
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        navigate("/auth");
+        return;
+      }
+    };
+    checkAuth();
+  }, [navigate]);
+
   useEffect(() => {
     loadCurrentUser();
     fetchPencilInfo();
