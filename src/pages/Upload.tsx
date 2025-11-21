@@ -1838,7 +1838,24 @@ export default function Upload() {
                     <Button
                       variant="outline"
                       onClick={() => {
-                        window.location.href = "/upload";
+                        // 모든 필드 초기화
+                        setSelectedFiles([]);
+                        setPreviewUrls([]);
+                        setExistingPhotos([]);
+                        setTitle("");
+                        setContent("");
+                        setGeneratedContent("");
+                        setGeneratedTitle("");
+                        setGeneratedEmoji("");
+                        setIsGenerated(false);
+                        setEmotion("happy");
+                        setLength("medium");
+                        setWeather("unknown");
+                        setPerspective("my_view");
+                        setWriteMode("ai");
+                        if (currentUser) {
+                          setParticipants([currentUser]);
+                        }
                       }}
                       disabled={loading}
                       className="w-full h-12 flex items-center justify-center gap-2"
