@@ -17,6 +17,7 @@ export default function Auth() {
   const [logoUrl, setLogoUrl] = useState<string>("");
   const [contactDialogOpen, setContactDialogOpen] = useState(false);
   const [invitationCode, setInvitationCode] = useState<string | null>(null);
+  const [showEmailTab, setShowEmailTab] = useState(false);
   useEffect(() => {
     // 초대 코드 확인
     const invitation = searchParams.get("invitation");
@@ -180,58 +181,62 @@ export default function Auth() {
           </p>
         </div>
 
-        <Tabs defaultValue="email" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-6">
-            <TabsTrigger value="email">이메일</TabsTrigger>
-            <TabsTrigger value="social">소셜 로그인</TabsTrigger>
-          </TabsList>
+        <Tabs defaultValue="social" className="w-full">
+          {showEmailTab && (
+            <TabsList className="grid w-full grid-cols-2 mb-6">
+              <TabsTrigger value="email">이메일</TabsTrigger>
+              <TabsTrigger value="social">소셜 로그인</TabsTrigger>
+            </TabsList>
+          )}
 
-          <TabsContent value="email" className="space-y-4">
-            <Tabs defaultValue="signin" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-4">
-                <TabsTrigger value="signin">로그인</TabsTrigger>
-                <TabsTrigger value="signup">회원가입</TabsTrigger>
-              </TabsList>
+          {showEmailTab && (
+            <TabsContent value="email" className="space-y-4">
+              <Tabs defaultValue="signin" className="w-full">
+                <TabsList className="grid w-full grid-cols-2 mb-4">
+                  <TabsTrigger value="signin">로그인</TabsTrigger>
+                  <TabsTrigger value="signup">회원가입</TabsTrigger>
+                </TabsList>
 
-              <TabsContent value="signin" className="space-y-4">
-                <form className="space-y-4" autoComplete="off" onSubmit={e => {
-                e.preventDefault();
-                handleEmailAuth(false);
-              }}>
-                  <div className="space-y-2">
-                    <Label htmlFor="signin-email">이메일</Label>
-                    <Input id="signin-email" name="signin-email" type="email" placeholder="your@email.com" value={email} onChange={e => setEmail(e.target.value)} autoComplete="off" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signin-password">비밀번호</Label>
-                    <Input id="signin-password" name="signin-password" type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} autoComplete="off" />
-                  </div>
-                  <Button type="submit" disabled={loading} className="w-full h-14">
-                    로그인
-                  </Button>
-                </form>
-              </TabsContent>
+                <TabsContent value="signin" className="space-y-4">
+                  <form className="space-y-4" autoComplete="off" onSubmit={e => {
+                  e.preventDefault();
+                  handleEmailAuth(false);
+                }}>
+                    <div className="space-y-2">
+                      <Label htmlFor="signin-email">이메일</Label>
+                      <Input id="signin-email" name="signin-email" type="email" placeholder="your@email.com" value={email} onChange={e => setEmail(e.target.value)} autoComplete="off" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="signin-password">비밀번호</Label>
+                      <Input id="signin-password" name="signin-password" type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} autoComplete="off" />
+                    </div>
+                    <Button type="submit" disabled={loading} className="w-full h-14">
+                      로그인
+                    </Button>
+                  </form>
+                </TabsContent>
 
-              <TabsContent value="signup" className="space-y-4">
-                <form className="space-y-4" autoComplete="off" onSubmit={e => {
-                e.preventDefault();
-                handleEmailAuth(true);
-              }}>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-email">이메일</Label>
-                    <Input id="signup-email" name="signup-email" type="email" placeholder="your@email.com" value={email} onChange={e => setEmail(e.target.value)} autoComplete="off" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-password">비밀번호</Label>
-                    <Input id="signup-password" name="signup-password" type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} autoComplete="off" />
-                  </div>
-                  <Button type="submit" className="w-full h-12" disabled={loading}>
-                    회원가입
-                  </Button>
-                </form>
-              </TabsContent>
-            </Tabs>
-          </TabsContent>
+                <TabsContent value="signup" className="space-y-4">
+                  <form className="space-y-4" autoComplete="off" onSubmit={e => {
+                  e.preventDefault();
+                  handleEmailAuth(true);
+                }}>
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-email">이메일</Label>
+                      <Input id="signup-email" name="signup-email" type="email" placeholder="your@email.com" value={email} onChange={e => setEmail(e.target.value)} autoComplete="off" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-password">비밀번호</Label>
+                      <Input id="signup-password" name="signup-password" type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} autoComplete="off" />
+                    </div>
+                    <Button type="submit" className="w-full h-12" disabled={loading}>
+                      회원가입
+                    </Button>
+                  </form>
+                </TabsContent>
+              </Tabs>
+            </TabsContent>
+          )}
 
           <TabsContent value="social" className="space-y-4">
             <p className="text-center text-muted-foreground text-sm mb-4">
@@ -288,7 +293,13 @@ export default function Auth() {
             </button>
           </div>
           <p className="text-center text-xs text-muted-foreground mt-4">
-            © 2025 GomToday. All rights reserved.
+            © 2025 GomToday. All rights{' '}
+            <span 
+              onClick={() => setShowEmailTab(!showEmailTab)}
+              className="cursor-pointer hover:text-foreground transition-colors"
+            >
+              reserved
+            </span>.
           </p>
         </div>
       </div>
