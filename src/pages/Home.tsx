@@ -34,7 +34,8 @@ export default function Home() {
   const [allDiaries, setAllDiaries] = useState<any[]>([]);
   const [publicDiaries, setPublicDiaries] = useState<any[]>([]);
   const [hasAnyDiary, setHasAnyDiary] = useState<boolean | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [currentUserId, setCurrentUserId] = useState<string>("");
   const [viewMode, setViewMode] = useState<"my" | "public">(() => {
@@ -117,30 +118,12 @@ export default function Home() {
     checkAuth();
   }, []);
 
-  useEffect(() => {
-    if (!currentUserId) return;
-
-    const checkHasAnyDiary = async () => {
-      // status가 published인 일기만 카운트
-      const { data, error } = await supabase
-        .from("diaries")
-        .select("id", { count: "exact", head: false })
-        .eq("user_id", currentUserId)
-        .eq("status", "published");
-
-      if (!error) {
-        setHasAnyDiary((data?.length ?? 0) > 0);
-      }
-    };
-
-    checkHasAnyDiary();
-  }, [currentUserId]);
 
   useEffect(() => {
-    if (currentUserId) {
+    if (currentUserId && initialLoadComplete) {
       fetchMonthData();
     }
-  }, [currentUserId, currentMonth]);
+  }, [currentUserId, currentMonth, initialLoadComplete]);
 
   useEffect(() => {
     if (!currentUserId) return;
@@ -163,21 +146,36 @@ export default function Home() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       navigate("/auth");
-    } else {
-      setCurrentUserId(user.id);
-      
-      // 구글 로그인 후 프로필 체크
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('name, profile_photo_url, email')
-        .eq('user_id', user.id)
-        .single();
-
-      // 프로필이 미완성인 경우 프로필 페이지로 리다이렉트
-      if (profile && (profile.name === profile.email || !profile.profile_photo_url)) {
-        navigate("/profile");
-      }
+      return;
     }
+    
+    setCurrentUserId(user.id);
+    
+    // 구글 로그인 후 프로필 체크
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('name, profile_photo_url, email')
+      .eq('user_id', user.id)
+      .single();
+
+    // 프로필이 미완성인 경우 프로필 페이지로 리다이렉트
+    if (profile && (profile.name === profile.email || !profile.profile_photo_url)) {
+      navigate("/profile");
+      return;
+    }
+
+    // 일기 존재 여부 체크
+    const { data, error } = await supabase
+      .from("diaries")
+      .select("id", { count: "exact", head: false })
+      .eq("user_id", user.id)
+      .eq("status", "published");
+
+    if (!error) {
+      setHasAnyDiary((data?.length ?? 0) > 0);
+    }
+    
+    setInitialLoadComplete(true);
   };
 
   const fetchMonthData = async () => {
@@ -196,20 +194,18 @@ export default function Home() {
     const cacheAge = cachedTime ? Date.now() - parseInt(cachedTime) : Infinity;
     const CACHE_DURATION = 5 * 60 * 1000; // 5분
 
-    // 캐시가 유효하면 즉시 표시 (로딩 없음)
+    // 캐시가 유효하면 즉시 표시
     if (cachedData && cacheAge < CACHE_DURATION) {
       try {
         const parsed = JSON.parse(cachedData);
         setAllDiaries(parsed.myDiaries || []);
         setPublicDiaries(parsed.publicDiaries || []);
+        setLoading(false);
         return;
       } catch (e) {
         console.error('Cache parse error:', e);
       }
     }
-
-    // 캐시가 없거나 만료된 경우만 로딩 표시
-    setLoading(true);
 
     // 내 일기 가져오기 (status가 published인 일기만)
     const { data: myData } = await supabase
