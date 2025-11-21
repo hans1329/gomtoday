@@ -50,7 +50,8 @@ export default function DiaryCard({
     'cloudy': '☁️',
     'rainy': '🌧️',
     'stormy': '⛈️',
-    'snowy': '🌨️'
+    'snowy': '🌨️',
+    'unknown': '❓'
   };
 
   const perspectiveLabels: { [key: string]: string } = {

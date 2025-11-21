@@ -939,7 +939,8 @@ export default function Home() {
                               cloudy: '☁️',
                               rainy: '🌧️',
                               stormy: '⛈️',
-                              snowy: '🌨️'
+                              snowy: '🌨️',
+                              unknown: '❓'
                             };
                             return weatherEmojis[diaries[0].weather] || diaries[0].weather;
                           })()}
