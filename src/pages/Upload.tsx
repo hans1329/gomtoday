@@ -1466,24 +1466,7 @@ export default function Upload() {
   return <div className="min-h-screen gradient-soft">
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
         <div className="space-y-2">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex-1">
-              <h1 className="text-2xl font-bold">{isEditMode ? "일기 수정" : "일기 작성"}</h1>
-            </div>
-            {isEditMode && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  navigate("/upload");
-                }}
-                className="flex items-center gap-2"
-              >
-                <PenLine className="w-4 h-4" />
-                새로 작성
-              </Button>
-            )}
-          </div>
+          <h1 className="text-2xl font-bold">{isEditMode ? "일기 수정" : "일기 작성"}</h1>
           <p className="text-muted-foreground text-sm">
             {isEditMode 
               ? "사진과 감정, 길이를 수정할 수 있어요"
@@ -2113,6 +2096,20 @@ export default function Upload() {
                     isEditMode ? "일기 수정하기" : "일기 등록하기"
                   )}
                 </Button>
+                
+                {isEditMode && (
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      navigate("/upload");
+                    }}
+                    disabled={loading}
+                    className="w-full h-12 flex items-center justify-center gap-2"
+                  >
+                    <PenLine className="w-4 h-4" />
+                    새로 작성
+                  </Button>
+                )}
                 
                 <Button 
                   onClick={() => setConfirmCancelDialogOpen(true)} 
