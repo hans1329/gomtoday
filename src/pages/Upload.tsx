@@ -1838,7 +1838,7 @@ export default function Upload() {
                     <Button
                       variant="outline"
                       onClick={() => {
-                        navigate("/upload");
+                        window.location.href = "/upload";
                       }}
                       disabled={loading}
                       className="w-full h-12 flex items-center justify-center gap-2"
