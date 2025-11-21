@@ -84,11 +84,45 @@ export default function Header() {
     // 알림 개수 주기적으로 업데이트
     const interval = setInterval(fetchNotificationCount, 30000);
     
+    // Supabase Realtime으로 연필 개수 실시간 업데이트
+    const setupRealtimeSubscription = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const channel = supabase
+        .channel('profile-pencil-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'profiles',
+            filter: `user_id=eq.${user.id}`
+          },
+          (payload) => {
+            if (payload.new && 'pencil_count' in payload.new) {
+              setPencilCount((payload.new as any).pencil_count);
+            }
+            if (payload.new && 'invitation_count' in payload.new) {
+              setInvitationCount((payload.new as any).invitation_count);
+            }
+          }
+        )
+        .subscribe();
+
+      return channel;
+    };
+
+    const channelPromise = setupRealtimeSubscription();
+    
     return () => {
       window.removeEventListener('profile-updated', handleProfileUpdate);
       window.removeEventListener('pencil-updated', handlePencilUpdate);
       window.removeEventListener('viewModeChange', handleViewModeChange as EventListener);
       clearInterval(interval);
+      channelPromise.then(channel => {
+        if (channel) supabase.removeChannel(channel);
+      });
     };
   }, []);
 
