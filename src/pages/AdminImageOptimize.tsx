@@ -58,28 +58,52 @@ export default function AdminImageOptimize() {
 
   const fetchStats = async () => {
     try {
-      // photos 테이블에서 모든 이미지 개수 가져오기
+      // photos 테이블에서 이미지 개수 가져오기
       const { count, error } = await supabase
         .from("photos")
         .select("*", { count: "exact", head: true });
 
       if (error) throw error;
 
-      // Storage API로는 정확한 용량을 알 수 없으므로 대략적인 추정값 표시
-      const totalFiles = count || 0;
-      const estimatedSize = totalFiles * 500000; // 평균 500KB로 추정
+      // Storage API로 실제 용량 합계 계산
+      let totalSize = 0;
+      const queue: string[] = [""];
 
-      setStats({ totalFiles, totalSize: estimatedSize });
+      while (queue.length > 0) {
+        const path = queue.shift()!;
+        const { data, error: listError } = await supabase.storage
+          .from("photos")
+          .list(path, { limit: 1000 });
+
+        if (listError) throw listError;
+        if (!data) continue;
+
+        for (const item of data) {
+          // 폴더: metadata 없음, 파일: metadata.size 존재
+          if (!item.metadata) {
+            queue.push(path ? `${path}/${item.name}` : item.name);
+          } else {
+            totalSize += (item.metadata as { size?: number }).size ?? 0;
+          }
+        }
+      }
+
+      setStats({
+        totalFiles: count || 0,
+        totalSize,
+      });
     } catch (error) {
       console.error("Error fetching stats:", error);
       toast({
         title: "통계 조회 실패",
-        description: "통계를 불러오는 중 오류가 발생했습니다.",
+        description:
+          error instanceof Error
+            ? error.message
+            : "통계를 불러오는 중 오류가 발생했습니다.",
         variant: "destructive",
       });
     }
   };
-
   const optimizeAllImages = async () => {
     try {
       setOptimizing(true);
