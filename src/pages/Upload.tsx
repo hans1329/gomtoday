@@ -65,9 +65,6 @@ export default function Upload() {
   const [generationCost, setGenerationCost] = useState(0);
   const [confirmRegenerateDialogOpen, setConfirmRegenerateDialogOpen] = useState(false);
   const [confirmCancelDialogOpen, setConfirmCancelDialogOpen] = useState(false);
-  const [confirmResetEditDialogOpen, setConfirmResetEditDialogOpen] = useState(false);
-  const [isEditRegenerate, setIsEditRegenerate] = useState(false);
-  const [editorKey, setEditorKey] = useState(0);
   const [writeCost, setWriteCost] = useState(0);
   const [perspectives, setPerspectives] = useState<Array<{
     perspective_key: string;
@@ -701,71 +698,33 @@ export default function Upload() {
       setUploadProgress(80);
       setUploadStatus("일기를 임시 저장하고 있어요...");
 
-      let diaryData: any;
-      
-      // 편집 모드에서 새로 작성한 경우: 기존 diary를 덮어쓰기
-      if (isEditMode && isEditRegenerate && id) {
-        const { error: diaryError } = await supabase
-          .from("diaries")
-          .update({
-            content: aiResponse.diary,
-            title: aiResponse.title,
-            emoji: aiResponse.emoji,
-            tone: emotion,
-            length,
-            weather,
-            perspective,
-            participants: participants,
-            created_at: selectedDate.toISOString(),
-            status: 'draft',
-          })
-          .eq("id", id);
+      // 임시 일기 생성 (일기장 연결 없이, status는 draft)
+      const {
+        data: diaryData,
+        error: diaryError
+      } = await supabase.from("diaries").insert({
+        user_id: user.id,
+        content: aiResponse.diary,
+        title: aiResponse.title,
+        emoji: aiResponse.emoji,
+        tone: emotion,
+        length,
+        weather,
+        perspective,
+        participants: participants,
+        created_at: selectedDate.toISOString(),
+        status: 'draft'
+      }).select().single();
+      if (diaryError) throw diaryError;
 
-        if (diaryError) throw diaryError;
-
-        // 기존 사진 모두 삭제 후 새 사진 연결
-        await supabase.from("photos").delete().eq("diary_id", id);
-        for (let i = 0; i < photoUrls.length; i++) {
-          await supabase.from("photos").insert({
-            user_id: user.id,
-            photo_url: photoUrls[i],
-            diary_id: id,
-            display_order: i,
-          });
-        }
-
-        diaryData = { id };
-      } else {
-        // 일반 새로 작성: 임시 일기 생성 (일기장 연결 없이, status는 draft)
-        const {
-          data: newDiaryData,
-          error: diaryError
-        } = await supabase.from("diaries").insert({
+      // 사진을 일기에 연결
+      for (let i = 0; i < photoUrls.length; i++) {
+        await supabase.from("photos").insert({
           user_id: user.id,
-          content: aiResponse.diary,
-          title: aiResponse.title,
-          emoji: aiResponse.emoji,
-          tone: emotion,
-          length,
-          weather,
-          perspective,
-          participants: participants,
-          created_at: selectedDate.toISOString(),
-          status: 'draft'
-        }).select().single();
-        if (diaryError) throw diaryError;
-
-        // 사진을 일기에 연결
-        for (let i = 0; i < photoUrls.length; i++) {
-          await supabase.from("photos").insert({
-            user_id: user.id,
-            photo_url: photoUrls[i],
-            diary_id: newDiaryData.id,
-            display_order: i
-          });
-        }
-        
-        diaryData = newDiaryData;
+          photo_url: photoUrls[i],
+          diary_id: diaryData.id,
+          display_order: i
+        });
       }
 
       setUploadProgress(100);
@@ -1838,7 +1797,6 @@ export default function Upload() {
                 <div className="space-y-2">
                   <Label htmlFor="content" className="px-2">일기 내용</Label>
                   <RichTextEditor
-                    key={editorKey}
                     content={content}
                     onChange={setContent}
                     placeholder="오늘 있었던 일을 자유롭게 작성해보세요"
@@ -1869,28 +1827,11 @@ export default function Upload() {
                 <div className="space-y-2">
                   <Label htmlFor="content" className="px-2">일기 내용</Label>
                   <RichTextEditor
-                    key={editorKey}
                     content={content}
                     onChange={setContent}
                     placeholder="일기 내용을 입력하세요"
                   />
                 </div>
-
-                {isEditMode && (
-                  <div className="pt-4">
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        setConfirmResetEditDialogOpen(true);
-                      }}
-                      disabled={loading}
-                      className="w-full h-12 flex items-center justify-center gap-2"
-                    >
-                      <PenLine className="w-4 h-4" />
-                      새로 작성
-                    </Button>
-                  </div>
-                )}
 
                 <div className="border-t pt-6 mt-6" />
               </>
@@ -1919,7 +1860,7 @@ export default function Upload() {
               </div>
             )}
 
-            {((isEditMode && !(isEditRegenerate && !isGenerated && writeMode === "ai")) || isGenerated || (writeMode === "manual" && !isGenerated)) && (
+            {(isEditMode || isGenerated || (writeMode === "manual" && !isGenerated)) && (
               <>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -2307,55 +2248,6 @@ export default function Upload() {
               className="w-full sm:w-auto"
             >
               네, 취소합니다
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* 편집 모드 새로 작성 확인 대화상자 */}
-      <AlertDialog open={confirmResetEditDialogOpen} onOpenChange={setConfirmResetEditDialogOpen}>
-        <AlertDialogContent className="max-w-[calc(100%-2rem)] sm:max-w-md">
-          <AlertDialogHeader>
-            <AlertDialogTitle>새로 작성하시겠습니까?</AlertDialogTitle>
-            <AlertDialogDescription>
-              새로운 사진을 새로운 내용을 작성하며, 기존 내용은 사라집니다.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="flex-col-reverse sm:flex-row sm:justify-end gap-2">
-            <AlertDialogCancel className="w-full sm:w-auto">아니오</AlertDialogCancel>
-            <AlertDialogAction
-              className="w-full sm:w-auto"
-              onClick={() => {
-                setConfirmResetEditDialogOpen(false);
-                setIsEditRegenerate(true);
-
-                // AI 생성 전 상태로 완전 리셋
-                setIsGenerated(false);
-                setWriteMode("ai");
-                setContent("");
-                setTitle("");
-                setGeneratedContent("");
-                setGeneratedTitle("");
-                setGeneratedEmoji("");
-                setSelectedFiles([]);
-                setPreviewUrls([]);
-                setExistingPhotos([]);
-                setEmotion("happy");
-                setLength("medium");
-                setWeather("unknown");
-                setPerspective("my_view");
-                if (currentUser) {
-                  setParticipants([currentUser]);
-                }
-                setEditorKey((prev) => prev + 1);
-
-                toast({
-                  title: "초기화되었습니다",
-                  description: "새로운 사진과 내용으로 다시 생성할 수 있습니다.",
-                });
-              }}
-            >
-              네, 새로 작성합니다
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
