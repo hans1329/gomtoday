@@ -109,8 +109,14 @@ export default function AdminImageOptimize() {
         const photo = photos[i];
         
         try {
+          console.log(`Processing image ${i + 1}/${photos.length}: ${photo.photo_url}`);
+          
           // 이미지 URL에서 다운로드
           const response = await fetch(photo.photo_url);
+          if (!response.ok) {
+            throw new Error(`Failed to fetch image: ${response.statusText}`);
+          }
+          
           const blob = await response.blob();
           const originalSize = blob.size;
           
@@ -121,20 +127,36 @@ export default function AdminImageOptimize() {
           const optimizedFile = await optimizeImage(file);
           const optimizedSize = optimizedFile.size;
           
+          console.log(`Original: ${formatBytes(originalSize)}, Optimized: ${formatBytes(optimizedSize)}`);
+          
           // 원본보다 크거나 같으면 스킵
           if (optimizedSize >= originalSize) {
+            console.log(`Skipping - optimized size is not smaller`);
             setProcessedImages(i + 1);
             setProgress(((i + 1) / photos.length) * 100);
             continue;
           }
           
           // 스토리지에 업로드 (같은 경로에 덮어쓰기)
-          const path = photo.photo_url.split('/photos/')[1];
+          // URL 형식: https://...supabase.co/storage/v1/object/public/photos/USER_ID/FILE_NAME
+          const urlParts = photo.photo_url.split('/storage/v1/object/public/photos/');
+          if (urlParts.length < 2) {
+            throw new Error(`Invalid photo URL format: ${photo.photo_url}`);
+          }
+          const path = urlParts[1];
           
-          await supabase.storage
+          console.log(`Uploading to path: ${path}`);
+          
+          // 기존 파일 삭제
+          const { error: removeError } = await supabase.storage
             .from("photos")
             .remove([path]);
           
+          if (removeError) {
+            console.warn(`Error removing old file:`, removeError);
+          }
+          
+          // 새 파일 업로드
           const { error: uploadError } = await supabase.storage
             .from("photos")
             .upload(path, optimizedFile, {
@@ -142,13 +164,23 @@ export default function AdminImageOptimize() {
               contentType: 'image/webp'
             });
 
-          if (uploadError) throw uploadError;
+          if (uploadError) {
+            console.error(`Upload error:`, uploadError);
+            throw uploadError;
+          }
 
           // 절약된 용량 계산
-          setSavedBytes(prev => prev + (originalSize - optimizedSize));
+          const savedAmount = originalSize - optimizedSize;
+          setSavedBytes(prev => prev + savedAmount);
+          console.log(`Saved: ${formatBytes(savedAmount)}`);
           
         } catch (error) {
           console.error(`Error optimizing image ${photo.id}:`, error);
+          toast({
+            title: "이미지 최적화 오류",
+            description: `이미지 ID ${photo.id} 처리 중 오류 발생`,
+            variant: "destructive",
+          });
         }
         
         setProcessedImages(i + 1);
