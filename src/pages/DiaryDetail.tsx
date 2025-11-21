@@ -392,7 +392,7 @@ export default function DiaryDetail() {
               )}
               
               <div 
-                className="prose prose-sm max-w-none text-sm text-foreground/80"
+                className="ProseMirror prose prose-sm max-w-none text-sm text-foreground/80"
                 dangerouslySetInnerHTML={{ __html: diary.content }}
               />
 
