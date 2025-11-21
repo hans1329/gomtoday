@@ -121,7 +121,7 @@ const About = () => {
           </div>
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto px-4">누군가 써주는 나의 일기         </p>
           <p className="text-sm md:text-base text-muted-foreground/80 max-w-xl mx-auto px-4">
-            매일매일의 소중한 순간을, 사진과 함께 AI가 감성적인 글로 기록해드립니다.
+            매일매일의 소중한 순간을, 다양한 시점의 감성적인 일기가 작성 됩니다.    
           </p>
         </div>
 
