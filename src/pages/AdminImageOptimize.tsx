@@ -155,7 +155,8 @@ export default function AdminImageOptimize() {
           });
           
           // Edge Function으로 업로드 (Service Role 사용)
-          const { error: uploadError } = await supabase.functions.invoke('optimize-images', {
+          console.log(`Calling edge function with path: ${path}`);
+          const { data: uploadData, error: uploadError } = await supabase.functions.invoke('optimize-images', {
             body: {
               action: 'upload',
               photoId: photo.id,
@@ -163,6 +164,8 @@ export default function AdminImageOptimize() {
               path: path
             }
           });
+
+          console.log('Edge function response:', { uploadData, uploadError });
 
           if (uploadError) {
             console.error(`Upload error:`, uploadError);
@@ -189,16 +192,17 @@ export default function AdminImageOptimize() {
 
       toast({
         title: "최적화 완료",
-        description: `${processedImages}개의 이미지를 최적화했습니다.`,
+        description: `${processedImages}개 중 ${Math.max(0, processedImages - photos.length + savedBytes > 0 ? 1 : 0)}개 이미지를 최적화했습니다. 총 ${formatBytes(savedBytes)} 절약`,
       });
 
+      // 통계 새로고침
       await fetchStats();
       
     } catch (error) {
       console.error("Error optimizing images:", error);
       toast({
         title: "최적화 실패",
-        description: "이미지 최적화 중 오류가 발생했습니다.",
+        description: error instanceof Error ? error.message : "이미지 최적화 중 오류가 발생했습니다.",
         variant: "destructive",
       });
     } finally {
