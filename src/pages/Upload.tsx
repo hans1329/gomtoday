@@ -1833,6 +1833,22 @@ export default function Upload() {
                   />
                 </div>
 
+                {isEditMode && (
+                  <div className="pt-4">
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        navigate("/upload");
+                      }}
+                      disabled={loading}
+                      className="w-full h-12 flex items-center justify-center gap-2"
+                    >
+                      <PenLine className="w-4 h-4" />
+                      새로 작성
+                    </Button>
+                  </div>
+                )}
+
                 <div className="border-t pt-6 mt-6" />
               </>
             )}
@@ -2096,20 +2112,6 @@ export default function Upload() {
                     isEditMode ? "일기 수정하기" : "일기 등록하기"
                   )}
                 </Button>
-                
-                {isEditMode && (
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      navigate("/upload");
-                    }}
-                    disabled={loading}
-                    className="w-full h-12 flex items-center justify-center gap-2"
-                  >
-                    <PenLine className="w-4 h-4" />
-                    새로 작성
-                  </Button>
-                )}
                 
                 <Button 
                   onClick={() => setConfirmCancelDialogOpen(true)} 
