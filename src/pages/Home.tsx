@@ -765,6 +765,18 @@ export default function Home() {
             "flex items-center justify-center relative",
             isCalendarExpanded ? "mb-6" : "mb-0"
           )}>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => {
+                setSelectedDate(new Date());
+                setCurrentMonth(new Date());
+              }}
+              className="rounded-full absolute left-0 h-8 w-8 bg-muted hover:bg-accent group"
+              title="오늘로 이동"
+            >
+              <span className="text-sm font-bold text-primary group-hover:text-primary-foreground transition-colors">T</span>
+            </Button>
             <div className="flex items-center gap-0">
               <Button
                 variant="ghost"
