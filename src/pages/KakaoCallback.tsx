@@ -67,7 +67,13 @@ const KakaoCallback = () => {
         }
 
         toast.success("카카오 로그인 성공!");
-        navigate("/");
+        
+        // 첫 로그인 시 프로필 페이지로 이동 (완성도와 관계없이)
+        if (data.is_first_login) {
+          navigate("/profile");
+        } else {
+          navigate("/");
+        }
       } catch (err: any) {
         console.error("Kakao callback error:", err);
         setError(err.message || "로그인 중 오류가 발생했습니다.");
