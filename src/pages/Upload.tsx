@@ -67,6 +67,7 @@ export default function Upload() {
   const [confirmCancelDialogOpen, setConfirmCancelDialogOpen] = useState(false);
   const [confirmResetEditDialogOpen, setConfirmResetEditDialogOpen] = useState(false);
   const [isEditRegenerate, setIsEditRegenerate] = useState(false);
+  const [editorKey, setEditorKey] = useState(0);
   const [writeCost, setWriteCost] = useState(0);
   const [perspectives, setPerspectives] = useState<Array<{
     perspective_key: string;
@@ -1837,6 +1838,7 @@ export default function Upload() {
                 <div className="space-y-2">
                   <Label htmlFor="content" className="px-2">일기 내용</Label>
                   <RichTextEditor
+                    key={editorKey}
                     content={content}
                     onChange={setContent}
                     placeholder="오늘 있었던 일을 자유롭게 작성해보세요"
@@ -1867,6 +1869,7 @@ export default function Upload() {
                 <div className="space-y-2">
                   <Label htmlFor="content" className="px-2">일기 내용</Label>
                   <RichTextEditor
+                    key={editorKey}
                     content={content}
                     onChange={setContent}
                     placeholder="일기 내용을 입력하세요"
@@ -1916,7 +1919,7 @@ export default function Upload() {
               </div>
             )}
 
-            {(isEditMode || isGenerated || (writeMode === "manual" && !isGenerated)) && (
+            {((isEditMode && !(isEditRegenerate && !isGenerated && writeMode === "ai")) || isGenerated || (writeMode === "manual" && !isGenerated)) && (
               <>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -2344,6 +2347,7 @@ export default function Upload() {
                 if (currentUser) {
                   setParticipants([currentUser]);
                 }
+                setEditorKey((prev) => prev + 1);
 
                 toast({
                   title: "초기화되었습니다",
