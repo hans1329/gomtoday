@@ -1838,16 +1838,16 @@ export default function Upload() {
                     <Button
                       variant="outline"
                       onClick={() => {
-                        // 모든 필드 초기화
-                        setSelectedFiles([]);
-                        setPreviewUrls([]);
-                        setExistingPhotos([]);
-                        setTitle("");
+                        // 일기 생성 전 모드로 초기화 (handleConfirmRegenerate 로직 참고)
+                        setIsGenerated(false);
                         setContent("");
+                        setTitle("");
                         setGeneratedContent("");
                         setGeneratedTitle("");
                         setGeneratedEmoji("");
-                        setIsGenerated(false);
+                        setSelectedFiles([]);
+                        setPreviewUrls([]);
+                        setExistingPhotos([]);
                         setEmotion("happy");
                         setLength("medium");
                         setWeather("unknown");
@@ -1856,6 +1856,11 @@ export default function Upload() {
                         if (currentUser) {
                           setParticipants([currentUser]);
                         }
+                        
+                        toast({
+                          title: "초기화되었습니다",
+                          description: "새로운 일기를 작성할 수 있습니다.",
+                        });
                       }}
                       disabled={loading}
                       className="w-full h-12 flex items-center justify-center gap-2"
