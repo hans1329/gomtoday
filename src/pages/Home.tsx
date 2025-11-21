@@ -987,7 +987,7 @@ export default function Home() {
                   )}
                   
                   <div 
-                    className="prose prose-sm max-w-none text-sm text-foreground/70"
+                    className="ProseMirror prose prose-sm max-w-none text-sm text-foreground/70"
                     dangerouslySetInnerHTML={{ __html: diaries[0].content }}
                   />
 
