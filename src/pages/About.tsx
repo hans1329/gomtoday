@@ -2,9 +2,28 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Camera, Users, BookOpen, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 const About = () => {
   const navigate = useNavigate();
+  const [logoUrl, setLogoUrl] = useState<string>("");
+
+  useEffect(() => {
+    const fetchLogo = async () => {
+      const cachedLogo = localStorage.getItem("auth_logo_url");
+      if (cachedLogo) {
+        setLogoUrl(cachedLogo);
+      }
+
+      const { data } = supabase.storage.from("brand-assets").getPublicUrl("3rdme-logo-auth.png");
+      if (data) {
+        setLogoUrl(data.publicUrl);
+        localStorage.setItem("auth_logo_url", data.publicUrl);
+      }
+    };
+    fetchLogo();
+  }, []);
 
   const features = [
     {
@@ -34,9 +53,15 @@ const About = () => {
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Header Section */}
         <div className="text-center mb-12 space-y-4">
-          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-            GomToday
-          </h1>
+          <div className="flex items-center justify-center mb-6">
+            {logoUrl && (
+              <img 
+                src={logoUrl} 
+                alt="GomToday Logo" 
+                className="h-16 md:h-20 w-auto object-contain"
+              />
+            )}
+          </div>
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto px-4">
             사진 한 장으로 시작하는 AI 일기 서비스
           </p>
