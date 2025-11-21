@@ -67,17 +67,7 @@ const KakaoCallback = () => {
         }
 
         toast.success("카카오 로그인 성공!");
-        
-        // 현재 유저 정보 가져오기
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        // 첫 로그인 시에만 프로필 페이지로 이동
-        if (data.is_first_login && user) {
-          localStorage.setItem(`profile_redirected_${user.id}`, 'true');
-          navigate("/profile");
-        } else {
-          navigate("/");
-        }
+        navigate("/");
       } catch (err: any) {
         console.error("Kakao callback error:", err);
         setError(err.message || "로그인 중 오류가 발생했습니다.");

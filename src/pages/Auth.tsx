@@ -67,27 +67,11 @@ export default function Auth() {
         const { data: signUpData, error } = await supabase.auth.signUp(signUpOptions);
         if (error) throw error;
 
-        // 자동 확인된 경우 프로필 체크 (첫 회원가입 시에만)
-        if (signUpData.user && signUpData.session) {
-          const {
-            data: profile
-          } = await supabase.from('profiles').select('name, profile_photo_url, email').eq('user_id', signUpData.user.id).single();
-
-          // 프로필이 미완성인 경우 (첫 회원가입 시에만 리다이렉트)
-          if (profile && (profile.name === profile.email || !profile.profile_photo_url)) {
-            toast({
-              title: "회원가입 완료",
-              description: "프로필을 완성해주세요!"
-            });
-            localStorage.setItem(`profile_redirected_${signUpData.user.id}`, 'true');
-            navigate("/profile");
-            return;
-          }
-        }
         toast({
           title: "회원가입 완료",
           description: "환영합니다!"
         });
+        navigate("/");
       } else {
         const {
           data,
@@ -98,23 +82,6 @@ export default function Auth() {
         });
         if (error) throw error;
 
-        // 로그인 후 프로필 체크 (한 번도 프로필 페이지에 가지 않은 경우만)
-        if (data.user) {
-          const hasVisitedProfile = localStorage.getItem(`profile_redirected_${data.user.id}`);
-          
-          if (!hasVisitedProfile) {
-            const {
-              data: profile
-            } = await supabase.from('profiles').select('name, profile_photo_url, email').eq('user_id', data.user.id).single();
-
-            // 프로필이 미완성인 경우
-            if (profile && (profile.name === profile.email || !profile.profile_photo_url)) {
-              localStorage.setItem(`profile_redirected_${data.user.id}`, 'true');
-              navigate("/profile");
-              return;
-            }
-          }
-        }
         navigate("/");
       }
     } catch (error: any) {
