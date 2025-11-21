@@ -2,3 +2,6 @@ project_id = "sqxoqvfcaekaxbpfguod"
 
 [functions.analyze-photo]
 verify_jwt = true
+
+[functions.optimize-images]
+verify_jwt = true
