@@ -1,0 +1,24 @@
+-- Add indexes on foreign key columns to improve join performance
+CREATE INDEX IF NOT EXISTS idx_diaries_user_id ON public.diaries(user_id);
+CREATE INDEX IF NOT EXISTS idx_diaries_photo_id ON public.diaries(photo_id);
+CREATE INDEX IF NOT EXISTS idx_photos_user_id ON public.photos(user_id);
+CREATE INDEX IF NOT EXISTS idx_photos_diary_id ON public.photos(diary_id);
+CREATE INDEX IF NOT EXISTS idx_diary_notebooks_diary_id ON public.diary_notebooks(diary_id);
+CREATE INDEX IF NOT EXISTS idx_diary_notebooks_notebook_id ON public.diary_notebooks(notebook_id);
+CREATE INDEX IF NOT EXISTS idx_diary_comments_diary_id ON public.diary_comments(diary_id);
+CREATE INDEX IF NOT EXISTS idx_diary_comments_user_id ON public.diary_comments(user_id);
+CREATE INDEX IF NOT EXISTS idx_diary_likes_diary_id ON public.diary_likes(diary_id);
+CREATE INDEX IF NOT EXISTS idx_diary_likes_user_id ON public.diary_likes(user_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_diary_likes_unique ON public.diary_likes(diary_id, user_id);
+CREATE INDEX IF NOT EXISTS idx_notebooks_user_id ON public.notebooks(user_id);
+CREATE INDEX IF NOT EXISTS idx_notebook_members_notebook_id ON public.notebook_members(notebook_id);
+CREATE INDEX IF NOT EXISTS idx_notebook_members_user_id ON public.notebook_members(user_id);
+CREATE INDEX IF NOT EXISTS idx_friend_requests_from_user_id ON public.friend_requests(from_user_id);
+CREATE INDEX IF NOT EXISTS idx_friend_requests_to_user_id ON public.friend_requests(to_user_id);
+CREATE INDEX IF NOT EXISTS idx_invitations_inviter_id ON public.invitations(inviter_id);
+CREATE INDEX IF NOT EXISTS idx_invitations_invitee_id ON public.invitations(invitee_id);
+CREATE INDEX IF NOT EXISTS idx_invitations_code ON public.invitations(invitation_code);
+CREATE INDEX IF NOT EXISTS idx_inquiries_user_id ON public.inquiries(user_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON public.notifications(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_roles_user_id ON public.user_roles(user_id);
+CREATE INDEX IF NOT EXISTS idx_profiles_user_id ON public.profiles(user_id);
