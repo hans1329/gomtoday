@@ -17,11 +17,39 @@ serve(async (req) => {
   }
 
   try {
-    const { photoIds, emotion = 'happy', length = 'medium', perspective = 'camera', userContext, participants = [], userId } = await req.json();
-    
-    if (!photoIds || photoIds.length === 0) {
-      throw new Error('No photo IDs provided');
+    const body = await req.json();
+    const { photoIds, participants = [], userId } = body;
+    let { emotion = 'happy', length = 'medium', perspective = 'camera', userContext } = body;
+
+    if (!photoIds || !Array.isArray(photoIds) || photoIds.length === 0 || photoIds.length > 10) {
+      throw new Error('Invalid photoIds');
     }
+    // Validate enum-like inputs against allowlists to prevent prompt injection via these fields
+    const ALLOWED_EMOTIONS = ['happy', 'sad', 'angry', 'calm', 'excited'];
+    const ALLOWED_LENGTHS = ['short', 'medium', 'long'];
+    if (typeof emotion !== 'string' || !ALLOWED_EMOTIONS.includes(emotion)) emotion = 'happy';
+    if (typeof length !== 'string' || !ALLOWED_LENGTHS.includes(length)) length = 'medium';
+    if (typeof perspective !== 'string' || !/^[a-z0-9_\-]{1,40}$/i.test(perspective)) {
+      throw new Error('Invalid perspective');
+    }
+    // Sanitize free-form userContext: strip control chars, cap length, neutralize instruction-like markers
+    if (typeof userContext === 'string') {
+      userContext = userContext
+        .replace(/[\u0000-\u001F\u007F]/g, ' ')
+        .replace(/```/g, "'''")
+        .slice(0, 500);
+    } else {
+      userContext = '';
+    }
+    // Sanitize participant names (used in prompt) — keep short, plain text only
+    const safeParticipants = Array.isArray(participants)
+      ? participants.slice(0, 20).map((p: any) => ({
+          id: typeof p?.id === 'string' ? p.id : '',
+          name: typeof p?.name === 'string'
+            ? p.name.replace(/[\u0000-\u001F\u007F`{}<>]/g, '').slice(0, 50)
+            : '',
+        }))
+      : [];
     
     console.log('Analyzing photos:', photoIds.length, 'images');
     console.log('Photo IDs:', photoIds);
